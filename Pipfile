@@ -12,6 +12,7 @@ sqlalchemy = "*"
 install = "*"
 pygithub = "*"
 python-dotenv = "*"
+mysql-connector-python = "*"
 
 [dev-packages]
 black = "*"

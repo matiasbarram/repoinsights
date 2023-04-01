@@ -28,7 +28,7 @@ class GHRequest:
         except Exception as e:
             return False
 
-    def get_github_dataa():
+    def get_github_data():
         pass
 
 
