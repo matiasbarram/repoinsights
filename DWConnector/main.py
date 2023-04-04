@@ -3,7 +3,9 @@ from sqlalchemy.orm import sessionmaker
 from .models.models import Project, User
 from .repositories.project_repositories import ProjectRepository
 
+
 import os
+import json
 
 USER = os.environ["GHTORRENT_USER"]
 PASSWORD = os.environ["GHTORRENT_PASSWORD"]
@@ -31,13 +33,19 @@ class DWConnector:
             print("Error de conexión: ", str(e))
 
     def get_repos(self) -> list:
+        repos_data = []
         Session = sessionmaker(bind=self.engine)
         session = Session()
         repositories = ProjectRepository(session)
         projects = repositories.get_all_project_with_owner()
         for project, user in projects:
-            project: Project = project
-            user: User = user
-            print(f"https://github.com/{user.login}/{project.name}")
+            project_data: Project = project
+            user_data: User = user
 
-        return []
+            repo_data = {"id": project_data.id, "name": f"{user_data.login}/{project_data.name}"}
+            repos_data.append(repo_data)
+        
+        print(json.dumps(repos_data))
+        return repos_data
+
+

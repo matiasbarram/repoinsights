@@ -13,6 +13,7 @@ install = "*"
 pygithub = "*"
 python-dotenv = "*"
 mysql-connector-python = "*"
+github = "*"
 
 [dev-packages]
 black = "*"

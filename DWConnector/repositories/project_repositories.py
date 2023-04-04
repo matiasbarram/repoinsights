@@ -18,6 +18,7 @@ class ProjectRepository:
             self.session.query(Project, User)
             .join(User)
             .filter(Project.forked_from == None)
+            .order_by()
             .all()
         )
 
