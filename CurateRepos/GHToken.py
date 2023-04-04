@@ -1,8 +1,8 @@
-from github import Github
-import os
-import json
 import random
 from typing import Union
+from github import Github
+import json
+import os
 
 
 class GHToken:
