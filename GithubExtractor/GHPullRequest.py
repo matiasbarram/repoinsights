@@ -1,16 +1,16 @@
-from github import PullRequest, PullRequestComment
+from github import PullRequest, PullRequestComment, PaginatedList
+from .GHRepository import GHRepository
 
 
-class GHPullRequest:
+class GHPullRequest(GHRepository):
     def get_pull_request_by_id(self, pull_id):
         pr = self.repo.get_pull(pull_id)
         return pr
 
-    def get_pulls(self) -> list:
-        pulls = self.repo.get_pulls(state="all", sort="created", direction="desc")
-        return pulls
+    def get_pulls(self):
+        return self.repo.get_pulls(state="all", sort="created", direction="desc")
 
-    def get_pull_data(self, pull: PullRequest):
+    def get_pull_data(self, pull: PullRequest.PullRequest):
         data = {
             "id": pull.id,
             "repo_id": self.repo.id,

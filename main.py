@@ -25,8 +25,10 @@ from github import (
     PaginatedList,
     NamedUser,
     PullRequestComment,
+    IssueComment,
 )
 import DWConnector.main as DWService
+from typing import Union, List, Dict, Any
 from GithubExtractor.GHExtractor import GHGetToken, GHExtractor
 
 load_dotenv()
@@ -133,20 +135,19 @@ repos = [
     "Craftbukkit/Bukkit",
 ]
 
-gh_user = GHGetToken()
+gh_token = GHGetToken()
 
 
 # TODO
 # connector = RabbitMQConnector()
 # connector.get_repo_from_queue()
-def get_repo_from_queue() -> str:
-    for repo in repos:
-        return repo
+def get_repo_from_queue(repos) -> str:
+    return repos[0]
 
 
-repo = get_repo_from_queue()
+repo = get_repo_from_queue(repos)
 print(repo)
-gh_extractor = GHExtractor(gh_user, repo)
+gh_extractor = GHExtractor(gh_token, repo)
 owner: NamedUser.NamedUser = gh_extractor.get_project_owner()
 
 gh_extractor.get_user_data(owner)
@@ -155,7 +156,7 @@ print("---------WATCHERS----------")
 for watcher in watchers:
     gh_extractor.get_watcher_data(watcher)
     gh_extractor.get_user_data(watcher)
-    # break
+    break
 
 print("---------MEMBERS----------")
 members = gh_extractor.get_members()
@@ -163,21 +164,21 @@ try:
     for member in members:
         gh_extractor.get_member_data(member)
         gh_extractor.get_user_data(member)
-        # break
+        break
 except Exception as e:
     print("No fue posible obtener los miembros del proyecto")
 
 print("---------REPO LABELS--------")
-labels = gh_extractor.get_labels(gh_extractor.repo)
+labels = gh_extractor.get_project_labels()
 for label in labels:
     gh_extractor.get_label_data(label)
-    # break
+    break
 
 print("---------REPO MILESTONES----------")
 milestones = gh_extractor.get_milestones()
 for milestone in milestones:
     gh_extractor.get_milestone_data(milestone)
-    # break
+    break
 
 
 print("---------ISSUES----------")
@@ -185,20 +186,21 @@ issues = gh_extractor.get_issues()
 for issue in issues:
     gh_extractor.get_issue_data(issue)
     print("---------ISSUE LABELS----------")
-    gh_extractor.get_labels(issue)
+    gh_extractor.get_issue_labels(issue)
     for label in issue.labels:
         gh_extractor.get_label_data(label)
     print("---------ISSUE COMMENTS----------")
-    comments = gh_extractor.get_issue_comments(issue)
-    for comment in comments:
-        gh_extractor.get_issue_comment_data(issue, comment)
-        gh_extractor.get_user_data(comment.user)
+    issue_comments = gh_extractor.get_issue_comments(issue)
+    issue_comment: IssueComment.IssueComment
+    for issue_comment in issue_comments:
+        gh_extractor.get_issue_comment_data(issue, issue_comment)
+        gh_extractor.get_user_data(issue_comment.user)
     print("---------ISSUE EVENTS--------------------")
     events = gh_extractor.get_issue_events(issue)
     for event in events:
         gh_extractor.get_issue_event_data(issue, event)
         gh_extractor.get_user_data(event.actor)
-    # break
+    break
 
 print("---------COMMITS----------")
 # TODO order of commits
@@ -216,11 +218,11 @@ for commit in commits:
         gh_extractor.get_user_data(parent_commit.author)
     print("---------COMMITS COMMENTS----------")
     # TODO revisar
-    comments = gh_extractor.get_commit_comments(commit)
-    for comment in comments:
-        gh_extractor.get_commit_comment_data(comment)
-        gh_extractor.get_user_data(comment.user)
-    # break
+    issue_comments = gh_extractor.get_commit_comments(commit)
+    for commit_comment in issue_comments:
+        gh_extractor.get_commit_comment_data(commit_comment)
+        gh_extractor.get_user_data(commit_comment.user)
+    break
 
 print("---------PULL REQUESTS----------")
 
@@ -238,4 +240,4 @@ for pull in pulls:
     for comment in comments:
         gh_extractor.get_pull_comment_data(pull, comment)
         gh_extractor.get_user_data(comment.user)
-    # break
+    break

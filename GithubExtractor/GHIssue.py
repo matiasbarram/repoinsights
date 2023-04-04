@@ -1,9 +1,14 @@
 from datetime import datetime
 from github import Issue, IssueComment, IssueEvent
 from helper.utils import format_dt
+from .GHRepository import GHRepository
 
 
-class GHIssue:
+class GHIssue(GHRepository):
+    def get_issues(self):
+        issues = self.repo.get_issues(state="all", sort="created")
+        return issues
+
     def get_issue_data(self, issue: Issue.Issue):
         reporter_id = issue.user.id if issue.user is not None else None
         assignee_id = issue.assignee.id if issue.assignee is not None else None

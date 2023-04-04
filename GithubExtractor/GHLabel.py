@@ -1,10 +1,15 @@
 from typing import Union
 from github import Label, Issue, Project
+from .GHRepository import GHRepository
 
 
-class GHLabel:
-    def get_labels(self, entity: Union[Issue.Issue, Project.Project]):
-        labels = entity.get_labels()
+class GHLabel(GHRepository):
+    def get_issue_labels(self, issue: Issue.Issue):
+        labels = issue.get_labels()
+        return labels
+
+    def get_project_labels(self):
+        labels = self.repo.get_labels()
         return labels
 
     def get_label_data(self, label: Label.Label):

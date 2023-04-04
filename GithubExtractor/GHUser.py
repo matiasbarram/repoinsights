@@ -1,8 +1,9 @@
+from GithubExtractor.GHRepository import GHRepository
 from github import NamedUser, PaginatedList
 from helper.utils import format_dt, get_user_type
 
 
-class GHUser:
+class GHUser(GHRepository):
     def get_user_data(self, user: NamedUser.NamedUser):
         if user is None:
             return None
@@ -43,5 +44,7 @@ class GHUser:
         return data
 
     def get_followers(self, user: NamedUser.NamedUser):
-        followers: PaginatedList[NamedUser] = user.get_followers()
+        followers: PaginatedList.PaginatedList[
+            NamedUser.NamedUser
+        ] = user.get_followers()
         return followers

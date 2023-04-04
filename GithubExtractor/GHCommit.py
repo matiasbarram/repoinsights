@@ -1,8 +1,9 @@
 from github import Commit
 from helper.utils import format_dt
+from .GHRepository import GHRepository
 
 
-class GHCommit:
+class GHCommit(GHRepository):
     def get_commits(self):
         commits = self.repo.get_commits()
         return commits
