@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from github import NamedUser, Repository, PullRequest, Github, PaginatedList, NamedUser
 import DWConnector.main as DWService
-from GithubExtractor.main import GHTokenUser, GHExtractor
+from GithubExtractor.main import GHGetToken, GHExtractor
 
 load_dotenv()
 
@@ -105,7 +105,7 @@ repos = [
     "Craftbukkit/Bukkit",
 ]
 
-gh_user = GHTokenUser()
+gh_user = GHGetToken()
 
 
 # TODO
