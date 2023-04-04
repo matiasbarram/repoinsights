@@ -1,7 +1,33 @@
+"""
+Traceback (most recent call last):
+  File "/home/matias/proyecto/repoinsights/main.py", line 175, in <module>
+    for comment in comments:
+  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/PaginatedList.py", line 56, in __iter__
+    newElements = self._grow()
+  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/PaginatedList.py", line 67, in _grow
+    newElements = self._fetchNextPage()
+  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/PaginatedList.py", line 201, in _fetchNextPage
+    headers, data = self.__requester.requestJsonAndCheck(
+  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/Requester.py", line 398, in requestJsonAndCheck
+    return self.__check(
+  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/Requester.py", line 423, in __check
+    raise self.__createException(status, responseHeaders, output)
+github.GithubException.RateLimitExceededException: 403 {"message": "API rate limit exceeded for user ID 64421508.", "documentation_url": "https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"}
+"""
+
+
 from dotenv import load_dotenv
-from github import NamedUser, Repository, PullRequest, Github, PaginatedList, NamedUser
+from github import (
+    NamedUser,
+    Repository,
+    PullRequest,
+    Github,
+    PaginatedList,
+    NamedUser,
+    PullRequestComment,
+)
 import DWConnector.main as DWService
-from GithubExtractor.main import GHGetToken, GHExtractor
+from GithubExtractor.GHExtractor import GHGetToken, GHExtractor
 
 load_dotenv()
 
@@ -12,6 +38,9 @@ load_dotenv()
 
 
 repos = [
+    "ericblade/quagga2",  # ADDED BY ME  # ADDED BY ME
+    "geohot/corona",  # ADDED BY ME  # ADDED BY ME
+    "mongodb/mongo",
     "rstudio/shiny",
     "facebook/folly",  # TODO check if user exist when get get_commit_data
     "mavam/stat-cookbook",
@@ -20,7 +49,6 @@ repos = [
     "johnmyleswhite/ProjectTemplate",
     "facebook/hiphop-php",
     "yihui/knitr",
-    "mongodb/mongo",
     "TTimo/doom3.gpl",
     "ariya/phantomjs",
     "TrinityCore/TrinityCore",
@@ -127,7 +155,7 @@ print("---------WATCHERS----------")
 for watcher in watchers:
     gh_extractor.get_watcher_data(watcher)
     gh_extractor.get_user_data(watcher)
-    break
+    # break
 
 print("---------MEMBERS----------")
 members = gh_extractor.get_members()
@@ -135,7 +163,7 @@ try:
     for member in members:
         gh_extractor.get_member_data(member)
         gh_extractor.get_user_data(member)
-        break
+        # break
 except Exception as e:
     print("No fue posible obtener los miembros del proyecto")
 
@@ -143,7 +171,14 @@ print("---------REPO LABELS--------")
 labels = gh_extractor.get_labels(gh_extractor.repo)
 for label in labels:
     gh_extractor.get_label_data(label)
-    break
+    # break
+
+print("---------REPO MILESTONES----------")
+milestones = gh_extractor.get_milestones()
+for milestone in milestones:
+    gh_extractor.get_milestone_data(milestone)
+    # break
+
 
 print("---------ISSUES----------")
 issues = gh_extractor.get_issues()
@@ -156,9 +191,14 @@ for issue in issues:
     print("---------ISSUE COMMENTS----------")
     comments = gh_extractor.get_issue_comments(issue)
     for comment in comments:
-        gh_extractor.get_issue_comment_data(comment)
+        gh_extractor.get_issue_comment_data(issue, comment)
         gh_extractor.get_user_data(comment.user)
-    break
+    print("---------ISSUE EVENTS--------------------")
+    events = gh_extractor.get_issue_events(issue)
+    for event in events:
+        gh_extractor.get_issue_event_data(issue, event)
+        gh_extractor.get_user_data(event.actor)
+    # break
 
 print("---------COMMITS----------")
 # TODO order of commits
@@ -180,4 +220,22 @@ for commit in commits:
     for comment in comments:
         gh_extractor.get_commit_comment_data(comment)
         gh_extractor.get_user_data(comment.user)
-    break
+    # break
+
+print("---------PULL REQUESTS----------")
+
+pulls = gh_extractor.get_pulls()
+pull: PullRequest.PullRequest
+for pull in pulls:
+    pr_assignee = pull.assignee if pull.assignee is not None else None
+    data = gh_extractor.get_pull_data(pull)
+    gh_extractor.get_user_data(pull.user)
+    if pr_assignee is not None:
+        gh_extractor.get_user_data(pr_assignee)
+    print("---------PULL REQUESTS COMMENTS----------")
+    comments = gh_extractor.get_pull_comments(pull)
+    comment: PullRequestComment.PullRequestComment
+    for comment in comments:
+        gh_extractor.get_pull_comment_data(pull, comment)
+        gh_extractor.get_user_data(comment.user)
+    # break

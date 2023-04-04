@@ -1,7 +1,4 @@
-from github import (
-    Github,
-    Repository,
-)
+from github import Github, Repository, Milestone
 from .GHIssue import GHIssue
 from .GHCommit import GHCommit
 from .GHPullRequest import GHPullRequest
@@ -26,3 +23,20 @@ class GHExtractor(GHIssue, GHCommit, GHPullRequest, GHUser, GHLabel):
     def get_members(self):
         members = self.repo.get_collaborators()
         return members
+
+    def get_issues(self):
+        issues = self.repo.get_issues(state="all", sort="created")
+        return issues
+
+    def get_milestones(self):
+        milestones = self.repo.get_milestones(state="all")
+        return milestones
+
+    def get_milestone_data(self, milestone: Milestone.Milestone):
+        data = {
+            "id": milestone.id,
+            "repo_id": self.repo.id,  # GET FROM DB
+            "name": milestone.title,
+        }
+        print(f"Milestone data {data}")
+        return data

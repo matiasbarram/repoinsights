@@ -1,9 +1,11 @@
-from github import NamedUser
+from github import NamedUser, PaginatedList
 from helper.utils import format_dt, get_user_type
 
 
 class GHUser:
     def get_user_data(self, user: NamedUser.NamedUser):
+        if user is None:
+            return None
         data = {
             "login": user.login,
             "name": user.name,
@@ -13,6 +15,7 @@ class GHUser:
             "type": get_user_type(user.type),
         }
         print(f"User data {data}")
+        return data
 
     def get_watcher_data(self, watcher: NamedUser.NamedUser):
         data = {"id": watcher.id, "created_at": watcher.created_at}
@@ -27,3 +30,18 @@ class GHUser:
         }
         print(f"member data {data}")
         return data
+
+    def get_follower_data(
+        self, user: NamedUser.NamedUser, follower: NamedUser.NamedUser
+    ):
+        data = {
+            "follower_id": follower.id,
+            "user_id": user.id,
+            "created_at": format_dt(follower.created_at),
+        }
+        print(f"follower data {data}")
+        return data
+
+    def get_followers(self, user: NamedUser.NamedUser):
+        followers: PaginatedList[NamedUser] = user.get_followers()
+        return followers

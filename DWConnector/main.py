@@ -38,14 +38,11 @@ class DWConnector:
         session = Session()
         repositories = ProjectRepository(session)
         projects = repositories.get_all_project_with_owner()
+        project: Project
+        user: User
         for project, user in projects:
-            project_data: Project = project
-            user_data: User = user
-
-            repo_data = {"id": project_data.id, "name": f"{user_data.login}/{project_data.name}"}
+            repo_data = {"id": project.id, "name": f"{user.login}/{project.name}"}
             repos_data.append(repo_data)
-        
+
         print(json.dumps(repos_data))
         return repos_data
-
-
