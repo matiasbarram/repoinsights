@@ -35,13 +35,6 @@ class CoreContributors:
             "cardinality": len(core_contributors),
         }
 
-    """
-    Core contributors: is the cardinality of the smallest set of contributors whose total number of commits 
-    to a source code repository
-    accounts for 80% or more of the total contributions
-    que endpoints de la api de github debo utilizar
-    """
-
     def calc(self) -> dict:
         contributors = self.repo.get_contributors()
         total_commits = self.repo.get_commits().totalCount

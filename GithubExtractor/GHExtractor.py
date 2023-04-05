@@ -16,7 +16,7 @@ class GHExtractor(GHIssue, GHCommit, GHPullRequest, GHUser, GHLabel):
         return watchers
 
     def get_members(self):
-        members = self.repo.get_collaborators()
+        members = self.repo.get_contributors()
         return members
 
     def get_milestones(self):
