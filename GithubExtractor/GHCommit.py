@@ -9,10 +9,13 @@ class GHCommit(GHRepository):
         return commits
 
     def get_commit_data(self, commit: Commit.Commit):
+        author_id = commit.author.id if commit.author is not None else None
+        commiter_id = commit.committer.id if commit.committer is not None else None
+
         data = {
             "sha": commit.sha,
-            "author_id": commit.author.id,
-            "commiter_id": commit.committer.id,
+            "author_id": author_id,
+            "commiter_id": commiter_id,
             "project_id": self.repo.id,
             "created_at": format_dt(commit.commit.author.date),
         }

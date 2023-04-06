@@ -7,7 +7,7 @@ from typing import Union
 
 class GHToken:
     def test_token(self, token: str):
-        github_api = Github(token)
+        github_api = Github(token, per_page=100)
         try:
             me: str = github_api.get_user().login
             print(f"Hello! {me}")

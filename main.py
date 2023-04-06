@@ -46,7 +46,7 @@ def extract_all_info(repo):
     for watcher in watchers:
         gh_extractor.get_watcher_data(watcher)
         gh_extractor.get_user_data(watcher)
-        break
+        # break
 
     print("---------MEMBERS----------")
     members = gh_extractor.get_members()
@@ -54,7 +54,7 @@ def extract_all_info(repo):
         for member in members:
             gh_extractor.get_member_data(member)
             gh_extractor.get_user_data(member)
-            break
+            # break
     except Exception as e:
         print("No fue posible obtener los miembros del proyecto")
 
@@ -62,13 +62,13 @@ def extract_all_info(repo):
     labels = gh_extractor.get_project_labels()
     for label in labels:
         gh_extractor.get_label_data(label)
-        break
+        # break
 
     print("---------REPO MILESTONES----------")
     milestones = gh_extractor.get_milestones()
     for milestone in milestones:
         gh_extractor.get_milestone_data(milestone)
-        break
+        # break
 
     print("---------ISSUES----------")
     issues = gh_extractor.get_issues()
@@ -89,7 +89,7 @@ def extract_all_info(repo):
         for event in events:
             gh_extractor.get_issue_event_data(issue, event)
             gh_extractor.get_user_data(event.actor)
-        break
+        ##break
 
     print("---------COMMITS----------")
     # TODO order of commits
@@ -111,10 +111,9 @@ def extract_all_info(repo):
         for commit_comment in issue_comments:
             gh_extractor.get_commit_comment_data(commit_comment)
             gh_extractor.get_user_data(commit_comment.user)
-        break
+        ##break
 
     print("---------PULL REQUESTS----------")
-
     pulls = gh_extractor.get_pulls()
     pull: PullRequest.PullRequest
     for pull in pulls:
@@ -129,4 +128,8 @@ def extract_all_info(repo):
         for comment in comments:
             gh_extractor.get_pull_comment_data(pull, comment)
             gh_extractor.get_user_data(comment.user)
-        break
+        ##break
+
+
+repo = "RepoGrams/RepoGrams"
+extract_all_info(repo)
