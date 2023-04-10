@@ -10,12 +10,9 @@ python_version = "3"
 black = "*"
 sqlalchemy = "*"
 install = "*"
-pygithub = "*"
 python-dotenv = "*"
-mysql-connector-python = "*"
-github = "*"
 pika = "*"
-pymysql = "*"
+pygithub = "*"
 
 [dev-packages]
 black = "*"
