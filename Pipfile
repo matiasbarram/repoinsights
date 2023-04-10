@@ -15,6 +15,7 @@ python-dotenv = "*"
 mysql-connector-python = "*"
 github = "*"
 pika = "*"
+pymysql = "*"
 
 [dev-packages]
 black = "*"
