@@ -1,9 +1,9 @@
 from github import Github, Repository, Milestone
-from .GHIssue import GHIssue
-from .GHCommit import GHCommit
-from .GHPullRequest import GHPullRequest
-from .GHUser import GHUser
-from .GHLabel import GHLabel
+from .github_api.isssue import GHIssue
+from .github_api.commit import GHCommit
+from .github_api.pull_request import GHPullRequest
+from .github_api.user import GHUser
+from .github_api.label import GHLabel
 
 
 class GHExtractor(GHIssue, GHCommit, GHPullRequest, GHUser, GHLabel):

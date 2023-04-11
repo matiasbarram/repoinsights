@@ -2,7 +2,7 @@ from github.Commit import Commit
 from github.Repository import Repository
 from datetime import datetime, timedelta
 from pprint import pprint
-from helper.utils import get_first_last_days_month, get_n_months
+from github_service.utils.utils import get_first_last_days_month, get_n_months
 
 
 class CommitFrecuency:

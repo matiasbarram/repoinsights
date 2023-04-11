@@ -40,3 +40,9 @@ class GHToken:
         token_list = self.get_public_tokens(token=None)
         random_token = random.choice(token_list)  # iterate to get a valid token
         return random_token
+
+
+class GHGetToken(GHToken):
+    def __init__(self) -> None:
+        token_list = self.get_public_tokens(token=None)
+        self.connector = self.get_github_connector(token_list)

@@ -27,10 +27,10 @@ from github import (
     PullRequestComment,
     IssueComment,
 )
-import DWConnector.main as DWService
+import DWConnector.orm_main as DWService
 from typing import Union, List, Dict, Any
-from GithubExtractor.GHExtractor import GHExtractor
-from GithubExtractor.GHGetToken import GHGetToken
+from github_service.extractor import GHExtractor
+from github_service.config import GHGetToken
 
 load_dotenv()
 
@@ -42,27 +42,27 @@ def extract_all_info(repo):
 
     gh_extractor.get_user_data(owner)
     watchers: PaginatedList.PaginatedList = gh_extractor.get_watchers()
-    print("---------WATCHERS----------")
-    for watcher in watchers:
-        gh_extractor.get_watcher_data(watcher)
-        gh_extractor.get_user_data(watcher)
-        # break
+    # print("---------WATCHERS----------")
+    # for watcher in watchers:
+    #     gh_extractor.get_watcher_data(watcher)
+    #     gh_extractor.get_user_data(watcher)
+    #     # break
 
-    print("---------MEMBERS----------")
-    members = gh_extractor.get_members()
-    try:
-        for member in members:
-            gh_extractor.get_member_data(member)
-            gh_extractor.get_user_data(member)
-            # break
-    except Exception as e:
-        print("No fue posible obtener los miembros del proyecto")
+    # print("---------MEMBERS----------")
+    # members = gh_extractor.get_members()
+    # try:
+    #     for member in members:
+    #         gh_extractor.get_member_data(member)
+    #         gh_extractor.get_user_data(member)
+    #         # break
+    # except Exception as e:
+    #     print("No fue posible obtener los miembros del proyecto")
 
-    print("---------REPO LABELS--------")
-    labels = gh_extractor.get_project_labels()
-    for label in labels:
-        gh_extractor.get_label_data(label)
-        # break
+    # print("---------REPO LABELS--------")
+    # labels = gh_extractor.get_project_labels()
+    # for label in labels:
+    #     gh_extractor.get_label_data(label)
+    #     # break
 
     print("---------REPO MILESTONES----------")
     milestones = gh_extractor.get_milestones()

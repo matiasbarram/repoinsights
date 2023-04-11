@@ -1,17 +1,21 @@
-from ..models.models import Project
-from sqlalchemy.orm import Session
+from ..models.models import Project, Commit
+from sqlalchemy.orm import Session, sessionmaker, aliased
+from sqlalchemy import desc
 from ..models.models import User
+from ..orm_main import DWConnector
 
 
 class ProjectRepository:
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self):
+        self.engine = DWConnector().engine
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
 
     def get_all_projects(self):
-        return self.session.query(Project).all()
+        return self.session.query(Project).where(Project.forked_from == None).all()
 
     def get_main_projects(self):  # non forked
-        return self.session.query(Project).filter_by(forked_from=None)
+        return self.session.query(Project).filter_by(forked_from=None).all()
 
     def get_all_project_with_owner(self):
         return (
@@ -20,6 +24,26 @@ class ProjectRepository:
             .filter(Project.forked_from == None)
             .order_by()
             .all()
+        )
+
+    def get_project_with_owner(self, id):
+        return (
+            self.session.query(Project, User)
+            .join(User)
+            .filter(Project.id == id)
+            .first()
+        )
+
+    def get_last_commit(self, id):
+        author_alias = aliased(User)
+        return (
+            self.session.query(Commit, Project, author_alias)
+            .select_from(Commit)
+            .join(Project, Project.id == Commit.project_id)
+            .where(Commit.project_id == id)
+            .join(author_alias, author_alias.id == Commit.author_id)
+            .order_by(desc(Commit.created_at))
+            .first()
         )
 
     def get_project_by_id(self, id):
