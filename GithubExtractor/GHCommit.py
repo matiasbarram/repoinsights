@@ -1,11 +1,16 @@
 from github import Commit
 from helper.utils import format_dt
 from .GHRepository import GHRepository
+from datetime import datetime
 
 
 class GHCommit(GHRepository):
     def get_commits(self):
         commits = self.repo.get_commits()
+        return commits
+
+    def get_commits_between_dates(self, since=datetime, until=datetime):
+        commits = self.repo.get_commits(since=since, until=until)
         return commits
 
     def get_commit_data(self, commit: Commit.Commit):

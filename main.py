@@ -27,7 +27,7 @@ from github import (
     PullRequestComment,
     IssueComment,
 )
-import DWConnector.main as DWService
+import DWConnector.orm_main as DWService
 from typing import Union, List, Dict, Any
 from GithubExtractor.GHExtractor import GHExtractor
 from GithubExtractor.GHGetToken import GHGetToken

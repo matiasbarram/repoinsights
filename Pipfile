@@ -13,6 +13,7 @@ install = "*"
 python-dotenv = "*"
 pika = "*"
 pygithub = "*"
+psycopg2 = "*"
 
 [dev-packages]
 black = "*"
