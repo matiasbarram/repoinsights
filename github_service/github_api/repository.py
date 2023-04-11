@@ -1,4 +1,4 @@
-from ..config import GHGetToken
+from config import GHGetToken
 from github import Repository
 
 

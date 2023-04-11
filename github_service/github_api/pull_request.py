@@ -1,60 +1,42 @@
-from github import PullRequest, PullRequestComment, PaginatedList
-from .repository import GHRepository
+from github.PullRequest import PullRequest
+from .comment import GHPullRequestComment
 
 
-class GHPullRequest(GHRepository):
-    def get_pull_request_by_id(self, pull_id):
-        pr = self.repo.get_pull(pull_id)
-        return pr
+class GHPullRequest:
+    def __init__(self, pull_request: PullRequest):
+        self.number = pull_request.number
+        self.title = pull_request.title
+        self.description = pull_request.body
+        self.state = pull_request.state
+        self.created_at = pull_request.created_at
+        self.updated_at = pull_request.updated_at
+        self.closed_at = pull_request.closed_at
+        self.merged_at = pull_request.merged_at
+        self.author = pull_request.user.login
+        self.base_branch = pull_request.base.ref
+        self.head_branch = pull_request.head.ref
+        self.body = pull_request.body
+        self.raw_pull_request = pull_request
 
-    def get_pulls(self):
-        return self.repo.get_pulls(state="all", sort="created", direction="desc")
+    def __str__(self):
+        return f"Pull Request #{self.number} ({self.state})"
 
-    def get_pull_data(self, pull: PullRequest.PullRequest):
-        data = {
-            "id": pull.id,
-            "repo_id": self.repo.id,
-            "number": pull.number,
-            "title": pull.title,
-            "body": pull.body,
-            "state": pull.state,
-            # "locked": pull.locked,
-            "created_at": pull.created_at,
-            "updated_at": pull.updated_at,
-            "closed_at": pull.closed_at,
-            "merged_at": pull.merged_at,
-            "merge_commit_sha": pull.merge_commit_sha,
-            "mergeable": pull.mergeable,
-            "merged": pull.merged,
-            "rebaseable": pull.rebaseable,
-            "mergeable_state": pull.mergeable_state,
-            "merged_by_id": pull.merged_by.id if pull.merged_by else None,
-            "comments": pull.comments,
-            "review_comments": pull.review_comments,
-            "commits": pull.commits,
-            "additions": pull.additions,
-            "deletions": pull.deletions,
-            "changed_files": pull.changed_files,
+    def set_comments(self, comments: list[GHPullRequestComment]):
+        self.comments = comments
+
+    def get_comments(self):
+        comments = self.raw_pull_request.get_comments()
+        return [GHPullRequestComment(comment) for comment in comments]
+
+    def to_dict(self):
+        return {
+            "number": self.number,
+            "title": self.title,
+            "body": self.body,
+            "state": self.state,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "closed_at": self.closed_at,
+            "merged_at": self.merged_at,
+            "author": self.author,
         }
-        print(f"Pull request data {data}")
-        return data
-
-    def get_pull_comments(self, pull: PullRequest.PullRequest):
-        comments = pull.get_comments()
-        return comments
-
-    def get_pull_comment_data(
-        self,
-        pull: PullRequest.PullRequest,
-        comment: PullRequestComment.PullRequestComment,
-    ):
-        data = {
-            "id": comment.id,
-            "user_id": comment.user.id,  # GET ID FROM DB
-            "pull_request_id": pull.id,  # GET ID FROM DB
-            "created_at": comment.created_at,
-            "updated_at": comment.updated_at,
-            "body": comment.body,
-        }
-        print(f"comment data {data}")
-        return data

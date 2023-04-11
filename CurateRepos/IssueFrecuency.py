@@ -3,7 +3,7 @@ from github.Repository import Repository
 from github.PaginatedList import PaginatedList
 from github.Issue import Issue
 from datetime import datetime
-from helper.utils import get_first_last_days_month, get_n_months
+from github_service.utils.utils import get_first_last_days_month, get_n_months
 from pprint import pprint
 from typing import Union, List
 

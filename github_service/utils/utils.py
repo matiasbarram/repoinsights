@@ -36,3 +36,17 @@ def get_n_months(start_date: datetime, end_date: datetime):
         (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
     )
     return months
+
+
+def is_valid_date(date_str):
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
+def compare_dates(date1, date2):
+    date1 = datetime.strptime(date1, "%Y-%m-%d")
+    date2 = datetime.strptime(date2, "%Y-%m-%d")
+    return (date1 > date2) - (date1 < date2)

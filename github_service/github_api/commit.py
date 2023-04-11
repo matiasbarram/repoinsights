@@ -1,48 +1,30 @@
 from github.Commit import Commit
-from helper.utils import format_dt
+
+# from helper.utils import format_dt
 from .repository import GHRepository
 from datetime import datetime
+from .comment import GHCommitComment
 
 
-class GHCommit(GHRepository):
-    def get_commits(self):
-        commits = self.repo.get_commits()
-        return commits
+class GHCommit:
+    def __init__(self, commit: Commit):
+        self.sha = commit.sha
+        self.message = commit.commit.message
+        self.author = commit.commit.author.name
+        self.date = commit.commit.author.date
+        self.parents = [parent.sha for parent in commit.parents]
 
-    def get_commits_between_dates(self, since=datetime, until=datetime):
-        commits = self.repo.get_commits(since=since, until=until)  # type: ignore
-        return commits
+    def set_comments(self, comments: list[GHCommitComment]):
+        self.comments = comments
 
-    def get_commit_data(self, commit: Commit):
-        author_id = commit.author.id if commit.author is not None else None
-        commiter_id = commit.committer.id if commit.committer is not None else None
+    def get_comments(self) -> list[GHCommitComment]:
+        return self.comments
 
-        data = {
-            "sha": commit.sha,
-            "author_id": author_id,
-            "commiter_id": commiter_id,
-            "project_id": self.repo.id,
-            "created_at": format_dt(commit.commit.author.date),
+    def to_dict(self) -> dict:
+        return {
+            "sha": self.sha,
+            "message": self.message,
+            "author": self.author,
+            "date": self.date,
+            "parents": self.parents,
         }
-        print(f"commit data {data}")
-        return data
-
-    def get_commit_parents(self, commit: Commit):
-        parents = commit.parents
-        return parents
-
-    def get_commit_comments(self, commit: Commit):
-        comments = commit.get_comments()
-        return comments
-
-    def get_commit_comment_data(self, comment):
-        data = {
-            "id": comment.id,
-            "user_id": comment.user.id,
-            "commit_id": comment.commit_id,
-            "created_at": format_dt(comment.created_at),
-            "updated_at": format_dt(comment.updated_at),
-            "body": comment.body,
-        }
-        print(f"comment data {data}")
-        return data
