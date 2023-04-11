@@ -1,6 +1,6 @@
 from typing import Union
 from github import Label, Issue, Project
-from .GHRepository import GHRepository
+from .repository import GHRepository
 
 
 class GHLabel(GHRepository):

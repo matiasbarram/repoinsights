@@ -1,5 +1,5 @@
 from github import PullRequest, PullRequestComment, PaginatedList
-from .GHRepository import GHRepository
+from .repository import GHRepository
 
 
 class GHPullRequest(GHRepository):

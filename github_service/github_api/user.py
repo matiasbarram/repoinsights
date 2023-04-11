@@ -1,4 +1,4 @@
-from GithubExtractor.GHRepository import GHRepository
+from github_service.github_api.repository import GHRepository
 from github import NamedUser, PaginatedList
 from helper.utils import format_dt, get_user_type
 

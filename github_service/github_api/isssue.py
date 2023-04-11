@@ -1,7 +1,7 @@
 from datetime import datetime
 from github import Issue, IssueComment, IssueEvent
 from helper.utils import format_dt
-from .GHRepository import GHRepository
+from .repository import GHRepository
 
 
 class GHIssue(GHRepository):

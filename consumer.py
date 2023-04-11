@@ -1,4 +1,4 @@
-from GithubExtractor.GHGetToken import GHGetToken
+from github_service.config import GHGetToken
 import pika
 import sys
 import os

@@ -1,6 +1,6 @@
-from github import Commit
+from github.Commit import Commit
 from helper.utils import format_dt
-from .GHRepository import GHRepository
+from .repository import GHRepository
 from datetime import datetime
 
 
@@ -10,10 +10,10 @@ class GHCommit(GHRepository):
         return commits
 
     def get_commits_between_dates(self, since=datetime, until=datetime):
-        commits = self.repo.get_commits(since=since, until=until)
+        commits = self.repo.get_commits(since=since, until=until)  # type: ignore
         return commits
 
-    def get_commit_data(self, commit: Commit.Commit):
+    def get_commit_data(self, commit: Commit):
         author_id = commit.author.id if commit.author is not None else None
         commiter_id = commit.committer.id if commit.committer is not None else None
 
@@ -27,11 +27,11 @@ class GHCommit(GHRepository):
         print(f"commit data {data}")
         return data
 
-    def get_commit_parents(self, commit: Commit.Commit):
+    def get_commit_parents(self, commit: Commit):
         parents = commit.parents
         return parents
 
-    def get_commit_comments(self, commit: Commit.Commit):
+    def get_commit_comments(self, commit: Commit):
         comments = commit.get_comments()
         return comments
 

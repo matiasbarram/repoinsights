@@ -29,8 +29,8 @@ from github import (
 )
 import DWConnector.orm_main as DWService
 from typing import Union, List, Dict, Any
-from GithubExtractor.GHExtractor import GHExtractor
-from GithubExtractor.GHGetToken import GHGetToken
+from github_service.extractor import GHExtractor
+from github_service.config import GHGetToken
 
 load_dotenv()
 
