@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+
+  consolidada:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'ghtorrent'
+      POSTGRES_DB: 'ghtorrent'
+      POSTGRES_PASSWORD: 'vps228.2o22'
+    ports:
+      - '5432:5400'
+    expose:
+      - '5400'
+    command: -p 5400
+    volumes:
+      - ./docker/postgres:/var/lib/postgresql/data
+      - ./docker/data:/app
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+  temporal:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'ghtorrent'
+      POSTGRES_DB: 'ghtorrent'
+      POSTGRES_PASSWORD: 'vps228.2o22'
+    ports:
+      - '6611:5411'
+    expose:
+      - '5411'
+    command: -p 5411
+    volumes:
+      - ./docker/postgres-temporal:/var/lib/postgresql/data
+      - ./docker/data:/app
+      - ./docker/schema.sql:/docker-entrypoint-initdb.d/init.sql
+  # rabbitmq:
+  #   image: rabbitmq:3.9-management-alpine
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   volumes:
+  #     - ./docker/rabbitmq/:/var/lib/rabbitmq/
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=user
+  #     - RABBITMQ_DEFAULT_PASS=password
+
+volumes:
+  db:
+  data:
+    external: true
+  rabbitmq:
+  postgres:
+  postgres-temporal:
+  pgadmin-data:
