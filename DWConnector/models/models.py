@@ -1,76 +1,240 @@
 from sqlalchemy import (
+    create_engine,
     Column,
     Integer,
     String,
-    TIMESTAMP,
-    ForeignKey,
-    DateTime,
     Boolean,
-    DECIMAL,
-    Index,
-    UniqueConstraint,
+    ForeignKey,
+    Text,
+    TIMESTAMP,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import text
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 Base = declarative_base()
 
 
-class User(Base):
-    __tablename__ = "users"
+class CommitComment(Base):
+    __tablename__ = "commit_comments"
 
     id = Column(Integer, primary_key=True)
-    login = Column(String(255), nullable=False)
-    name = Column(String(255))
-    company = Column(String(255))
-    location = Column(String(255))
-    email = Column(String(255))
+    commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    body = Column(String(256))
+    line = Column(Integer)
+    position = Column(Integer)
+    comment_id = Column(Integer, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), nullable=False, default="0")
-    type = Column(String(255), nullable=False, default="USR")
 
-    projects = relationship("Project", back_populates="owner")
-    authored_commits = relationship(
-        "Commit", foreign_keys="Commit.author_id", back_populates="author"
+    commit = relationship("Commit", back_populates="commit_comments")
+    user = relationship("User", back_populates="commit_comments")
+
+
+class CommitParent(Base):
+    __tablename__ = "commit_parents"
+
+    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    parent_id = Column(Integer, primary_key=True)
+
+
+class Commit(Base):
+    __tablename__ = "commits"
+
+    id = Column(Integer, primary_key=True)
+    sha = Column(String(40))
+    author_id = Column(Integer, ForeignKey("users.id"))
+    committer_id = Column(Integer, ForeignKey("users.id"))
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    commit_comments = relationship("CommitComment", back_populates="commit")
+    project = relationship("Project", back_populates="commits")
+    project_commits = relationship("ProjectCommit", back_populates="commit")
+
+
+class Follower(Base):
+    __tablename__ = "followers"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    follower_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    user = relationship("User", foreign_keys=[user_id], back_populates="followers")
+    follower = relationship(
+        "User", foreign_keys=[follower_id], back_populates="following"
     )
-    committed_commits = relationship(
-        "Commit", foreign_keys="Commit.committer_id", back_populates="committer"
+
+
+class Fork(Base):
+    __tablename__ = "forks"
+
+    forked_project_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
+    forked_from_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
+    fork_id = Column(Integer, primary_key=True)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    forked_project = relationship(
+        "Project", foreign_keys=[forked_project_id], back_populates="forks"
     )
-    pull_requests = relationship("PullRequest", back_populates="user")
+    forked_from_project = relationship("Project", foreign_keys=[forked_from_id])
+
+
+class IssueComment(Base):
+    __tablename__ = "issue_comments"
+
+    issue_id = Column(Integer, ForeignKey("issues.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    comment_id = Column(Text, primary_key=True)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    user = relationship("User", back_populates="issue_comments")
+
+
+class IssueEvent(Base):
+    __tablename__ = "issue_events"
+
+    event_id = Column(Text, primary_key=True)
+    issue_id = Column(Integer, ForeignKey("issues.id"), nullable=False)
+    actor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    action = Column(String(255), nullable=False)
+    action_specific = Column(String(50))
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    issue = relationship("Issue", back_populates="issue_events")
+    user = relationship("User", back_populates="issue_events")
+
+
+class IssueLabel(Base):
+    __tablename__ = "issue_labels"
+
+    label_id = Column(Integer, default=0, primary_key=True)
+    issue_id = Column(Integer, ForeignKey("issues.id"), default=0, primary_key=True)
+
+
+class Issue(Base):
+    __tablename__ = "issues"
+
+    id = Column(Integer, primary_key=True)
+    repo_id = Column(Integer, ForeignKey("projects.id"))
+    reporter_id = Column(Integer, ForeignKey("users.id"))
+    assignee_id = Column(Integer, ForeignKey("users.id"))
+    issue_id = Column(Text, nullable=False)
+    pull_request = Column(Boolean, nullable=False)
+    pull_request_id = Column(Integer)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    project = relationship("Project", back_populates="issues")
+    reporter = relationship(
+        "User", foreign_keys=[reporter_id], back_populates="reported_issues"
+    )
+    assignee = relationship(
+        "User", foreign_keys=[assignee_id], back_populates="assigned_issues"
+    )
+    issue_events = relationship("IssueEvent", back_populates="issue")
+
+
+class OrganizationMember(Base):
+    __tablename__ = "organization_members"
+
+    org_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    created_at = Column(TIMESTAMP, nullable=False)
+
+
+class ProjectCommit(Base):
+    __tablename__ = "project_commits"
+
+    project_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
+    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+
+    project = relationship("Project", back_populates="project_commits")
+    commit = relationship("Commit", back_populates="project_commits")
+
+
+class ProjectMember(Base):
+    __tablename__ = "project_members"
+
+    repo_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    repo = relationship("Project", back_populates="project_members")
+    user = relationship("User", back_populates="project_members")
 
 
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     url = Column(String(255))
     owner_id = Column(Integer, ForeignKey("users.id"))
-    name = Column(String(255), index=True)
+    name = Column(String(255), nullable=False)
     description = Column(String(255))
     language = Column(String(255))
-    created_at = Column(
-        DateTime, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP")
-    )
-    ext_ref_id = Column(String(24), nullable=False, server_default="0")
-    forked_from = Column(Integer, ForeignKey("projects.id"), nullable=True)
-    deleted = Column(Boolean, nullable=False, default=False)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+    forked_from = Column(Integer)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     owner = relationship("User", back_populates="projects")
-    forks = relationship("Project", back_populates="parent")
-    parent = relationship("Project", remote_side=[id], back_populates="forks")
+    repo_labels = relationship("RepoLabel", back_populates="project")
+    repo_milestones = relationship("RepoMilestone", back_populates="project")
+    watchers = relationship("Watcher", back_populates="project")
     commits = relationship("Commit", back_populates="project")
-    head_pull_requests = relationship(
-        "PullRequest",
-        foreign_keys="PullRequest.head_repo_id",
-        back_populates="head_repo",
-    )
-    base_pull_requests = relationship(
+    issues = relationship("Issue", back_populates="project")
+    project_commits = relationship("ProjectCommit", back_populates="project")
+    project_members = relationship("ProjectMember", back_populates="repo")
+    pull_requests = relationship(
         "PullRequest",
         foreign_keys="PullRequest.base_repo_id",
         back_populates="base_repo",
     )
+    forks = relationship(
+        "Fork", foreign_keys="Fork.forked_project_id", back_populates="forked_project"
+    )
+
+
+class PullRequestComment(Base):
+    __tablename__ = "pull_request_comments"
+
+    pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    comment_id = Column(Text, primary_key=True)
+    position = Column(Integer)
+    body = Column(String(256))
+    commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    user = relationship("User", back_populates="pull_request_comments")
+
+
+class PullRequestCommit(Base):
+    __tablename__ = "pull_request_commits"
+
+    pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), primary_key=True)
+    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+
+
+class PullRequestHistory(Base):
+    __tablename__ = "pull_request_history"
+
+    id = Column(Integer, primary_key=True)
+    pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+    action = Column(String(255), nullable=False)
+    actor_id = Column(Integer, ForeignKey("users.id"))
+
+    user = relationship("User", back_populates="pull_request_history")
 
 
 class PullRequest(Base):
@@ -84,34 +248,79 @@ class PullRequest(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     pullreq_id = Column(Integer, nullable=False)
     intra_branch = Column(Boolean, nullable=False)
-    merged = Column(Boolean, nullable=False, default=False)
+    merged = Column(Boolean, default=False, nullable=False)
 
-    head_repo = relationship(
-        "Project", foreign_keys=[head_repo_id], back_populates="head_pull_requests"
-    )
-    base_repo = relationship(
-        "Project", foreign_keys=[base_repo_id], back_populates="base_pull_requests"
-    )
+    head_repo = relationship("Project", foreign_keys=[head_repo_id])
+    base_repo = relationship("Project", foreign_keys=[base_repo_id])
     head_commit = relationship("Commit", foreign_keys=[head_commit_id])
     base_commit = relationship("Commit", foreign_keys=[base_commit_id])
     user = relationship("User", back_populates="pull_requests")
 
 
-class Commit(Base):
-    __tablename__ = "commits"
+class RepoLabel(Base):
+    __tablename__ = "repo_labels"
 
     id = Column(Integer, primary_key=True)
-    sha = Column(String(40), unique=True)
-    author_id = Column(Integer, ForeignKey("users.id"))
-    committer_id = Column(Integer, ForeignKey("users.id"))
-    project_id = Column(Integer, ForeignKey("projects.id"))
-    created_at = Column(TIMESTAMP, nullable=False, server_default="CURRENT_TIMESTAMP")
-    ext_ref_id = Column(String(24), nullable=False, server_default="0")
+    repo_id = Column(Integer, ForeignKey("projects.id"))
+    name = Column(String(24), nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
 
-    author = relationship(
-        "User", foreign_keys=[author_id], back_populates="authored_commits"
+    project = relationship("Project", back_populates="repo_labels")
+
+
+class RepoMilestone(Base):
+    __tablename__ = "repo_milestones"
+
+    id = Column(Integer, primary_key=True)
+    repo_id = Column(Integer, ForeignKey("projects.id"))
+    name = Column(String(24), nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+
+    project = relationship("Project", back_populates="repo_milestones")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    login = Column(String(255), nullable=False)
+    name = Column(String(255))
+    company = Column(String(255))
+    location = Column(String(255))
+    email = Column(String(255))
+    created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(24), default="0", nullable=False)
+    type = Column(String(255), default="USR", nullable=False)
+
+    projects = relationship("Project", back_populates="owner")
+    watchers = relationship("Watcher", back_populates="user")
+    reported_issues = relationship(
+        "Issue", foreign_keys=[Issue.reporter_id], back_populates="reporter"
     )
-    committer = relationship(
-        "User", foreign_keys=[committer_id], back_populates="committed_commits"
+    assigned_issues = relationship(
+        "Issue", foreign_keys=[Issue.assignee_id], back_populates="assignee"
     )
-    project = relationship("Project", back_populates="commits")
+    pull_requests = relationship("PullRequest", back_populates="user")
+    commit_comments = relationship("CommitComment", back_populates="user")
+    issue_comments = relationship("IssueComment", back_populates="user")
+    issue_events = relationship("IssueEvent", back_populates="user")
+    followers = relationship(
+        "Follower", foreign_keys="Follower.user_id", back_populates="user"
+    )
+    following = relationship(
+        "Follower", foreign_keys="Follower.follower_id", back_populates="follower"
+    )
+    project_members = relationship("ProjectMember", back_populates="user")
+    pull_request_comments = relationship("PullRequestComment", back_populates="user")
+    pull_request_history = relationship("PullRequestHistory", back_populates="user")
+
+
+class Watcher(Base):
+    __tablename__ = "watchers"
+
+    repo_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    ext_ref_id = Column(String(24), nullable=False, default="0")
+
+    project = relationship("Project", back_populates="watchers")
+    user = relationship("User", back_populates="watchers")

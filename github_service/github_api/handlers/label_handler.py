@@ -8,5 +8,4 @@ class LabelHandler:
 
     def get_labels(self):
         labels = self.repo.get_labels()
-        print(f"Total labels {labels.totalCount}")
         return [GHLabel(label) for label in labels]

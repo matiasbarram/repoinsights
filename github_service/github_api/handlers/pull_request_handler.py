@@ -4,21 +4,20 @@ from github.Repository import Repository
 from ..pull_request import GHPullRequest
 from ..comment import GHPullRequestComment
 from datetime import datetime
+from typing import Union
 
 
 class PullRequestHandler:
     def __init__(self, repo: Repository):
         self.repo = repo
 
-    def get_all_pull_requests(self) -> List[GHPullRequest]:
-        pull_requests = self.repo.get_pulls(state="all")
-        pull_request_objects = [GHPullRequest(pr) for pr in pull_requests]
-        return pull_request_objects
-
-    def get_pull_requests_between_dates(
-        self, start_date: datetime, end_date: datetime
+    def get_all_pull_requests(
+        self, start_date: Union[datetime, None], end_date: Union[datetime, None]
     ) -> List[GHPullRequest]:
         pull_requests = self.repo.get_pulls(state="all")
+        if start_date == None or end_date == None:
+            return [GHPullRequest(pr) for pr in pull_requests]
+
         pull_requests_between_dates = []
         for pr in pull_requests:
             created_at = pr.created_at

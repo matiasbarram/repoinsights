@@ -1,135 +1,54 @@
-"""
-Traceback (most recent call last):
-  File "/home/matias/proyecto/repoinsights/main.py", line 175, in <module>
-    for comment in comments:
-  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/PaginatedList.py", line 56, in __iter__
-    newElements = self._grow()
-  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/PaginatedList.py", line 67, in _grow
-    newElements = self._fetchNextPage()
-  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/PaginatedList.py", line 201, in _fetchNextPage
-    headers, data = self.__requester.requestJsonAndCheck(
-  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/Requester.py", line 398, in requestJsonAndCheck
-    return self.__check(
-  File "/home/matias/.local/share/virtualenvs/repoinsights-zOXF-EYI/lib/python3.10/site-packages/github/Requester.py", line 423, in __check
-    raise self.__createException(status, responseHeaders, output)
-github.GithubException.RateLimitExceededException: 403 {"message": "API rate limit exceeded for user ID 64421508.", "documentation_url": "https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"}
-"""
+from sqlalchemy.orm import sessionmaker, aliased
+from DWConnector.orm_main import DWConnector
+from DWConnector.models.models import Project, Commit, PullRequest, User, Issue
+from sqlalchemy import create_engine, func
 
+dw_connector = DWConnector()
+engine = dw_connector.engine
 
-from dotenv import load_dotenv
-from github import (
-    NamedUser,
-    Repository,
-    PullRequest,
-    Github,
-    PaginatedList,
-    NamedUser,
-    PullRequestComment,
-    IssueComment,
+Session = sessionmaker(bind=engine)
+session = Session()
+
+query = (
+    session.query(
+        PullRequest,
+        User.login,
+        aliased(Project, name="head_project_name"),
+        aliased(Project, name="base_project_name"),
+        aliased(Commit, name="head_commit_sha"),
+        aliased(Commit, name="base_commit_sha"),
+    )
+    .join(User, PullRequest.user_id == User.id)
+    .join(
+        aliased(Project, name="head_project"),
+        PullRequest.head_repo_id == aliased(Project, name="head_project").id,
+    )
+    .join(
+        aliased(Project, name="base_project"),
+        PullRequest.base_repo_id == aliased(Project, name="base_project").id,
+    )
+    .join(
+        aliased(Commit, name="head_commit"),
+        PullRequest.head_commit_id == aliased(Commit, name="head_commit").id,
+    )
+    .join(
+        aliased(Commit, name="base_commit"),
+        PullRequest.base_commit_id == aliased(Commit, name="base_commit").id,
+    )
 )
-import DWConnector.orm_main as DWService
-from typing import Union, List, Dict, Any
-from github_service.extractor import GHExtractor
-from github_service.config import GHGetToken
 
-load_dotenv()
+# Imprimir resultados
+for (
+    pr,
+    user_login,
+    head_project_name,
+    base_project_name,
+    head_commit_sha,
+    base_commit_sha,
+) in query.all():
+    print(
+        f"Pull Request #{pr.id}: {user_login} | {head_project_name} -> {base_project_name} | {head_commit_sha} -> {base_commit_sha}"
+    )
 
-
-def extract_all_info(repo):
-    gh_token = GHGetToken()
-    gh_extractor = GHExtractor(gh_token, repo)
-    owner: NamedUser.NamedUser = gh_extractor.get_project_owner()
-
-    gh_extractor.get_user_data(owner)
-    watchers: PaginatedList.PaginatedList = gh_extractor.get_watchers()
-    # print("---------WATCHERS----------")
-    # for watcher in watchers:
-    #     gh_extractor.get_watcher_data(watcher)
-    #     gh_extractor.get_user_data(watcher)
-    #     # break
-
-    # print("---------MEMBERS----------")
-    # members = gh_extractor.get_members()
-    # try:
-    #     for member in members:
-    #         gh_extractor.get_member_data(member)
-    #         gh_extractor.get_user_data(member)
-    #         # break
-    # except Exception as e:
-    #     print("No fue posible obtener los miembros del proyecto")
-
-    # print("---------REPO LABELS--------")
-    # labels = gh_extractor.get_project_labels()
-    # for label in labels:
-    #     gh_extractor.get_label_data(label)
-    #     # break
-
-    print("---------REPO MILESTONES----------")
-    milestones = gh_extractor.get_milestones()
-    for milestone in milestones:
-        gh_extractor.get_milestone_data(milestone)
-        # break
-
-    print("---------ISSUES----------")
-    issues = gh_extractor.get_issues()
-    for issue in issues:
-        gh_extractor.get_issue_data(issue)
-        print("---------ISSUE LABELS----------")
-        gh_extractor.get_issue_labels(issue)
-        for label in issue.labels:
-            gh_extractor.get_label_data(label)
-        print("---------ISSUE COMMENTS----------")
-        issue_comments = gh_extractor.get_issue_comments(issue)
-        issue_comment: IssueComment.IssueComment
-        for issue_comment in issue_comments:
-            gh_extractor.get_issue_comment_data(issue, issue_comment)
-            gh_extractor.get_user_data(issue_comment.user)
-        print("---------ISSUE EVENTS--------------------")
-        events = gh_extractor.get_issue_events(issue)
-        for event in events:
-            gh_extractor.get_issue_event_data(issue, event)
-            gh_extractor.get_user_data(event.actor)
-        ##break
-
-    print("---------COMMITS----------")
-    # TODO order of commits
-    commits = gh_extractor.get_commits()
-    for commit in commits:
-        try:
-            gh_extractor.get_commit_data(commit)
-            gh_extractor.get_user_data(commit.author)
-        except Exception as e:
-            print("No fue posible obtener información del commit")
-        print("---------COMMITS PARENTS----------")
-        parents_commits = gh_extractor.get_commit_parents(commit)
-        for parent_commit in parents_commits:
-            gh_extractor.get_commit_data(parent_commit)
-            gh_extractor.get_user_data(parent_commit.author)
-        print("---------COMMITS COMMENTS----------")
-        # TODO revisar
-        issue_comments = gh_extractor.get_commit_comments(commit)
-        for commit_comment in issue_comments:
-            gh_extractor.get_commit_comment_data(commit_comment)
-            gh_extractor.get_user_data(commit_comment.user)
-        ##break
-
-    print("---------PULL REQUESTS----------")
-    pulls = gh_extractor.get_pulls()
-    pull: PullRequest.PullRequest
-    for pull in pulls:
-        pr_assignee = pull.assignee if pull.assignee is not None else None
-        data = gh_extractor.get_pull_data(pull)
-        gh_extractor.get_user_data(pull.user)
-        if pr_assignee is not None:
-            gh_extractor.get_user_data(pr_assignee)
-        print("---------PULL REQUESTS COMMENTS----------")
-        comments = gh_extractor.get_pull_comments(pull)
-        comment: PullRequestComment.PullRequestComment
-        for comment in comments:
-            gh_extractor.get_pull_comment_data(pull, comment)
-            gh_extractor.get_user_data(comment.user)
-        ##break
-
-
-repo = "RepoGrams/RepoGrams"
-extract_all_info(repo)
+# Cerrar sesión
+session.close()

@@ -5,6 +5,7 @@ from ..issue_event import GHIssueEvent
 from github.Issue import Issue
 from datetime import datetime
 from pprint import pprint
+from typing import Union
 
 # from label import GHLabel
 
@@ -19,11 +20,16 @@ class IssueHandler:
         self.set_labels(issue_objects, issues)
         return issue_objects
 
-    def get_issues(self, since=None, state="all"):
-        kwargs = {"state": state}
-        if since:
-            kwargs["since"] = since
+    def get_issues(
+        self,
+        state="all",
+        start_date: Union[datetime, None] = None,
+        end_date: Union[datetime, None] = None,
+    ):
+        if start_date and end_date:
+            return self.get_issues_between_dates(start_date, end_date, state)
 
+        kwargs = {"state": state}
         issues = []
         page_number = 0
         while True:
@@ -74,6 +80,12 @@ class IssueHandler:
         milestone_objects = [GHMilestone(milestone) for milestone in milestones]
         return milestone_objects
 
-    def get_issue_events(self, issue):
+    # ARREGLAR NO DEBERIAN LLAMAR A LA API DEBERIA HACERSE DE UNA MEJOR MANERA
+
+    def get_issue_comments(self, issue):
+        comments = self.repo.get_issue(issue.number).get_comments()
+        return comments
+
+    def get_issue_events(self, issue: GHIssue):
         events = self.repo.get_issue(issue.number).get_events()
         return [GHIssueEvent(event) for event in events]
