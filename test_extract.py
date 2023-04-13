@@ -25,7 +25,7 @@ class ExtractData:
             for data_type in self.data_types
         ]
         results = run_in_parallel(self.extract_data, args_list)
-        LoadData(db="temp").load_temp_db(results)
+        LoadData().load_temp_db(results)
 
     def extract_data(
         self, client: GitHubClient, data_type: str, since: datetime, until: datetime
@@ -34,11 +34,11 @@ class ExtractData:
             commits = self.client.commit_handler.get_commits(self.since, self.until)
             print(f"Total commits: {len(commits)}")
             return {"name": "commit", "data": commits}
-            # for commit in commits:
-            #     comments = client.commit_handler.get_commit_comments(commit.sha)
-            #     print(f"Total comments: {len(comments)}")
-            #     parents = client.commit_handler.get_commit_parents(commit.sha)
-            #     print(f"Total parents: {len(parents)}")
+            for commit in commits:
+                comments = client.commit_handler.get_commit_comments(commit.sha)
+                print(f"Total comments: {len(comments)}")
+                parents = client.commit_handler.get_commit_parents(commit.sha)
+                print(f"Total parents: {len(parents)}")
 
         elif data_type == "pull_requests":
             prs = self.client.pull_request_handler.get_all_pull_requests(
@@ -101,18 +101,18 @@ class ExtractData:
 
 
 def main():
-    owner = "gousiosg"
-    repo = "github-mirror"
-    # since = datetime(2013, 1, 1)
-    # until = datetime(2014, 12, 1)
-    since = None
-    until = None
+    owner = "akka"
+    repo = "akka"
+    since = datetime(2013, 1, 1)
+    until = datetime(2013, 1, 2)
+    # since = None
+    # until = None
 
     client = GitHubClient(owner, repo)
     data_types = [
         "commits",
-        "pull_requests",
-        "issues",
+        # "pull_requests", # revisar
+        # "issues",
         "labels",
         # "stargazers", # eliminar, es lo mismo que watchers.
         "owner",

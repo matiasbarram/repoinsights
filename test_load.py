@@ -5,15 +5,14 @@ from github_service.github_api.user import GHUser
 
 
 class LoadData:
-    def __init__(self, db: str):
-        self.engine = DBConnector(db).engine
-        self.db = DatabaseHandler(self.engine)
+    def __init__(self):
+        self.temp_db = DatabaseHandler(DBConnector())
 
     def load_temp_db(self, results):
         for result in results:
             if result["name"] == "owner":
                 gh_user: GHUser = result["data"]
-                create_response = self.db.create_user(gh_user.to_dict())
+                create_response = self.temp_db.create_user(gh_user.to_dict())
                 if create_response["created"]:
                     print("User created successfully")
                 else:

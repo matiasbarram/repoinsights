@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, select, Select
+from sqlalchemy import create_engine, select, Select, Engine
 import os
 
 CONSOLIDADA_USER = os.getenv("CONSOLIDADA_USER")
@@ -15,16 +15,13 @@ TEMP_PORT = os.getenv("TEMP_PORT")
 
 
 class DBConnector:
-    def __init__(self, db) -> None:
-        if db == "consolidada":
-            self.engine = self.__init_consolidada()
-        elif db == "temp":
-            self.engine = self.__init_temp()
-        else:
-            raise Exception("No se reconoce la base de datos")
-
-        self.test_connection()
-        self.conn = self.engine.connect()
+    def __init__(
+        self,
+    ) -> None:
+        self.temp_engine = self.__init_consolidada()
+        self.consolidada_engine = self.__init_temp()
+        self.test_connection(self.temp_engine)
+        self.test_connection(self.consolidada_engine)
 
     def __init_consolidada(self):
         engine = create_engine(
@@ -38,9 +35,9 @@ class DBConnector:
         )
         return engine
 
-    def test_connection(self) -> None:
+    def test_connection(self, engine: Engine) -> None:
         try:
-            conn = self.engine.connect()
+            engine.connect()
             print("Conexión exitosa!")
         except Exception as e:
             print("Error de conexión: ", str(e))
