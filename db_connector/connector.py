@@ -18,8 +18,8 @@ class DBConnector:
     def __init__(
         self,
     ) -> None:
-        self.temp_engine = self.__init_consolidada()
-        self.consolidada_engine = self.__init_temp()
+        self.temp_engine = self.__init_temp()
+        self.consolidada_engine = self.__init_consolidada()
         self.test_connection(self.temp_engine)
         self.test_connection(self.consolidada_engine)
 

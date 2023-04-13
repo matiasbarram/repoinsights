@@ -3,6 +3,7 @@ from .models import User, Project  # Importe las clases adicionales según sea n
 from .connector import DBConnector
 from sqlalchemy import Engine
 from .connector import DBConnector
+from pprint import pprint
 
 
 class DatabaseHandler:
@@ -14,13 +15,20 @@ class DatabaseHandler:
         self.session_temp = self.Session_temp()
 
     def create_user(self, user_data: dict):
-        if (
+        user_consolidada = (
             self.session_consolidada.query(User)
             .filter_by(login=user_data["login"])
             .first()
-        ):
-            return {"created": False, "user": None}
-
+        )
+        if user_consolidada:
+            return {
+                "created": False,
+                "user": {
+                    column.name: getattr(user_consolidada, column.name)
+                    for column in User.__table__.columns
+                },
+            }
+        print("No existe en consolidada")
         existing_user = (
             self.session_temp.query(User).filter_by(login=user_data["login"]).first()
         )

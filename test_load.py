@@ -2,6 +2,7 @@ from db_connector.connector import DBConnector
 from db_connector.database_handler import DatabaseHandler
 import json
 from github_service.github_api.user import GHUser
+from pprint import pprint
 
 
 class LoadData:
@@ -17,4 +18,5 @@ class LoadData:
                     print("User created successfully")
                 else:
                     print("User already exists")
+                    pprint(create_response["user"])
         # self.db.insert_commits(results[0])
