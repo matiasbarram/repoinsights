@@ -1,5 +1,5 @@
 from github import Github
-from config import GHGetToken
+from ...config import GHGetToken
 
 
 class UserHandler:

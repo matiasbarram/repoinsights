@@ -5,7 +5,7 @@ from ..issue_event import GHIssueEvent
 from github.Issue import Issue
 from datetime import datetime
 from pprint import pprint
-from typing import Union
+from typing import Union, List
 
 # from label import GHLabel
 
@@ -30,7 +30,7 @@ class IssueHandler:
             return self.get_issues_between_dates(start_date, end_date, state)
 
         kwargs = {"state": state}
-        issues = []
+        issues: List[GHIssue] = []
         page_number = 0
         while True:
             paginated_issues = self.repo.get_issues(**kwargs).get_page(page_number)

@@ -1,6 +1,7 @@
 GH_KEYS.json
 docker/
-
+ghtorrent_restore_2015_full.sql
+ghtorrent_restore_2015_v2.sql
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

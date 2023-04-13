@@ -1,7 +1,7 @@
 from .repository import GHRepository
 from github import PaginatedList
 from github.NamedUser import NamedUser
-from utils.utils import format_dt, get_user_type
+from ..utils.utils import format_dt, get_user_type
 
 
 class GHUser:

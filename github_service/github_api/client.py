@@ -1,4 +1,4 @@
-from config import GHGetToken
+from ..config import GHGetToken
 from .handlers.commit_handler import CommitHandler
 from .handlers.project_user_handler import ProjectUserHandler
 from .handlers.label_handler import LabelHandler

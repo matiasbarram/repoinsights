@@ -1,0 +1,137 @@
+from github_service.utils.paralell import run_in_parallel
+from github_service.github_api.client import GitHubClient
+from github_service.github_api.commit import GHCommit
+from datetime import datetime
+from github_service.utils.utils import is_valid_date
+from pprint import pprint
+import json
+from db_connector.connector import DBConnector
+
+from test_load import LoadData
+
+
+class ExtractData:
+    def __init__(self, client: GitHubClient, owner, repo, since, until, data_types):
+        self.client = client
+        self.owner = owner
+        self.repo = repo
+        self.since = since
+        self.until = until
+        self.data_types = data_types
+
+    def load(self):
+        args_list = [
+            (self.client, data_type, self.since, self.until)
+            for data_type in self.data_types
+        ]
+        results = run_in_parallel(self.extract_data, args_list)
+        LoadData(db="temp").load_temp_db(results)
+
+    def extract_data(
+        self, client: GitHubClient, data_type: str, since: datetime, until: datetime
+    ):
+        if data_type == "commits":
+            commits = self.client.commit_handler.get_commits(self.since, self.until)
+            print(f"Total commits: {len(commits)}")
+            return {"name": "commit", "data": commits}
+            # for commit in commits:
+            #     comments = client.commit_handler.get_commit_comments(commit.sha)
+            #     print(f"Total comments: {len(comments)}")
+            #     parents = client.commit_handler.get_commit_parents(commit.sha)
+            #     print(f"Total parents: {len(parents)}")
+
+        elif data_type == "pull_requests":
+            prs = self.client.pull_request_handler.get_all_pull_requests(
+                self.since, self.until
+            )
+            print(f"Total pull requests: {len(prs)}")
+            return {"name": "pull_request", "data": prs}
+            for pr in prs:
+                pr_comments = client.pull_request_handler.get_pull_request_comments(pr)
+                print(f"Total PR comments: {len(pr_comments)}")
+
+        elif data_type == "issues":
+            issues = self.client.issue_handler.get_issues(
+                start_date=self.since, end_date=self.until
+            )
+            print(f"Total issues: {len(issues)}")
+            return {"name": "issue", "data": issues}
+            for issue in issues:
+                events = client.issue_handler.get_issue_events(issue)
+                print(f"Total events: {len(events)}")
+
+        elif data_type == "labels":
+            labels = self.client.label_handler.get_labels()
+            print(f"Total labels: {len(labels)}")
+            return {"name": "label", "data": labels}
+
+        elif data_type == "members":
+            members = self.client.project_handler.get_members(
+                since=self.since, until=self.until
+            )
+            print(f"Total members: {len(members)}")
+            return {"name": "member", "data": members}
+
+        elif data_type == "watchers":
+            watchers = self.client.project_handler.get_watchers(
+                since=self.since, until=self.until
+            )
+            print(f"Total watchers: {len(watchers)}")
+            return {"name": "watcher", "data": watchers}
+
+        elif data_type == "stargazers":
+            stargazers = self.client.project_handler.get_stargazers(
+                since=self.since, until=self.until
+            )
+            print(f"Total stargazers: {len(stargazers)}")
+            return {"name": "stargazer", "data": stargazers}
+
+        elif data_type == "owner":
+            owner = self.client.project_handler.get_owner()
+            print(f"Owner: {owner.login}")
+            return {"name": "owner", "data": owner}
+
+        elif data_type == "milestones":
+            milestones = self.client.issue_handler.get_milestones()
+            print(f"Total milestones: {len(milestones)}")
+            return {"name": "milestone", "data": milestones}
+
+        else:
+            print(f"Invalid data type: {data_type}")
+
+
+def main():
+    owner = "gousiosg"
+    repo = "github-mirror"
+    # since = datetime(2013, 1, 1)
+    # until = datetime(2014, 12, 1)
+    since = None
+    until = None
+
+    client = GitHubClient(owner, repo)
+    data_types = [
+        "commits",
+        "pull_requests",
+        "issues",
+        "labels",
+        # "stargazers", # eliminar, es lo mismo que watchers.
+        "owner",
+        # "watchers", # se demora mucho, siempre se deben traer todos
+        # "members", # se demora mucho, siempre se deben traer todos
+        "milestones",
+    ]
+
+    extract_data = ExtractData(
+        client=client,
+        owner=owner,
+        repo=repo,
+        since=since,
+        until=until,
+        data_types=data_types,
+    )
+
+    extract_data.load()
+
+
+if __name__ == "__main__":
+    main()
