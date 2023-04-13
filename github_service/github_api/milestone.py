@@ -1,5 +1,8 @@
+from github.Milestone import Milestone
+
+
 class GHMilestone:
-    def __init__(self, milestone):
+    def __init__(self, milestone: Milestone):
         self.id = milestone.id
         self.title = milestone.title
         self.description = milestone.description
@@ -7,7 +10,6 @@ class GHMilestone:
         self.created_at = milestone.created_at
         self.updated_at = milestone.updated_at
         self.due_on = milestone.due_on
-        self.closed_at = milestone.closed_at
         self.creator = milestone.creator.login
 
     def __str__(self):
@@ -22,6 +24,5 @@ class GHMilestone:
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "due_on": self.due_on,
-            "closed_at": self.closed_at,
             "creator": self.creator,
         }
