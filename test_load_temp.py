@@ -2,13 +2,6 @@ import os
 from dotenv import load_dotenv
 from db_connector.orm_main import DBConnector
 
-env = "prd"
-
-if env == "local":
-    load_dotenv(".env.local")
-elif env == "prd":
-    load_dotenv(".env.prd")
-
 consolidada_user = os.getenv("CONSOLIDADA_USER")
 consolidada_password = os.getenv("CONSOLIDADA_PASSWORD")
 consolidada_database = os.getenv("CONSOLIDADA_DB")
