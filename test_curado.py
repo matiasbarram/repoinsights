@@ -1,5 +1,5 @@
 import pika
-from CurateRepos.Metrics import CurateMetrics
+from curate_repos.Metrics import CurateMetrics
 from pprint import pprint
 from datetime import datetime
 import timeit

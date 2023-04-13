@@ -23,7 +23,7 @@ SET row_security = off;
 -- Name: ghtorrent_restore_2015; Type: DATABASE; Schema: -; Owner: -
 --
 
-CREATE DATABASE IF NOT EXISTS ghtorrent_restore_2015 WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
+CREATE DATABASE ghtorrent_restore_2015 WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
 
 
 \connect ghtorrent_restore_2015

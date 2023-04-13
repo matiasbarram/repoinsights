@@ -17,6 +17,7 @@ services:
       - ./postgres:/var/lib/postgresql/data
       - ./data:/app
       - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+
   temporal:
     image: postgres
     restart: always
