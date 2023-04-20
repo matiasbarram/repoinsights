@@ -13,7 +13,9 @@ class LoadData:
         for result in results:
             if result["name"] == "owner":
                 gh_user: GHUser = result["data"]
-                create_response = self.temp_db.create_user(gh_user.to_dict())
+                create_response = self.temp_db.user_handler.create_user(
+                    gh_user.to_dict()
+                )
                 if create_response["created"]:
                     print("User created successfully")
                 else:

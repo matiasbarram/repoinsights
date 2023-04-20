@@ -1,4 +1,4 @@
-GH_KEYS.json
+tokens.json
 docker/
 ghtorrent_restore_2015_full.sql
 ghtorrent_restore_2015_v2.sql

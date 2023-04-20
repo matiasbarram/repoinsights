@@ -33,6 +33,7 @@ services:
     volumes:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
       - ./docker/data:/app
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
   # rabbitmq:
   #   image: rabbitmq:3.9-management-alpine
   #   ports:

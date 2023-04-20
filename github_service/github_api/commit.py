@@ -1,6 +1,4 @@
 from github.Commit import Commit
-
-# from helper.utils import format_dt
 from .repository import GHRepository
 from datetime import datetime
 from .comment import GHCommitComment
@@ -13,6 +11,7 @@ class GHCommit:
         self.author = commit.commit.author.name
         self.date = commit.commit.author.date
         self.parents = [parent.sha for parent in commit.parents]
+        self.comments = []
 
     def set_comments(self, comments: list[GHCommitComment]):
         self.comments = comments

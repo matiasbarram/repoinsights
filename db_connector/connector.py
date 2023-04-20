@@ -2,13 +2,13 @@ from sqlalchemy import create_engine, select, Select, Engine
 import os
 
 CONSOLIDADA_USER = os.getenv("CONSOLIDADA_USER")
-CONSOLIDADA_PASSWORD = os.getenv("CONSOLIDADA_PASSWORD")
+CONSOLIDADA_PASSWORD = os.getenv("CONSOLIDADA_PASS")
 CONSOLIDADA_DATABASE = os.getenv("CONSOLIDADA_DB")
 CONSOLIDADA_IP = os.getenv("CONSOLIDADA_IP")
 CONSOLIDADA_PORT = os.getenv("CONSOLIDADA_PORT")
 
 TEMP_USER = os.getenv("TEMP_USER")
-TEMP_PASSWORD = os.getenv("TEMP_PASSWORD")
+TEMP_PASSWORD = os.getenv("TEMP_PASS")
 TEMP_DATABASE = os.getenv("TEMP_DB")
 TEMP_IP = os.getenv("TEMP_IP")
 TEMP_PORT = os.getenv("TEMP_PORT")
