@@ -25,15 +25,21 @@ class ExtractData:
             for data_type in self.data_types
         ]
         results = run_in_parallel(self.extract_data, args_list)
-        LoadData().load_temp_db(results)
+        LoadData(self.client).load_temp_db(results)
 
     def extract_data(
         self, client: GitHubClient, data_type: str, since: datetime, until: datetime
     ):
         if data_type == "commits":
             commits = self.client.commit_handler.get_commits(self.since, self.until)
+            extended_commits = list(commits)
+            for commit in commits:
+                for parent_sha in commit.parents:
+                    gh_commit = self.client.commit_handler.get_commit(parent_sha)
+                    extended_commits.append(gh_commit)
+
             print(f"Total commits: {len(commits)}")
-            return {"name": "commit", "data": commits}
+            return {"name": "commit", "data": extended_commits}
             for commit in commits:
                 comments = client.commit_handler.get_commit_comments(commit.sha)
                 print(f"Total comments: {len(comments)}")
@@ -101,22 +107,22 @@ class ExtractData:
 
 
 def main():
-    owner = "akka"
-    repo = "akka"
-    since = datetime(2013, 1, 1)
-    until = datetime(2013, 1, 2)
+    owner = "gousiosg"
+    repo = "github-mirror"
+    since = datetime(2018, 1, 10)
+    until = datetime(2018, 10, 10)
     # since = None
     # until = None
 
     client = GitHubClient(owner, repo)
     data_types = [
-        "commits",
-        # "pull_requests", # revisar
+        # "commits",
+        "pull_requests",  # revisar
         # "issues",
         "labels",
         # "stargazers", # eliminar, es lo mismo que watchers.
         "owner",
-        # "watchers", # se demora mucho, siempre se deben traer todos
+        # "watchers",  # se demora mucho, siempre se deben traer todos
         # "members", # se demora mucho, siempre se deben traer todos
         "milestones",
     ]

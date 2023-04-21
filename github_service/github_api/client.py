@@ -1,4 +1,5 @@
 from ..config import GHGetToken
+from .repository import GHRepository
 from .handlers.commit_handler import CommitHandler
 from .handlers.project_user_handler import ProjectUserHandler
 from .handlers.label_handler import LabelHandler
@@ -11,6 +12,7 @@ class GitHubClient:
     def __init__(self, owner, repo):
         self.github = GHGetToken().connector
         self.repo = self.github.get_repo(f"{owner}/{repo}")
+        self.repository = GHRepository(self.repo)
         self.commit_handler = CommitHandler(self.repo)
         self.project_handler = ProjectUserHandler(self.repo)
         self.user_handler = UserHandler()

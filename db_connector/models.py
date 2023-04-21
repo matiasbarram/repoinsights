@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     Text,
     TIMESTAMP,
+    Index,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -35,7 +36,9 @@ class CommitParent(Base):
     __tablename__ = "commit_parents"
 
     commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
-    parent_id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+
+    __table_args__ = (Index("idx_16399_parent_id", parent_id),)
 
 
 class Commit(Base):
@@ -181,7 +184,7 @@ class Project(Base):
     language = Column(String(255))
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(24), default="0", nullable=False)
-    forked_from = Column(Integer)
+    forked_from = Column(Integer, nullable=True)
     deleted = Column(Boolean, default=False, nullable=False)
 
     owner = relationship("User", back_populates="projects")

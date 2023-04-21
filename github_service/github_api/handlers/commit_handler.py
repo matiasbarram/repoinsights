@@ -19,6 +19,10 @@ class CommitHandler:
         commits = self.repo.get_commits(**kwargs)
         return [GHCommit(commit) for commit in commits]
 
+    def get_commit(self, commit_sha: str):
+        commit = self.repo.get_commit(commit_sha)
+        return GHCommit(commit)
+
     def get_commit_comments(self, commit_sha: str):
         comments = self.repo.get_commit(commit_sha).get_comments()
         return [GHCommitComment(comment) for comment in comments]
