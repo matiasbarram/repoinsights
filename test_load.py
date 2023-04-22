@@ -65,11 +65,12 @@ class LoadData:
                     pull_request.set_user_id(author_id)
 
                     self.set_repo_data(pull_request.head_repo)
-                    self.set_repo_data(pull_request.base_repo)
                     head_repo_id = self.temp_db.create_project(pull_request.head_repo)
-                    pull_request.set_head_repo_id(head_repo_id)
 
+                    self.set_repo_data(pull_request.base_repo)
                     base_repo_id = self.temp_db.create_project(pull_request.base_repo)
+
+                    pull_request.set_head_repo_id(head_repo_id)
                     pull_request.set_base_repo_id(base_repo_id)
 
                     self.set_commit_data(pull_request.head_commit)
@@ -87,6 +88,8 @@ class LoadData:
                     self.temp_db.create_pull_request(pull_request)
 
     def set_repo_data(self, pr_repo: GHRepository):
+        if pr_repo.forked_from is not None:
+            pr_repo.set_forked_from_id(self.repository.id)
         if pr_repo.raw_repo["owner"] is not None:
             user_id = self.temp_db.create_user(pr_repo.owner)
             pr_repo.set_owner_id(user_id)

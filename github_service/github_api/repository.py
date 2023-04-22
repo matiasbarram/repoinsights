@@ -12,12 +12,13 @@ class GHRepository:
         self.description = repo.description
         self.language = repo.language
         self.created_at = repo.created_at
-        self.forked_from = None if repo.fork == False else True
+        self.forked_from = False if repo.fork == False else True
+        self.forked_from_id = None
         self.raw_repo = repo.raw_data
 
     # ESTOS SON DE LA BASE DE DATOS
-    def set_forked_from(self, forked_from_id: int) -> None:
-        self.forked_from = forked_from_id
+    def set_forked_from_id(self, forked_from_id: int) -> None:
+        self.forked_from_id = forked_from_id
 
     def set_owner_id(self, owner_id: int) -> None:
         self.owner_id = owner_id
@@ -33,5 +34,5 @@ class GHRepository:
             "description": self.description,
             "language": self.language,
             "created_at": self.created_at,
-            "forked_from": self.forked_from,
+            "forked_from": self.forked_from_id,
         }
