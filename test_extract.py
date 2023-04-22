@@ -6,8 +6,8 @@ from github_service.utils.utils import is_valid_date
 from pprint import pprint
 import json
 from db_connector.connector import DBConnector
-
 from test_load import LoadData
+from loguru import logger
 
 
 class ExtractData:
@@ -25,7 +25,7 @@ class ExtractData:
             for data_type in self.data_types
         ]
         results = run_in_parallel(self.extract_data, args_list)
-        LoadData(self.client).load_temp_db(results)
+        LoadData(self.client).load_data(results)
 
     def extract_data(
         self, client: GitHubClient, data_type: str, since: datetime, until: datetime
@@ -33,10 +33,10 @@ class ExtractData:
         if data_type == "commits":
             commits = self.client.commit_handler.get_commits(self.since, self.until)
             extended_commits = list(commits)
-            for commit in commits:
-                for parent_sha in commit.parents:
-                    gh_commit = self.client.commit_handler.get_commit(parent_sha)
-                    extended_commits.append(gh_commit)
+            # for commit in commits:
+            #     for parent_sha in commit.parents:
+            #         gh_commit = self.client.commit_handler.get_commit(parent_sha)
+            #         extended_commits.append(gh_commit)
 
             print(f"Total commits: {len(commits)}")
             return {"name": "commit", "data": extended_commits}
@@ -107,24 +107,24 @@ class ExtractData:
 
 
 def main():
-    owner = "gousiosg"
-    repo = "github-mirror"
-    since = datetime(2018, 1, 10)
-    until = datetime(2018, 10, 10)
+    owner = "akka"
+    repo = "akka"
+    since = datetime(2022, 1, 10)
+    until = datetime(2022, 2, 20)
     # since = None
     # until = None
 
     client = GitHubClient(owner, repo)
     data_types = [
-        # "commits",
+        "owner",
+        "commits",
         "pull_requests",  # revisar
         # "issues",
-        "labels",
-        # "stargazers", # eliminar, es lo mismo que watchers.
-        "owner",
+        # "labels",
+        # "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos
-        # "members", # se demora mucho, siempre se deben traer todos
-        "milestones",
+        # "members",  # se demora mucho, siempre se deben traer todos
+        # "milestones",
     ]
 
     extract_data = ExtractData(
@@ -140,4 +140,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logger.add("logs/extract_data_{time}.log")
     main()

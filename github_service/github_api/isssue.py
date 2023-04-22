@@ -7,7 +7,6 @@ from .label import GHLabel
 
 class GHIssue:
     def __init__(self, issue: Issue) -> None:
-        self.id = issue.id
         self.reporter_id = issue.assignee
         self.pull_request = issue.pull_request
         self.pull_request_id = issue.id
@@ -16,8 +15,24 @@ class GHIssue:
         self.closed_at = issue.closed_at
         self.title = issue.title
         self.state = issue.state
-        self.number = issue.number
+        self.issue_id = issue.number
+        self.pull_request = True if issue.pull_request else False
         self.labels = []
+
+    def set_id(self, id: int):
+        self.id = id
+
+    def set_repo_id(self, repo_id: int):
+        self.repo_id = repo_id
+
+    def set_reporter_id(self, user_id: int):
+        self.reporter_id = user_id
+
+    def set_assignee_id(self, user_id: int):
+        self.reporter_id = user_id
+
+    def set_pull_requests_id(self, pr_id: int):
+        self.pull_request_id = pr_id
 
     def set_labels(self, labels):
         self.labels = [GHLabel(label) for label in labels]

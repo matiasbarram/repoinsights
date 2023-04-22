@@ -7,12 +7,11 @@ class GHRepository:
     def __init__(self, repo: Repository) -> None:
         self.url = repo.url
         self.owner = GHUser(repo.owner)
-        self.owner_id = None
         self.name = repo.name
         self.description = repo.description
         self.language = repo.language
         self.created_at = repo.created_at
-        self.forked_from = False if repo.fork == False else True
+        self.forked_from = False if repo.fork is False else True
         self.forked_from_id = None
         self.raw_repo = repo.raw_data
 

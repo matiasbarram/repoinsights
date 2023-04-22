@@ -1,9 +1,12 @@
 from github.PullRequest import PullRequest
 from github.Commit import Commit
+from github.Repository import Repository
 from .comment import GHPullRequestComment
 from .repository import GHRepository
 from .commit import GHCommit
 from .user import GHUser
+from typing import Union
+from loguru import logger
 
 
 class GHPullRequest:
@@ -22,10 +25,24 @@ class GHPullRequest:
         self.head_commit_sha = pull_request.head.sha
         self.body = pull_request.body
         self.author = GHUser(pull_request.user)
-        self.base_repo = GHRepository(pull_request.base.repo)
-        self.head_repo = GHRepository(pull_request.head.repo)
-        self.intra_branch = True if self.base_repo == self.head_repo else False
+        self.base_repo = self.set_repo(pull_request.base.repo)
+        self.base_repo_id = None
+        self.head_repo = self.set_repo(pull_request.head.repo)
+        self.head_repo_id = None
+        self.intra_branch = self.set_intra_branch(pull_request)
         self.raw_pull_request = pull_request
+
+    def set_repo(self, repo: Repository) -> Union[GHRepository, None]:
+        try:
+            return GHRepository(repo) if repo else None
+        except Exception as e:
+            logger.error(f"Error setting repo: {e}")
+            return None
+
+    def set_intra_branch(self, pr: PullRequest) -> bool:
+        if pr.head.repo is None or pr.base.repo is None:
+            return False
+        return True if pr.base.repo.full_name == pr.head.repo.full_name else False
 
     def __str__(self):
         return f"Pull Request #{self.number} ({self.state})"
@@ -61,14 +78,14 @@ class GHPullRequest:
         comments = self.raw_pull_request.get_comments()
         return [GHPullRequestComment(comment) for comment in comments]
 
-    # def to_dict(self):
-    #     return {
-    #         "head_repo_id": self.head_repo.id,
-    #         "base_repo_id": self.base_repo.id,
-    #         "head_commit": self.head_commit_id,
-    #         "base_commit": self.base_commit_id,
-    #         "user_id": self.author.login,
-    #         "pullreq_id": self.number,
-    #         "intra_branch": self.intra_branch,
-    #         "merged": self.merged,
-    #     }
+    def to_dict(self):
+        return {
+            "head_repo_id": self.head_repo_id,
+            "base_repo_id": self.base_repo_id,
+            "head_commit_id": self.head_commit_id,
+            "base_commit_id": self.base_commit_id,
+            "user_id": self.user_id,
+            "pullreq_id": self.number,
+            "intra_branch": self.intra_branch,
+            "merged": self.merged,
+        }

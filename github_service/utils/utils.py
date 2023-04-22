@@ -9,8 +9,10 @@ def format_dt(dt: datetime) -> str:
 def get_user_type(type) -> Union[str, None]:
     if type == "Organization":
         return "ORG"
-    if type == "User":
+    elif type == "User":
         return "USR"
+    elif type == "Bot":
+        return "BOT"
     else:
         return None
 

@@ -5,105 +5,114 @@ from github_service.github_api.commit import GHCommit
 from github_service.github_api.repository import GHRepository
 from github_service.github_api.pull_request import GHPullRequest
 from github_service.github_api.user import GHUser
+from github_service.github_api.isssue import GHIssue
 from pprint import pprint
 import json
+from typing import List, Union
+from loguru import logger
 
 
 class LoadData:
     def __init__(self, client: GitHubClient):
         self.temp_db = DatabaseHandler(DBConnector())
         self.repository = client.repository
+        self.repository.set_repo_id(self.load_repository(self.repository))
 
     def load_repository(self, repository: GHRepository):
+        logger.debug(
+            "Loading repository {owner} {name}",
+            owner=repository.owner.login,
+            name=repository.name,
+        )
         return self.temp_db.create_project(repository)
 
-    def load_commit_comments(self, commit_id: int, commit: GHCommit):
-        if commit.comments:
-            print(commit.comments)
-            print("TODO - Load commit comments")
+    def load_user(self, user: GHUser) -> int:
+        logger.debug("Loading user {login}", login=user.login)
+        return self.temp_db.create_user(user)
 
-    def load_commit_parents(self, commit_id: int, commit: GHCommit):
-        if commit.parents:
-            self.temp_db.create_commit_parents(commit_id, commit.parents)
+    def load_commit(self, commit: GHCommit) -> int:
+        logger.debug("Loading commit {sha}", sha=commit.sha)
+        return self.temp_db.create_commit(commit)
 
-    def load_temp_db(self, results):
+    def load_pull_request(self, pr: GHPullRequest):
+        logger.debug("Loading pull request {number}", number=pr.number)
+        self.temp_db.create_pull_request(pr)
+
+    def load_watchers(self, watchers: List[GHUser]):
+        logger.debug(
+            "Loading watchers for repository {name}", name=self.repository.name
+        )
+        self.temp_db.create_watchers(watchers, self.repository.id)
+
+    def load_data(self, results):
         for result in results:
-            if result["name"] == "owner":
-                gh_user: GHUser = result["data"]
-                owner_id = self.temp_db.create_user(gh_user)
-                self.repository.set_owner_id(owner_id)
-                project_id = self.load_repository(self.repository)
-                self.repository.set_repo_id(project_id)
+            name, data = result["name"], result["data"]
+            logger.critical(f"Loading {name}")
+            if name == "owner":
+                self.load_owner_data(data)
+            elif name == "commit":
+                self.load_commits_data(data)
+            elif name == "watchers":
+                self.load_watchers_data(data)
+            elif name == "pull_request":
+                self.load_pull_requests_data(data)
+            elif name == "issues":
+                self.load_issues_data(data)
 
-            if result["name"] == "commit":
-                commit: GHCommit
-                for commit in result["data"]:
-                    commit.set_project_id(self.repository.id)
-                    author_id = (
-                        self.temp_db.create_user(commit.author)
-                        if commit.author
-                        else None
-                    )
-                    committer_id = (
-                        self.temp_db.create_user(commit.committer)
-                        if commit.committer
-                        else None
-                    )
-                    commit.set_committer_id(committer_id)
-                    commit.set_author_id(author_id)
-                    commit_id = self.temp_db.create_commit(commit)
-                    self.load_commit_comments(commit_id, commit)
-                    self.load_commit_parents(commit_id, commit)  # type: ignore
+    def load_issues_data(self, issues: List[GHIssue]):
+        for iss in issues:
+            pass
 
-            if result["name"] == "watchers":
-                self.temp_db.create_watchers(result["data"], self.repository.id)
+    def load_owner_data(self, owner: GHUser):
+        self.repository.set_owner_id(self.load_user(owner))
 
-            if result["name"] == "pull_request":
-                pull_request: GHPullRequest
-                for pull_request in result["data"]:
-                    author_id = self.temp_db.create_user(pull_request.author)
-                    pull_request.set_user_id(author_id)
+    def load_commits_data(self, commits: List[GHCommit]):
+        for commit in commits:
+            commit.set_project_id(self.repository.id)
+            commit.set_author_id(
+                self.load_user(commit.author) if commit.author else None
+            )
+            commit.set_committer_id(
+                self.load_user(commit.committer) if commit.committer else None
+            )
+            commit_id = self.load_commit(commit)
+            # self.temp_db.create_commit_parents(commit_id, commit.parents)
 
-                    self.set_repo_data(pull_request.head_repo)
-                    head_repo_id = self.temp_db.create_project(pull_request.head_repo)
+    def load_watchers_data(self, watchers: List[GHUser]):
+        self.load_watchers(watchers)
 
-                    self.set_repo_data(pull_request.base_repo)
-                    base_repo_id = self.temp_db.create_project(pull_request.base_repo)
+    def load_pull_requests_data(self, pull_requests: List[GHPullRequest]):
+        for pr in pull_requests:
+            pr.set_user_id(self.load_user(pr.author))
+            self.update_repo_data(pr.head_repo)
+            self.update_repo_data(pr.base_repo)
+            self.update_commit_data(pr.head_commit)
+            self.update_commit_data(pr.base_commit)
+            pr.set_head_commit_id(self.load_commit(pr.head_commit))
+            pr.set_base_commit_id(self.load_commit(pr.base_commit))
+            if pr.head_repo is not None:
+                pr.set_head_repo_id(self.load_repository(pr.head_repo))  # type: ignore
+            if pr.base_repo is not None:
+                pr.set_base_repo_id(self.load_repository(pr.base_repo))  # type: ignore
+            self.load_pull_request(pr)
 
-                    pull_request.set_head_repo_id(head_repo_id)
-                    pull_request.set_base_repo_id(base_repo_id)
+    def update_repo_data(self, pr_repo: Union[GHRepository, None]):
+        if pr_repo is None:
+            return
 
-                    self.set_commit_data(pull_request.head_commit)
-                    self.set_commit_data(pull_request.base_commit)
-
-                    head_commit_id = self.temp_db.create_commit(
-                        pull_request.head_commit
-                    )
-                    base_commit_id = self.temp_db.create_commit(
-                        pull_request.base_commit
-                    )
-
-                    pull_request.set_head_commit_id(head_commit_id)
-                    pull_request.set_base_commit_id(base_commit_id)
-                    self.temp_db.create_pull_request(pull_request)
-
-    def set_repo_data(self, pr_repo: GHRepository):
-        if pr_repo.forked_from is not None:
+        if pr_repo.forked_from is True:
             pr_repo.set_forked_from_id(self.repository.id)
         if pr_repo.raw_repo["owner"] is not None:
-            user_id = self.temp_db.create_user(pr_repo.owner)
-            pr_repo.set_owner_id(user_id)
+            pr_repo.set_owner_id(self.load_user(pr_repo.owner))
 
-    def set_commit_data(self, pr_commit: GHCommit):
+    def update_commit_data(self, pr_commit: GHCommit):
         pr_commit.set_project_id(self.repository.id)
         if pr_commit.author is None:
             pr_commit.set_author_id(None)
         else:
-            author_id = self.temp_db.create_user(pr_commit.author)
-            pr_commit.set_author_id(author_id)
+            pr_commit.set_author_id(self.load_user(pr_commit.author))
 
         if pr_commit.committer is None:
             pr_commit.set_committer_id(None)
         else:
-            committer_id = self.temp_db.create_user(pr_commit.committer)
-            pr_commit.set_committer_id(committer_id)
+            pr_commit.set_committer_id(self.load_user(pr_commit.committer))

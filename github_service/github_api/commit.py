@@ -39,22 +39,8 @@ class GHCommit:
     def to_dict(self) -> dict:
         return {
             "sha": self.sha,
-            # "message": self.message,
-            "author": self.author.to_dict() if self.author else None,
-            "committer": self.committer.to_dict() if self.committer else None,
-            "date": self.date,
-            "parents": self.parents,
-        }
-
-    def db_commit(self) -> dict:
-        return {
-            "sha": self.sha,
             "author_id": self.author_id,
             "committer_id": self.committer_id,
             "created_at": self.date,
             "project_id": self.project_id,
         }
-
-    def set_gitauthor(self, gitauthor: GitAuthor):
-        print(gitauthor.name)
-        return GHUser(UserHandler().get_user(gitauthor.name))

@@ -29,21 +29,41 @@ class DatabaseHandler:
         self.Session_temp = sessionmaker(bind=connector.temp_engine)
         self.session_temp = self.Session_temp()
 
-    def get_or_create(self, model, **kwargs):
+    def get_or_create(
+        self,
+        model: Union[
+            User,
+            Project,
+            Commit,
+            CommitParent,
+            Issue,
+            IssueComment,
+            PullRequest,
+            PullRequestComment,
+            Watcher,
+        ],
+        **kwargs,
+    ):
         instance = self.session_temp.query(model).filter_by(**kwargs).first()
         if instance:
+            logger.debug("Instance already exists")
             return instance
         else:
-            instance = model(**kwargs)
-            self.session_temp.add(instance)
-            self.session_temp.commit()
-            return instance
+            try:
+                logger.debug("Creating new instance")
+                instance = model(**kwargs)
+                self.session_temp.add(instance)
+                self.session_temp.commit()
+                return instance
+            except Exception as e:
+                logger.error(f"Error creating")
+                raise BaseException(e)
 
     def create_watchers(self, watchers: List[GHUser], project_id: int):
         watchers_db = []
         watcher: GHUser
         for watcher in watchers:
-            user = self.get_or_create(User, login=watcher.login)
+            user = self.get_or_create(User, **watcher.to_dict())
             user_id = int(user.id)  # type: ignore
 
             existing_watcher = (
@@ -61,17 +81,15 @@ class DatabaseHandler:
         self.session_temp.commit()
 
     def create_project(self, repository: GHRepository):
-        existing_project = self.get_or_create(
-            Project, name=repository.name, owner_id=repository.owner_id
-        )
+        existing_project = self.get_or_create(Project, **repository.to_dict())
         return int(existing_project.id)  # type: ignore
 
     def create_user(self, user: GHUser) -> int:
-        existing_user = self.get_or_create(User, login=user.login)
+        existing_user = self.get_or_create(User, **user.to_dict())
         return int(existing_user.id)  # type: ignore
 
     def create_commit(self, commit: GHCommit):
-        existing_commit = self.get_or_create(Commit, sha=commit.sha)
+        existing_commit = self.get_or_create(Commit, **commit.to_dict())
         return int(existing_commit.id)  # type: ignore
 
     def create_commit_parent_relation(self, commit_id: int, parent_id: int):
@@ -85,7 +103,7 @@ class DatabaseHandler:
             self.session_temp.add(new_relation)
             return new_relation
         else:
-            logger.info(
+            logger.warning(
                 f"Relation commit-parent already exists: {commit_id} - {parent_id}"
             )
             return None
@@ -109,27 +127,8 @@ class DatabaseHandler:
         self.session_temp.commit()
 
     def create_pull_request(self, pr: GHPullRequest):
-        exist_pr = (
-            self.session_temp.query(PullRequest).filter_by(pullreq_id=pr.number).first()
-        )
-        if exist_pr:
-            logger.info(
-                f"Pull request already exist: {pr.number} - {pr.head_repo_id} - {pr.base_repo_id}"
-            )
-        else:
-            self.session_temp.add(
-                PullRequest(
-                    head_repo_id=pr.head_repo_id,
-                    base_repo_id=pr.base_repo_id,
-                    head_commit_id=pr.head_commit_id,
-                    base_commit_id=pr.base_commit_id,
-                    pullreq_id=pr.number,
-                    user_id=pr.user_id,
-                    intra_branch=pr.intra_branch,
-                    merged=pr.merged,
-                )
-            )
-            self.session_temp.commit()
+        existing_pr = self.get_or_create(PullRequest, **pr.to_dict())
+        return int(existing_pr.id)  # type: ignore
 
     def close(self):
         self.session_temp.close()
