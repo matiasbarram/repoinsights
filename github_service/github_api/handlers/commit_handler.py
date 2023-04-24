@@ -18,7 +18,6 @@ class CommitHandler:
             kwargs["until"] = until
 
         commits = self.repo.get_commits(**kwargs)
-        logger.info(f"Found {len(list(commits))} commits")
         return [GHCommit(commit) for commit in commits]
 
     def get_commit(self, commit_sha: str):

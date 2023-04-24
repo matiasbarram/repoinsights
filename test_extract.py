@@ -33,12 +33,7 @@ class ExtractData:
         if data_type == "commits":
             commits = self.client.commit_handler.get_commits(self.since, self.until)
             extended_commits = list(commits)
-            # for commit in commits:
-            #     for parent_sha in commit.parents:
-            #         gh_commit = self.client.commit_handler.get_commit(parent_sha)
-            #         extended_commits.append(gh_commit)
-
-            print(f"Total commits: {len(commits)}")
+            logger.info(f"Total GHCommits: {len(commits)}")
             return {"name": "commit", "data": extended_commits}
             for commit in commits:
                 comments = client.commit_handler.get_commit_comments(commit.sha)
@@ -50,7 +45,7 @@ class ExtractData:
             prs = self.client.pull_request_handler.get_all_pull_requests(
                 self.since, self.until
             )
-            print(f"Total pull requests: {len(prs)}")
+            logger.info(f"Total GHPullRequests: {len(prs)}")
             return {"name": "pull_request", "data": prs}
             for pr in prs:
                 pr_comments = client.pull_request_handler.get_pull_request_comments(pr)
@@ -60,7 +55,7 @@ class ExtractData:
             issues = self.client.issue_handler.get_issues(
                 start_date=self.since, end_date=self.until
             )
-            print(f"Total issues: {len(issues)}")
+            logger.info(f"Total GHIssues: {len(issues)}")
             return {"name": "issue", "data": issues}
             for issue in issues:
                 events = client.issue_handler.get_issue_events(issue)
@@ -68,38 +63,38 @@ class ExtractData:
 
         elif data_type == "labels":
             labels = self.client.label_handler.get_labels()
-            print(f"Total labels: {len(labels)}")
+            logger.info(f"Total GHLabels: {len(labels)}")
             return {"name": "label", "data": labels}
 
         elif data_type == "members":
             members = self.client.project_handler.get_members(
                 since=self.since, until=self.until
             )
-            print(f"Total members: {len(members)}")
+            logger.info(f"Total members GHUser: {len(members)}")
             return {"name": "member", "data": members}
 
         elif data_type == "watchers":
             watchers = self.client.project_handler.get_watchers(
                 since=self.since, until=self.until
             )
-            print(f"Total watchers: {len(watchers)}")
+            logger.info(f"Total watchers GHWatchers: {len(watchers)}")
             return {"name": "watcher", "data": watchers}
 
         elif data_type == "stargazers":
             stargazers = self.client.project_handler.get_stargazers(
                 since=self.since, until=self.until
             )
-            print(f"Total stargazers: {len(stargazers)}")
+            logger.info(f"Total stargazers GHUser: {len(stargazers)}")
             return {"name": "stargazer", "data": stargazers}
 
         elif data_type == "owner":
             owner = self.client.project_handler.get_owner()
-            print(f"Owner: {owner.login}")
+            logger.info("Owner GHUser: {owner}", owner=owner.login)
             return {"name": "owner", "data": owner}
 
         elif data_type == "milestones":
             milestones = self.client.issue_handler.get_milestones()
-            print(f"Total milestones: {len(milestones)}")
+            logger.info(f"Total GHMilestone: {len(milestones)}")
             return {"name": "milestone", "data": milestones}
 
         else:
@@ -107,10 +102,10 @@ class ExtractData:
 
 
 def main():
-    owner = "akka"
-    repo = "akka"
-    since = datetime(2022, 1, 10)
-    until = datetime(2022, 2, 20)
+    owner = "RepoReapers"
+    repo = "reaper"
+    since = datetime(2015, 1, 10)
+    until = datetime(2019, 12, 20)
     # since = None
     # until = None
 
@@ -119,7 +114,7 @@ def main():
         "owner",
         "commits",
         "pull_requests",  # revisar
-        # "issues",
+        "issues",
         # "labels",
         # "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos

@@ -1,5 +1,6 @@
 from github.PullRequest import PullRequest
 from github.Commit import Commit
+from github.IssuePullRequest import IssuePullRequest
 from github.Repository import Repository
 from .comment import GHPullRequestComment
 from .repository import GHRepository
@@ -10,7 +11,10 @@ from loguru import logger
 
 
 class GHPullRequest:
-    def __init__(self, pull_request: PullRequest):
+    def __init__(self, pull_request: Union[PullRequest, IssuePullRequest]):
+        if isinstance(pull_request, IssuePullRequest):
+            self.number = pull_request
+            return
         self.number = pull_request.number
         self.title = pull_request.title
         self.description = pull_request.body

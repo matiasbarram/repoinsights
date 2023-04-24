@@ -2,6 +2,7 @@ from github.Repository import Repository
 from ..isssue import GHIssue
 from ..milestone import GHMilestone
 from ..issue_event import GHIssueEvent
+from ..comment import GHIssueComment
 from github.Issue import Issue
 from datetime import datetime
 from pprint import pprint
@@ -84,8 +85,8 @@ class IssueHandler:
 
     def get_issue_comments(self, issue):
         comments = self.repo.get_issue(issue.number).get_comments()
-        return comments
+        return [GHIssueComment(comment) for comment in comments]
 
     def get_issue_events(self, issue: GHIssue):
-        events = self.repo.get_issue(issue.number).get_events()
+        events = self.repo.get_issue(issue.issue_id).get_events()
         return [GHIssueEvent(event) for event in events]

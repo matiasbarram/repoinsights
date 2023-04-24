@@ -87,16 +87,16 @@ class GitHubRepo:
 
 
 if __name__ == "__main__":
-    usuario = "akka"
-    repositorio = "akka"
-    token = "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"
+    owner = "RepoReapers"
+    repo = "reaper"
+    token = ""
 
-    repo = GitHubRepo(usuario, repositorio, token)
+    repo = GitHubRepo(owner, repo, token)
 
-    since = datetime(2022, 1, 10)
+    since = datetime(2015, 1, 10)
     until = datetime(2022, 2, 20)
 
     commits = repo.obtener_commits(since=since, until=until)
-    pull_requests = repo.obtener_pull_requests(since=since, until=until)
-    print("\nCommits:")
-    print(f"Total: {len(commits)}")
+    # pull_requests = repo.obtener_pull_requests(since=since, until=until)
+    for commit in commits:
+        print(commit["commit"]["author"]["date"])

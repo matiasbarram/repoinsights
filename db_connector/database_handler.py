@@ -14,9 +14,10 @@ from github_service.github_api.commit import GHCommit
 from github_service.github_api.user import GHUser
 from github_service.github_api.repository import GHRepository
 from github_service.github_api.pull_request import GHPullRequest
+from github_service.github_api.isssue import GHIssue
 from pprint import pprint
 from sqlalchemy.orm import sessionmaker
-from typing import Union, List
+from typing import Union, List, Optional
 from loguru import logger
 
 
@@ -42,13 +43,14 @@ class DatabaseHandler:
             PullRequestComment,
             Watcher,
         ],
+        create: Optional[bool] = True,
         **kwargs,
     ):
         instance = self.session_temp.query(model).filter_by(**kwargs).first()
         if instance:
             logger.debug("Instance already exists")
             return instance
-        else:
+        elif create:
             try:
                 logger.debug("Creating new instance")
                 instance = model(**kwargs)
@@ -58,6 +60,9 @@ class DatabaseHandler:
             except Exception as e:
                 logger.error(f"Error creating")
                 raise BaseException(e)
+        else:
+            logger.debug("Instance does not exist and not creating")
+            return None
 
     def create_watchers(self, watchers: List[GHUser], project_id: int):
         watchers_db = []
@@ -129,6 +134,14 @@ class DatabaseHandler:
     def create_pull_request(self, pr: GHPullRequest):
         existing_pr = self.get_or_create(PullRequest, **pr.to_dict())
         return int(existing_pr.id)  # type: ignore
+
+    def create_issue(self, issue: GHIssue):
+        existing_issue = self.get_or_create(Issue, **issue.to_dict())
+        return int(existing_issue.id)  # type: ignore
+
+    def find_pr_id(self, **kwargs) -> int:
+        pr = self.get_or_create(PullRequest, create=False, **kwargs)
+        return int(pr.id)  # type: ignore
 
     def close(self):
         self.session_temp.close()

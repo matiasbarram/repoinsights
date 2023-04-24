@@ -16,7 +16,25 @@ class LoadData:
     def __init__(self, client: GitHubClient):
         self.temp_db = DatabaseHandler(DBConnector())
         self.repository = client.repository
-        self.repository.set_repo_id(self.load_repository(self.repository))
+
+    def load_data(self, results):
+        order = {"owner": 1, "commit": 2, "pull_request": 3, "issue": 4, "watchers": 5}
+        sorted_results = sorted(results, key=lambda x: order[x["name"]])
+        for result in sorted_results:
+            name, data = result["name"], result["data"]
+            logger.critical(f"Loading {name}")
+            if name == "owner":
+                self.load_owner_data(data)
+                self.repo_id = self.load_repository(self.repository)
+                self.repository.set_repo_id(self.repo_id)
+            elif name == "commit":
+                self.load_commits_data(data)
+            elif name == "watchers":
+                self.load_watchers_data(data)
+            elif name == "pull_request":
+                self.load_pull_requests_data(data)
+            elif name == "issue":
+                self.load_issues_data(data)
 
     def load_repository(self, repository: GHRepository):
         logger.debug(
@@ -44,24 +62,14 @@ class LoadData:
         )
         self.temp_db.create_watchers(watchers, self.repository.id)
 
-    def load_data(self, results):
-        for result in results:
-            name, data = result["name"], result["data"]
-            logger.critical(f"Loading {name}")
-            if name == "owner":
-                self.load_owner_data(data)
-            elif name == "commit":
-                self.load_commits_data(data)
-            elif name == "watchers":
-                self.load_watchers_data(data)
-            elif name == "pull_request":
-                self.load_pull_requests_data(data)
-            elif name == "issues":
-                self.load_issues_data(data)
-
     def load_issues_data(self, issues: List[GHIssue]):
-        for iss in issues:
-            pass
+        for issue in issues:
+            issue.set_project_id(self.repository.id)
+            issue.set_reporter_id(self.load_user(issue.reporter))
+            if issue.assignee:
+                issue.set_assignee_id(self.load_user(issue.assignee))
+            self.set_pr_id(issue)
+            self.temp_db.create_issue(issue)
 
     def load_owner_data(self, owner: GHUser):
         self.repository.set_owner_id(self.load_user(owner))
@@ -116,3 +124,13 @@ class LoadData:
             pr_commit.set_committer_id(None)
         else:
             pr_commit.set_committer_id(self.load_user(pr_commit.committer))
+
+    def set_pr_id(self, issue: GHIssue) -> None:
+        if issue.pull_request is None or issue.pull_request == False:
+            return
+        else:
+            pr_id = self.temp_db.find_pr_id(
+                pullreq_id=issue.issue_id, base_repo_id=self.repo_id
+            )
+            if pr_id:
+                issue.set_pull_requests_id(pr_id)
