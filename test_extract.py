@@ -134,5 +134,4 @@ def main():
 
 
 if __name__ == "__main__":
-    logger.add("logs/extract_data_{time}.log")
     main()
