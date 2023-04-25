@@ -15,6 +15,7 @@ pika = "*"
 pygithub = "*"
 psycopg2 = "*"
 loguru = "*"
+httpx = "*"
 
 [dev-packages]
 black = "*"

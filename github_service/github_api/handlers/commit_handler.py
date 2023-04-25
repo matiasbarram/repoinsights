@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Union
 from ..comment import GHCommitComment
 from ..commit import GHCommit
-from github.Repository import Repository
 from loguru import logger
+from typing import Any, Dict
+from ...github import GitHubExtractor
 
 
 class CommitHandler:
-    def __init__(self, repo: Repository):
+    def __init__(self, repo: GitHubExtractor):
         self.repo = repo
 
     def get_commits(self, since: Union[None, datetime], until: Union[None, datetime]):
@@ -17,17 +18,17 @@ class CommitHandler:
         if until:
             kwargs["until"] = until
 
-        commits = self.repo.get_commits(**kwargs)
+        commits = self.repo.obtener_commits(**kwargs)
         return [GHCommit(commit) for commit in commits]
 
     def get_commit(self, commit_sha: str):
-        commit = self.repo.get_commit(commit_sha)
+        commit = self.repo.obtener_commit(commit_sha)
         return GHCommit(commit)
 
-    def get_commit_comments(self, commit_sha: str):
-        comments = self.repo.get_commit(commit_sha).get_comments()
-        return [GHCommitComment(comment) for comment in comments]
+    # def get_commit_comments(self, commit_sha: str):
+    #     comments = self.repo.get_commit(commit_sha).get_comments()
+    #     return [GHCommitComment(comment) for comment in comments]
 
-    def get_commit_parents(self, commit_sha: str):
-        parents = self.repo.get_commit(commit_sha).parents
-        return [GHCommit(parent) for parent in parents]
+    # def get_commit_parents(self, commit_sha: str):
+    #     parents = self.repo.get_commit(commit_sha).parents
+    #     return [GHCommit(parent) for parent in parents]

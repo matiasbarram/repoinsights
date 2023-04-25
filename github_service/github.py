@@ -1,15 +1,39 @@
+import concurrent.futures
 import requests
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from datetime import datetime
+from typing import Optional, Dict, Any, List
 
 
-class GitHubRepo:
+class GitHubExtractor:
     def __init__(self, usuario, repositorio, token):
         self.usuario = usuario
         self.repositorio = repositorio
         self.token = token
+        self.repo = self.obtener_repositorio()
+
+    def obtener_repositorio(self) -> Dict[str, Any]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}"
+        headers = {"Authorization": f"token {self.token}"}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        repo = response.json()
+        owner_name = repo["owner"]["login"]
+        owner_data = self.obtener_usuario(owner_name)
+        repo["owner"] = owner_data
+        return repo
+
+    def obtener_usuario(self, usuario: str) -> Dict[str, Any]:
+        url = f"https://api.github.com/users/{usuario}"
+        headers = {"Authorization": f"token {self.token}"}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
 
     def _realizar_solicitud_paginada(self, url, params=None):
+        if params is None:
+            params = {}
+        params.setdefault("per_page", 100)
+
         headers = {"Authorization": f"token {self.token}"}
         elementos = []
         pag = 1
@@ -64,20 +88,43 @@ class GitHubRepo:
         issues = self._realizar_solicitud_paginada(url, params)
         return self._filtrar_por_fecha(issues, since, until)
 
+    def obtener_usuario_parallel(self, usuario: str) -> Dict[str, Any]:
+        return usuario, self.obtener_usuario(usuario)  # type: ignore
+
     def obtener_commits(
         self, since: Optional[datetime] = None, until: Optional[datetime] = None
-    ):
+    ) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits"
         params = {"since": since, "until": until, "per_page": 100}
-        self.contar_elementos(url, params)
         commits = self._realizar_solicitud_paginada(url, params)
+
+        users_to_fetch = set()
+        for commit in commits:
+            if commit["author"] is not None:
+                users_to_fetch.add(commit["author"]["login"])
+            if commit["committer"] is not None:
+                users_to_fetch.add(commit["committer"]["login"])
+        users = {user: self.obtener_usuario(user) for user in users_to_fetch}
+
+        for commit in commits:
+            if commit["author"] is not None:
+                commit["author"] = users[commit["author"]["login"]]
+            if commit["committer"] is not None:
+                commit["committer"] = users[commit["committer"]["login"]]
+
         return commits
+
+    def obtener_commit(self, commit_sha: str) -> Dict[str, Any]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit_sha}"
+        headers = {"Authorization": f"token {self.token}"}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
 
     def contar_elementos(self, url, params: Dict[str, Any]):
         headers = {"Authorization": f"token {self.token}"}
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
-
         if "last" in response.links:
             last_url = response.links["last"]["url"]
             last_page_number = int(last_url.split("=")[-1])
@@ -85,18 +132,14 @@ class GitHubRepo:
         else:
             return len(response.json())
 
+    def obtener_contribuidores(self):
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/contributors"
+        params = {"per_page": 100}
+        contribuidores = self._realizar_solicitud_paginada(url, params)
+        return contribuidores
 
-if __name__ == "__main__":
-    owner = "RepoReapers"
-    repo = "reaper"
-    token = ""
-
-    repo = GitHubRepo(owner, repo, token)
-
-    since = datetime(2015, 1, 10)
-    until = datetime(2022, 2, 20)
-
-    commits = repo.obtener_commits(since=since, until=until)
-    # pull_requests = repo.obtener_pull_requests(since=since, until=until)
-    for commit in commits:
-        print(commit["commit"]["author"]["date"])
+    def obtener_watchers(self):
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/subscribers"
+        params = {"per_page": 100}
+        watchers = self._realizar_solicitud_paginada(url, params)
+        return watchers

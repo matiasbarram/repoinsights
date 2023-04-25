@@ -8,7 +8,7 @@ from github_service.github_api.user import GHUser
 from github_service.github_api.isssue import GHIssue
 from pprint import pprint
 import json
-from typing import List, Union
+from typing import List, Union, Dict
 from loguru import logger
 
 
@@ -16,18 +16,18 @@ class LoadData:
     def __init__(self, client: GitHubClient):
         self.temp_db = DatabaseHandler(DBConnector())
         self.repository = client.repository
+        self.repository.set_owner_id(self.load_user(self.repository.owner))
+        self.repo_id = self.repository.set_repo_id(
+            self.load_repository(self.repository)
+        )
 
-    def load_data(self, results):
+    def load_data(self, results: List[Dict]):
         order = {"owner": 1, "commit": 2, "pull_request": 3, "issue": 4, "watchers": 5}
         sorted_results = sorted(results, key=lambda x: order[x["name"]])
         for result in sorted_results:
             name, data = result["name"], result["data"]
             logger.critical(f"Loading {name}")
-            if name == "owner":
-                self.load_owner_data(data)
-                self.repo_id = self.load_repository(self.repository)
-                self.repository.set_repo_id(self.repo_id)
-            elif name == "commit":
+            if name == "commit":
                 self.load_commits_data(data)
             elif name == "watchers":
                 self.load_watchers_data(data)
@@ -70,9 +70,6 @@ class LoadData:
                 issue.set_assignee_id(self.load_user(issue.assignee))
             self.set_pr_id(issue)
             self.temp_db.create_issue(issue)
-
-    def load_owner_data(self, owner: GHUser):
-        self.repository.set_owner_id(self.load_user(owner))
 
     def load_commits_data(self, commits: List[GHCommit]):
         for commit in commits:
