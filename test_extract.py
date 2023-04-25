@@ -51,15 +51,16 @@ class ExtractData:
                 pr_comments = client.pull_request_handler.get_pull_request_comments(pr)
                 print(f"Total PR comments: {len(pr_comments)}")
 
-        # elif data_type == "issues":
-        #     issues = self.client.issue_handler.get_issues(
-        #         start_date=self.since, end_date=self.until
-        #     )
-        #     logger.info(f"Total GHIssues: {len(issues)}")
-        #     return {"name": "issue", "data": issues}
-        #     for issue in issues:
-        #         events = client.issue_handler.get_issue_events(issue)
-        #         print(f"Total events: {len(events)}")
+        elif data_type == "issues":
+            issues = self.client.issue_handler.get_issues(
+                start_date=self.since, end_date=self.until
+            )
+            logger.info(f"Total GHIssues: {len(issues)}")
+            return {"name": "issue", "data": issues}
+
+            for issue in issues:
+                events = client.issue_handler.get_issue_events(issue)
+                print(f"Total events: {len(events)}")
 
         # elif data_type == "labels":
         #     labels = self.client.label_handler.get_labels()
@@ -97,9 +98,9 @@ class ExtractData:
 
 
 def main():
-    owner = "matiasbarram"
-    repo = "LibreriaCapullitoCodigosDeBarra"
-    # since = datetime(2015, 1, 10)
+    owner = "reck1ess"
+    repo = "next-realworld-example-app"
+    # since = datetime(2019, 1, 10)
     # until = datetime(2019, 2, 20)
     since = None
     until = None
@@ -108,7 +109,7 @@ def main():
     data_types = [
         "commits",
         "pull_requests",  # revisar
-        # "issues",
+        "issues",
         # "labels",
         # "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos

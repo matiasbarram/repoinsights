@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any, List, Set
 import json
 from loguru import logger
 from concurrent.futures import ThreadPoolExecutor
-from .utils.utils import gh_api_to_datetime
+from ..utils.utils import gh_api_to_datetime
 
 
 class GitHubExtractor:
@@ -160,12 +160,18 @@ class GitHubExtractor:
         return prs_filtradas
 
     def obtener_issues(
-        self, since: Optional[datetime] = None, until: Optional[datetime] = None
-    ):
+        self,
+        since: Optional[datetime] = None,
+        until: Optional[datetime] = None,
+        state: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/issues"
         params = {"state": "all", "per_page": 100, "since": since}
         issues = self._realizar_solicitud_paginada("Issue", url, params)
-        return self._filtrar_por_fecha(issues, since, until)
+        issues_filtrados = self._filtrar_por_fecha(issues, since, until)
+        users = self._get_users_for_keys(issues_filtrados, ["user", "assignee"])
+        self._add_users_to_dict_keys(issues_filtrados, users, ["user", "assignee"])
+        return issues_filtrados
 
     def _get_unique_users(self, elements, user_key: str) -> Set[str]:
         users_to_fetch = set()

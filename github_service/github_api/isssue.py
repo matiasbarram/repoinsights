@@ -1,25 +1,24 @@
 from datetime import datetime
-from github.Repository import Repository
-from github.Issue import Issue
 from .comment import GHIssueComment
 from .label import GHLabel
 from .user import GHUser
+from typing import List, Union, Any, Dict
 
 
 class GHIssue:
-    def __init__(self, issue: Issue) -> None:
+    def __init__(self, issue: Dict[str, Any]) -> None:
         self.reporter_id = None
-        self.created_at = issue.created_at
-        self.updated_at = issue.updated_at
-        self.closed_at = issue.closed_at
-        self.title = issue.title
-        self.state = issue.state
-        self.issue_id = issue.number
-        self.pull_request = True if issue.pull_request else False
+        self.created_at = issue["created_at"]
+        self.updated_at = issue["updated_at"]
+        self.closed_at = issue["closed_at"]
+        self.title = issue["title"]
+        self.state = issue["state"]
+        self.issue_id = issue["number"]
+        self.pull_request = True if issue.get("pull_requests") else False
         self.pull_request_id = None
         self.labels = []
-        self.reporter = GHUser(issue.user)
-        self.assignee = GHUser(issue.assignee) if issue.assignee else None
+        self.reporter = GHUser(issue["user"])
+        self.assignee = GHUser(issue["assignee"]) if issue["assignee"] else None
         self.assignee_id = None
 
     def set_id(self, id: int):

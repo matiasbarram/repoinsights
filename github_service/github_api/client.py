@@ -7,7 +7,7 @@ from .handlers.issue_handler import IssueHandler
 from .handlers.user_handler import UserHandler
 from .handlers.pull_request_handler import PullRequestHandler
 
-from ..github import GitHubExtractor
+from ..requests.github import GitHubExtractor
 
 
 class GitHubClient:
@@ -23,4 +23,4 @@ class GitHubClient:
         self.pull_request_handler = PullRequestHandler(self.repo)
         # self.user_handler = UserHandler()
         # self.label_handler = LabelHandler(self.repo)
-        # self.issue_handler = IssueHandler(self.repo)
+        self.issue_handler = IssueHandler(self.repo)

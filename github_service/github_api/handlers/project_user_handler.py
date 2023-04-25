@@ -1,5 +1,5 @@
 from ..user import GHUser
-from ...github import GitHubExtractor
+from ...requests.github import GitHubExtractor
 from datetime import datetime
 from typing import List, Dict, Any
 

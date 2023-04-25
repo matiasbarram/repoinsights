@@ -4,7 +4,7 @@ from ..comment import GHCommitComment
 from ..commit import GHCommit
 from loguru import logger
 from typing import Any, Dict
-from ...github import GitHubExtractor
+from ...requests.github import GitHubExtractor
 
 
 class CommitHandler:

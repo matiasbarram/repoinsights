@@ -3,7 +3,7 @@ from ..pull_request import GHPullRequest
 from ..comment import GHPullRequestComment
 from ..commit import GHCommit
 from datetime import datetime
-from ...github import GitHubExtractor
+from ...requests.github import GitHubExtractor
 from ...utils.utils import gh_api_to_datetime
 
 
