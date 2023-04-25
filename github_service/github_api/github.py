@@ -162,8 +162,8 @@ class Repository(GitHubResource):
 
     def obtener_labels(self) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/labels"
-        response = self.api.get(url)
-        return response.json()
+        labels = self.api._realizar_solicitud_paginada("labels", url)
+        return labels
 
 
 class User(GitHubResource):

@@ -4,6 +4,7 @@ from github_service.repoinsights.client import InsightsClient
 from github_service.repoinsights.commit import InsightsCommit
 from github_service.repoinsights.repository import InsightsRepository
 from github_service.repoinsights.pull_request import GHPullRequest
+from github_service.repoinsights.label import InsightsLabel
 from github_service.repoinsights.user import InsightsUser
 from github_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
@@ -22,7 +23,14 @@ class LoadData:
         )
 
     def load_data(self, results: List[Dict]):
-        order = {"owner": 1, "commit": 2, "pull_request": 3, "issue": 4, "watchers": 5}
+        order = {
+            "owner": 1,
+            "commit": 2,
+            "pull_request": 3,
+            "issue": 4,
+            "watchers": 5,
+            "labels": 6,
+        }
         sorted_results = sorted(results, key=lambda x: order[x["name"]])
         for result in sorted_results:
             name, data = result["name"], result["data"]
@@ -35,6 +43,11 @@ class LoadData:
                 self.load_pull_requests_data(data)
             elif name == "issue":
                 self.load_issues_data(data)
+            else:
+                self.load_labels_data(data)
+
+    def load_labels_data(self, labels: List[InsightsLabel]):
+        logger.debug("Loading labels for repository {name}", name=self.repository.name)
 
     def load_repository(self, repository: InsightsRepository):
         logger.debug(

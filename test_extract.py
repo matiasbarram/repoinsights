@@ -66,10 +66,10 @@ class ExtractData:
                 events = client.issue_handler.get_issue_events(issue)
                 print(f"Total events: {len(events)}")
 
-        # elif data_type == "labels":
-        #     labels = self.client.label_handler.get_labels()
-        #     logger.info(f"Total GHLabels: {len(labels)}")
-        #     return {"name": "label", "data": labels}
+        elif data_type == "labels":
+            labels = self.client.label_handler.get_labels()
+            logger.info(f"Total GHLabels: {len(labels)}")
+            return {"name": "label", "data": labels}
 
         # elif data_type == "members":
         #     members = self.client.project_handler.get_members(
@@ -97,8 +97,8 @@ class ExtractData:
         #     logger.info(f"Total GHMilestone: {len(milestones)}")
         #     return {"name": "milestone", "data": milestones}
 
-        # else:
-        #     print(f"Invalid data type: {data_type}")
+        else:
+            print(f"Invalid data type: {data_type}")
 
 
 def main():
@@ -114,7 +114,7 @@ def main():
         "commits",
         "pull_requests",  # revisar
         "issues",
-        # "labels",
+        "labels",
         # "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos
         # "members",  # se demora mucho, siempre se deben traer todos
