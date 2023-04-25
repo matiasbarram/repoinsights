@@ -1,8 +1,8 @@
-from github_service.utils.paralell import run_in_parallel
-from github_service.repoinsights.client import InsightsClient
-from github_service.repoinsights.commit import InsightsCommit
+from extract_service.utils.paralell import run_in_parallel
+from extract_service.repoinsights.client import InsightsClient
+from extract_service.repoinsights.commit import InsightsCommit
 from datetime import datetime
-from github_service.utils.utils import is_valid_date
+from extract_service.utils.utils import is_valid_date
 from pprint import pprint
 import json
 from db_connector.connector import DBConnector

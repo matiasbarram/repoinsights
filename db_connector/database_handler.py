@@ -10,11 +10,11 @@ from .models import (
     PullRequestComment,
     Watcher,
 )
-from github_service.repoinsights.commit import InsightsCommit
-from github_service.repoinsights.user import InsightsUser
-from github_service.repoinsights.repository import InsightsRepository
-from github_service.repoinsights.pull_request import GHPullRequest
-from github_service.repoinsights.isssue import InsightsIssue
+from extract_service.repoinsights.commit import InsightsCommit
+from extract_service.repoinsights.user import InsightsUser
+from extract_service.repoinsights.repository import InsightsRepository
+from extract_service.repoinsights.pull_request import GHPullRequest
+from extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
 from sqlalchemy.orm import sessionmaker
 from typing import Union, List, Optional

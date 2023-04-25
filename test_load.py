@@ -1,12 +1,12 @@
 from db_connector.connector import DBConnector
 from db_connector.database_handler import DatabaseHandler
-from github_service.repoinsights.client import InsightsClient
-from github_service.repoinsights.commit import InsightsCommit
-from github_service.repoinsights.repository import InsightsRepository
-from github_service.repoinsights.pull_request import GHPullRequest
-from github_service.repoinsights.label import InsightsLabel
-from github_service.repoinsights.user import InsightsUser
-from github_service.repoinsights.isssue import InsightsIssue
+from extract_service.repoinsights.client import InsightsClient
+from extract_service.repoinsights.commit import InsightsCommit
+from extract_service.repoinsights.repository import InsightsRepository
+from extract_service.repoinsights.pull_request import GHPullRequest
+from extract_service.repoinsights.label import InsightsLabel
+from extract_service.repoinsights.user import InsightsUser
+from extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
 import json
 from typing import List, Union, Dict
