@@ -1,52 +1,46 @@
-from github.PullRequest import PullRequest
-from github.Commit import Commit
-from github.IssuePullRequest import IssuePullRequest
-from github.Repository import Repository
 from .comment import GHPullRequestComment
 from .repository import GHRepository
 from .commit import GHCommit
 from .user import GHUser
-from typing import Union
+from typing import Union, List, Dict, Any
 from loguru import logger
+import json
 
 
 class GHPullRequest:
-    def __init__(self, pull_request: Union[PullRequest, IssuePullRequest]):
-        if isinstance(pull_request, IssuePullRequest):
-            self.number = pull_request
-            return
-        self.number = pull_request.number
-        self.title = pull_request.title
-        self.description = pull_request.body
-        self.state = pull_request.state
-        self.created_at = pull_request.created_at
-        self.updated_at = pull_request.updated_at
-        self.closed_at = pull_request.closed_at
-        self.merged = True if pull_request.merged_at else False
-        self.base_branch = pull_request.base.ref
-        self.head_branch = pull_request.head.ref
-        self.base_commit_sha = pull_request.base.sha
-        self.head_commit_sha = pull_request.head.sha
-        self.body = pull_request.body
-        self.author = GHUser(pull_request.user)
-        self.base_repo = self.set_repo(pull_request.base.repo)
+    def __init__(self, pull_request: Dict[str, Any]):
+        self.number = pull_request["number"]
+        self.title = pull_request["title"]
+        self.description = pull_request["body"]
+        self.state = pull_request["state"]
+        self.created_at = pull_request["created_at"]
+        self.updated_at = pull_request["updated_at"]
+        self.closed_at = pull_request["closed_at"]
+        self.merged = True if pull_request["merged_at"] else False
+        self.base_branch = pull_request["base"]["ref"]
+        self.head_branch = pull_request["head"]["ref"]
+        self.base_commit_sha = pull_request["base"]["sha"]
+        self.head_commit_sha = pull_request["head"]["sha"]
+        self.body = pull_request["body"]
+        self.author = GHUser(pull_request["user"])
+        self.base_repo = self.set_repo(pull_request["base"]["repo"])
         self.base_repo_id = None
-        self.head_repo = self.set_repo(pull_request.head.repo)
+        self.head_repo = self.set_repo(pull_request["head"]["repo"])
         self.head_repo_id = None
         self.intra_branch = self.set_intra_branch(pull_request)
         self.raw_pull_request = pull_request
 
-    def set_repo(self, repo: Repository) -> Union[GHRepository, None]:
-        try:
-            return GHRepository(repo) if repo else None
-        except Exception as e:
-            logger.error(f"Error setting repo: {e}")
-            return None
+    def set_repo(self, repo: Dict[str, Any]) -> Union[GHRepository, None]:
+        return GHRepository(repo) if repo else None
 
-    def set_intra_branch(self, pr: PullRequest) -> bool:
-        if pr.head.repo is None or pr.base.repo is None:
+    def set_intra_branch(self, pr: Dict) -> bool:
+        if pr["head"]["repo"] is None or pr["base"]["repo"] is None:
             return False
-        return True if pr.base.repo.full_name == pr.head.repo.full_name else False
+        return (
+            True
+            if pr["base"]["repo"]["full_name"] == pr["head"]["repo"]["full_name"]
+            else False
+        )
 
     def __str__(self):
         return f"Pull Request #{self.number} ({self.state})"
@@ -78,9 +72,9 @@ class GHPullRequest:
     def set_project_id(self, project_id: int):
         self.project_id = project_id
 
-    def get_comments(self):
-        comments = self.raw_pull_request.get_comments()
-        return [GHPullRequestComment(comment) for comment in comments]
+    # def get_comments(self):
+    #     comments = self.raw_pull_request.get_comments()
+    #     return [GHPullRequestComment(comment) for comment in comments]
 
     def to_dict(self):
         return {

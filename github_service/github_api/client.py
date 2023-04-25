@@ -20,7 +20,7 @@ class GitHubClient:
         self.commit_handler = CommitHandler(self.repo)
         # self.repository = GHRepository(self.repo)
         self.project_handler = ProjectUserHandler(self.repo)
+        self.pull_request_handler = PullRequestHandler(self.repo)
         # self.user_handler = UserHandler()
         # self.label_handler = LabelHandler(self.repo)
         # self.issue_handler = IssueHandler(self.repo)
-        # self.pull_request_handler = PullRequestHandler(self.repo)

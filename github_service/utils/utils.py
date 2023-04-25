@@ -6,6 +6,10 @@ def format_dt(dt: datetime) -> str:
     return dt.strftime("%B %d, %Y, %I:%M %p")
 
 
+def gh_api_to_datetime(date_str: str) -> datetime:
+    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+
+
 def get_user_type(type) -> Union[str, None]:
     if type == "Organization":
         return "ORG"

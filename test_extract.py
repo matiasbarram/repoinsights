@@ -41,15 +41,15 @@ class ExtractData:
                 parents = client.commit_handler.get_commit_parents(commit.sha)
                 print(f"Total parents: {len(parents)}")
 
-        # elif data_type == "pull_requests":
-        #     prs = self.client.pull_request_handler.get_all_pull_requests(
-        #         self.since, self.until
-        #     )
-        #     logger.info(f"Total GHPullRequests: {len(prs)}")
-        #     return {"name": "pull_request", "data": prs}
-        #     for pr in prs:
-        #         pr_comments = client.pull_request_handler.get_pull_request_comments(pr)
-        #         print(f"Total PR comments: {len(pr_comments)}")
+        elif data_type == "pull_requests":
+            prs = self.client.pull_request_handler.get_all_pull_requests(
+                self.since, self.until
+            )
+            logger.info(f"Total GHPullRequests: {len(prs)}")
+            return {"name": "pull_request", "data": prs}
+            for pr in prs:
+                pr_comments = client.pull_request_handler.get_pull_request_comments(pr)
+                print(f"Total PR comments: {len(pr_comments)}")
 
         # elif data_type == "issues":
         #     issues = self.client.issue_handler.get_issues(
@@ -97,8 +97,8 @@ class ExtractData:
 
 
 def main():
-    owner = "RepoReapers"
-    repo = "reaper"
+    owner = "akka"
+    repo = "akka"
     since = datetime(2015, 1, 10)
     until = datetime(2019, 12, 20)
     # since = None
@@ -106,9 +106,8 @@ def main():
 
     client = GitHubClient(owner, repo)
     data_types = [
-        # "owner",
         "commits",
-        # "pull_requests",  # revisar
+        "pull_requests",  # revisar
         # "issues",
         # "labels",
         # "stargazers",  # eliminar, es lo mismo que watchers.
