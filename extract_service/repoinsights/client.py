@@ -6,7 +6,7 @@ from .handlers.label_handler import InsightsLabelHandler
 from .handlers.issue_handler import InsightsIssueHandler
 from .handlers.pull_request_handler import InsightsPullRequestHandler
 
-from ..github_api.github import GitHubExtractor
+from ..github_api.extractor import GitHubExtractor
 
 
 class InsightsClient:

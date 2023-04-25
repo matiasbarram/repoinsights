@@ -4,7 +4,7 @@ from ..comment import InsightsCommitComment
 from ..commit import InsightsCommit
 from loguru import logger
 from typing import Any, Dict
-from ...github_api.github import GitHubExtractor
+from ...github_api.extractor import GitHubExtractor
 
 
 class InsightsCommitHandler:

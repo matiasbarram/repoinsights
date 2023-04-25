@@ -3,6 +3,8 @@ from loguru import logger
 from ..utils.utils import gh_api_to_datetime
 from typing import Optional, Dict, Any, List, Set, Iterator
 from ..utils.utils import get_unique_users, add_users_to_dict_keys
+import json
+import redis
 
 
 class RateLimitExceededError(Exception):
@@ -67,17 +69,19 @@ class GitHubAPI:
 
 
 class Cache:
-    def __init__(self):
-        self.cache = {}
+    def __init__(self, host="localhost", port=6379, db=0):
+        self.cache = redis.StrictRedis(host=host, port=port, db=db)
 
     def get(self, key):
-        return self.cache.get(key)
+        value = self.cache.get(key)
+        return json.loads(value.decode("utf-8")) if value else None
 
-    def set(self, key, value):
-        self.cache[key] = value
+    def set(self, key, value, expiry=None):
+        serialized_value = json.dumps(value)
+        self.cache.set(key, serialized_value, ex=expiry)
 
     def has(self, key):
-        return key in self.cache
+        return self.cache.exists(key)
 
 
 class GitHubResource:

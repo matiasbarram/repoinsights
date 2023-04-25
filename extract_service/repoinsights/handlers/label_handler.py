@@ -1,4 +1,4 @@
-from ...github_api.github import GitHubExtractor
+from ...github_api.extractor import GitHubExtractor
 from ..label import InsightsLabel
 
 

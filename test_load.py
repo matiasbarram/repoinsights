@@ -29,7 +29,7 @@ class LoadData:
             "pull_request": 3,
             "issue": 4,
             "watchers": 5,
-            "labels": 6,
+            # "labels": 6,
         }
         sorted_results = sorted(results, key=lambda x: order[x["name"]])
         for result in sorted_results:

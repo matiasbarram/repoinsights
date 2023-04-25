@@ -1,5 +1,5 @@
 from ..user import InsightsUser
-from ...github_api.github import GitHubExtractor
+from ...github_api.extractor import GitHubExtractor
 from datetime import datetime
 from typing import List, Dict, Any
 

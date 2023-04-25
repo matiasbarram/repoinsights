@@ -6,7 +6,7 @@ from github.Issue import Issue
 from datetime import datetime
 from pprint import pprint
 from typing import Union, List, Any, Dict
-from ...github_api.github import GitHubExtractor
+from ...github_api.extractor import GitHubExtractor
 import json
 
 

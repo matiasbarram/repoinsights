@@ -114,7 +114,7 @@ def main():
         "commits",
         "pull_requests",  # revisar
         "issues",
-        "labels",
+        # "labels",
         # "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos
         # "members",  # se demora mucho, siempre se deben traer todos

@@ -48,7 +48,7 @@ class User(GitHubResource):
     def obtener_usuario(self, usuario: str) -> Dict[str, Any]:
         if self.cache.has(usuario):
             logger.debug("Getting usuario cacheado {commit_sha}", commit_sha=usuario)
-            return self.cache.get(usuario)
+            return self.cache.get(usuario)  # type: ignore
 
         url = f"https://api.github.com/users/{usuario}"
         user_data = self.api.get(url).json()
@@ -60,24 +60,21 @@ class User(GitHubResource):
     ) -> Dict[str, Dict[str, Any]]:
         users_to_fetch = set()
         for user_key in user_keys:
-            from .github_api import GitHubAPI
-
             users_to_fetch.update(get_unique_users(elements, user_key))
-
         return {user: self.obtener_usuario(user) for user in users_to_fetch}
 
 
 class Commit(GitHubResource):
     def __init__(self, api: GitHubAPI, usuario: str, repositorio: str):
         self.api = api
-        super().__init__(api)
         self.usuario = usuario
         self.repositorio = repositorio
+        super().__init__(self.api)
 
     def obtener_commit(self, commit_sha: str) -> Dict[str, Any]:
         if self.cache.has(commit_sha):
             logger.debug("Getting commit cacheado {commit_sha}", commit_sha=commit_sha)
-            return self.cache.get(commit_sha)
+            return self.cache.get(commit_sha)  # type: ignore
 
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit_sha}"
         commit = self.api.get(url).json()

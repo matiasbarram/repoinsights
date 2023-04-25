@@ -16,6 +16,7 @@ pygithub = "*"
 psycopg2 = "*"
 loguru = "*"
 httpx = "*"
+redis = "*"
 
 [dev-packages]
 black = "*"
