@@ -1,5 +1,5 @@
 from ..config import GHToken
-from ..requests.github import GitHubExtractor
+from ..github_api.github import GitHubExtractor
 from github.Repository import Repository
 from .user import GHUser
 from typing import Dict, Any

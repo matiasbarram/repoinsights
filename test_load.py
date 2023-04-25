@@ -1,11 +1,11 @@
 from db_connector.connector import DBConnector
 from db_connector.database_handler import DatabaseHandler
-from github_service.github_api.client import GitHubClient
-from github_service.github_api.commit import GHCommit
-from github_service.github_api.repository import GHRepository
-from github_service.github_api.pull_request import GHPullRequest
-from github_service.github_api.user import GHUser
-from github_service.github_api.isssue import GHIssue
+from github_service.repoinsights.client import GitHubClient
+from github_service.repoinsights.commit import GHCommit
+from github_service.repoinsights.repository import GHRepository
+from github_service.repoinsights.pull_request import GHPullRequest
+from github_service.repoinsights.user import GHUser
+from github_service.repoinsights.isssue import GHIssue
 from pprint import pprint
 import json
 from typing import List, Union, Dict
