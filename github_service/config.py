@@ -1,11 +1,11 @@
 import os
 import json
 import random
-from typing import Union
+from typing import Union, List
 
 
 class GHToken:
-    def get_public_tokens(self, token: Union[str, None]) -> list[str]:
+    def get_public_tokens(self) -> List[str]:
         keys_list = []
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, "tokens.json")
@@ -15,6 +15,6 @@ class GHToken:
         return keys_list
 
     def get_token(self) -> str:
-        token_list = self.get_public_tokens(token=None)
+        token_list = self.get_public_tokens()
         random_token = random.choice(token_list)  # iterate to get a valid token
         return random_token
