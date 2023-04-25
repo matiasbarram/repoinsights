@@ -1,15 +1,15 @@
 from ..config import GHToken
 from ..github_api.github import GitHubExtractor
 from github.Repository import Repository
-from .user import GHUser
+from .user import InsightsUser
 from typing import Dict, Any
 import json
 
 
-class GHRepository:
+class InsightsRepository:
     def __init__(self, repo: Dict[str, Any]) -> None:
         self.url = repo["url"]
-        self.owner = GHUser(repo["owner"])
+        self.owner = InsightsUser(repo["owner"])
         self.name = repo["name"]
         self.description = repo["description"]
         self.language = repo["language"]

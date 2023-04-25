@@ -1,11 +1,11 @@
-from github.Repository import Repository
-from ..label import GHLabel
+from ...github_api.github import GitHubExtractor
+from ..label import InsightsLabel
 
 
-class LabelHandler:
-    def __init__(self, repo: Repository):
+class InsightsLabelHandler:
+    def __init__(self, repo: GitHubExtractor):
         self.repo = repo
 
     def get_labels(self):
-        labels = self.repo.get_labels()
-        return [GHLabel(label) for label in labels]
+        labels = self.repo.obtener_labels()
+        return [InsightsLabel(label) for label in labels]

@@ -1,7 +1,7 @@
-from .comment import GHPullRequestComment
-from .repository import GHRepository
-from .commit import GHCommit
-from .user import GHUser
+from .comment import InsightsPullRequestComment
+from .repository import InsightsRepository
+from .commit import InsightsCommit
+from .user import InsightsUser
 from typing import Union, List, Dict, Any
 from loguru import logger
 import json
@@ -22,7 +22,7 @@ class GHPullRequest:
         self.base_commit_sha = pull_request["base"]["sha"]
         self.head_commit_sha = pull_request["head"]["sha"]
         self.body = pull_request["body"]
-        self.author = GHUser(pull_request["user"])
+        self.author = InsightsUser(pull_request["user"])
         self.base_repo = self.set_repo(pull_request["base"]["repo"])
         self.base_repo_id = None
         self.head_repo = self.set_repo(pull_request["head"]["repo"])
@@ -30,8 +30,8 @@ class GHPullRequest:
         self.intra_branch = self.set_intra_branch(pull_request)
         self.raw_pull_request = pull_request
 
-    def set_repo(self, repo: Dict[str, Any]) -> Union[GHRepository, None]:
-        return GHRepository(repo) if repo else None
+    def set_repo(self, repo: Dict[str, Any]) -> Union[InsightsRepository, None]:
+        return InsightsRepository(repo) if repo else None
 
     def set_intra_branch(self, pr: Dict) -> bool:
         if pr["head"]["repo"] is None or pr["base"]["repo"] is None:
@@ -45,10 +45,10 @@ class GHPullRequest:
     def __str__(self):
         return f"Pull Request #{self.number} ({self.state})"
 
-    def set_head_commit(self, commit: GHCommit):
+    def set_head_commit(self, commit: InsightsCommit):
         self.head_commit = commit
 
-    def set_base_commit(self, commit: GHCommit):
+    def set_base_commit(self, commit: InsightsCommit):
         self.base_commit = commit
 
     def set_head_commit_id(self, commit_id: int):
@@ -63,7 +63,7 @@ class GHPullRequest:
     def set_base_repo_id(self, repo_id: int):
         self.base_repo_id = repo_id
 
-    def set_comments(self, comments: list[GHPullRequestComment]):
+    def set_comments(self, comments: list[InsightsPullRequestComment]):
         self.comments = comments
 
     def set_user_id(self, user_id: int):

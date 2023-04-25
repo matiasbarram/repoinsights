@@ -2,7 +2,7 @@ from typing import Union
 from github import Label, Issue, Project
 
 
-class GHLabel:
+class InsightsLabel:
     def __init__(self, label):
         self.name = label.name
         self.color = label.color

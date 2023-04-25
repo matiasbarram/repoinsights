@@ -160,6 +160,11 @@ class Repository(GitHubResource):
         watchers = self.api._realizar_solicitud_paginada("watchers", url, params)
         return watchers
 
+    def obtener_labels(self) -> List[Dict[str, Any]]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/labels"
+        response = self.api.get(url)
+        return response.json()
+
 
 class User(GitHubResource):
     def __init__(self, api: GitHubAPI):
@@ -324,3 +329,6 @@ class GitHubExtractor:
         return self.pull_request.obtener_pull_requests(
             state=state, sort=sort, direction=direction, since=since, until=until
         )
+
+    def obtener_labels(self):
+        return self.repositorio.obtener_labels()

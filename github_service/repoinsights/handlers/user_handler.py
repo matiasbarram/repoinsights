@@ -2,7 +2,7 @@ from github import Github
 from ...config import GHToken
 
 
-class UserHandler:
+class InsightsUserHandler:
     def __init__(self) -> None:
         self.token = GHToken().get_token()
         self.gh = Github(self.token, per_page=100)

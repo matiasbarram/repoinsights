@@ -1,11 +1,11 @@
 from datetime import datetime
-from .comment import GHIssueComment
-from .label import GHLabel
-from .user import GHUser
+from .comment import InsightsIssueComment
+from .label import InsightsLabel
+from .user import InsightsUser
 from typing import List, Union, Any, Dict
 
 
-class GHIssue:
+class InsightsIssue:
     def __init__(self, issue: Dict[str, Any]) -> None:
         self.reporter_id = None
         self.created_at = issue["created_at"]
@@ -17,8 +17,8 @@ class GHIssue:
         self.pull_request = True if issue.get("pull_requests") else False
         self.pull_request_id = None
         self.labels = []
-        self.reporter = GHUser(issue["user"])
-        self.assignee = GHUser(issue["assignee"]) if issue["assignee"] else None
+        self.reporter = InsightsUser(issue["user"])
+        self.assignee = InsightsUser(issue["assignee"]) if issue["assignee"] else None
         self.assignee_id = None
 
     def set_id(self, id: int):
@@ -37,16 +37,16 @@ class GHIssue:
         self.pull_request_id = pr_id
 
     def set_labels(self, labels):
-        self.labels = [GHLabel(label) for label in labels]
+        self.labels = [InsightsLabel(label) for label in labels]
 
     def get_labels(self):
         print("Getting labels")
         return self.labels
 
-    def set_comments(self, comments: list[GHIssueComment]):
+    def set_comments(self, comments: list[InsightsIssueComment]):
         self.comments = comments
 
-    def get_comments(self) -> list[GHIssueComment]:
+    def get_comments(self) -> list[InsightsIssueComment]:
         return self.comments
 
     def to_dict(self) -> dict:

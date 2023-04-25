@@ -10,11 +10,11 @@ from .models import (
     PullRequestComment,
     Watcher,
 )
-from github_service.repoinsights.commit import GHCommit
-from github_service.repoinsights.user import GHUser
-from github_service.repoinsights.repository import GHRepository
+from github_service.repoinsights.commit import InsightsCommit
+from github_service.repoinsights.user import InsightsUser
+from github_service.repoinsights.repository import InsightsRepository
 from github_service.repoinsights.pull_request import GHPullRequest
-from github_service.repoinsights.isssue import GHIssue
+from github_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
 from sqlalchemy.orm import sessionmaker
 from typing import Union, List, Optional
@@ -64,9 +64,9 @@ class DatabaseHandler:
             logger.debug("Instance does not exist and not creating")
             return None
 
-    def create_watchers(self, watchers: List[GHUser], project_id: int):
+    def create_watchers(self, watchers: List[InsightsUser], project_id: int):
         watchers_db = []
-        watcher: GHUser
+        watcher: InsightsUser
         for watcher in watchers:
             user = self.get_or_create(User, **watcher.to_dict())
             user_id = int(user.id)  # type: ignore
@@ -85,15 +85,15 @@ class DatabaseHandler:
         self.session_temp.add_all(watchers_db)
         self.session_temp.commit()
 
-    def create_project(self, repository: GHRepository):
+    def create_project(self, repository: InsightsRepository):
         existing_project = self.get_or_create(Project, **repository.to_dict())
         return int(existing_project.id)  # type: ignore
 
-    def create_user(self, user: GHUser) -> int:
+    def create_user(self, user: InsightsUser) -> int:
         existing_user = self.get_or_create(User, **user.to_dict())
         return int(existing_user.id)  # type: ignore
 
-    def create_commit(self, commit: GHCommit):
+    def create_commit(self, commit: InsightsCommit):
         existing_commit = self.get_or_create(Commit, **commit.to_dict())
         return int(existing_commit.id)  # type: ignore
 
@@ -135,7 +135,7 @@ class DatabaseHandler:
         existing_pr = self.get_or_create(PullRequest, **pr.to_dict())
         return int(existing_pr.id)  # type: ignore
 
-    def create_issue(self, issue: GHIssue):
+    def create_issue(self, issue: InsightsIssue):
         existing_issue = self.get_or_create(Issue, **issue.to_dict())
         return int(existing_issue.id)  # type: ignore
 

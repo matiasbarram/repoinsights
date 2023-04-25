@@ -3,7 +3,7 @@ from github.IssueComment import IssueComment
 from github.PullRequestComment import PullRequestComment
 
 
-class GHComment:
+class InsightsComment:
     def __init__(self, id, body, author, created_at, updated_at):
         self.id = id
         self.body = body
@@ -21,7 +21,7 @@ class GHComment:
         }
 
 
-class GHPullRequestComment(GHComment):
+class InsightsPullRequestComment(InsightsComment):
     def __init__(self, comment: PullRequestComment):
         super().__init__(
             id=comment.id,
@@ -32,7 +32,7 @@ class GHPullRequestComment(GHComment):
         )
 
 
-class GHIssueComment(GHComment):
+class InsightsIssueComment(InsightsComment):
     def __init__(self, comment: IssueComment):
         super().__init__(
             id=comment.id,
@@ -43,7 +43,7 @@ class GHIssueComment(GHComment):
         )
 
 
-class GHCommitComment(GHComment):
+class InsightsCommitComment(InsightsComment):
     def __init__(self, comment: CommitComment):
         super().__init__(
             id=comment.id,

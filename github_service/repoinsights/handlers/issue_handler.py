@@ -1,7 +1,7 @@
-from ..isssue import GHIssue
-from ..milestone import GHMilestone
-from ..issue_event import GHIssueEvent
-from ..comment import GHIssueComment
+from ..isssue import InsightsIssue
+from ..milestone import InsightsMilestone
+from ..issue_event import InsightsIssueEvent
+from ..comment import InsightsIssueComment
 from github.Issue import Issue
 from datetime import datetime
 from pprint import pprint
@@ -10,13 +10,15 @@ from ...github_api.github import GitHubExtractor
 import json
 
 
-class IssueHandler:
+class InsightsIssueHandler:
     def __init__(self, repo: GitHubExtractor):
         self.repo = repo
 
     def _get_filtered_issues(self, issues):
         print("Getting GHIssues")
-        issue_objects = [GHIssue(issue) for issue in issues if not issue.pull_request]
+        issue_objects = [
+            InsightsIssue(issue) for issue in issues if not issue.pull_request
+        ]
         self.set_labels(issue_objects, issues)
         return issue_objects
 
@@ -32,10 +34,12 @@ class IssueHandler:
         if end_date:
             kwargs["until"] = end_date
         issues = self.repo.obtener_issues(**kwargs)
-        return [GHIssue(issue) for issue in issues if not issue.get("pull_request")]
+        return [
+            InsightsIssue(issue) for issue in issues if not issue.get("pull_request")
+        ]
 
     def set_labels(self, issue_objects: list, issues):
-        issue_obj: GHIssue
+        issue_obj: InsightsIssue
         issue: Issue
         for issue_obj, issue in zip(issue_objects, issues):
             issue_obj.set_labels(issue.labels)

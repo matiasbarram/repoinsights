@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Union
-from ..comment import GHCommitComment
-from ..commit import GHCommit
+from ..comment import InsightsCommitComment
+from ..commit import InsightsCommit
 from loguru import logger
 from typing import Any, Dict
 from ...github_api.github import GitHubExtractor
 
 
-class CommitHandler:
+class InsightsCommitHandler:
     def __init__(self, repo: GitHubExtractor):
         self.repo = repo
 
@@ -19,11 +19,11 @@ class CommitHandler:
             kwargs["until"] = until
 
         commits = self.repo.obtener_commits(**kwargs)
-        return [GHCommit(commit) for commit in commits]
+        return [InsightsCommit(commit) for commit in commits]
 
     def get_commit(self, commit_sha: str):
         commit = self.repo.obtener_commit(commit_sha)
-        return GHCommit(commit)
+        return InsightsCommit(commit)
 
     # def get_commit_comments(self, commit_sha: str):
     #     comments = self.repo.get_commit(commit_sha).get_comments()

@@ -1,7 +1,7 @@
 from github.IssueEvent import IssueEvent
 
 
-class GHIssueEvent:
+class InsightsIssueEvent:
     def __init__(self, event: IssueEvent) -> None:
         self.event_id = event.id
         self.action_specific = None

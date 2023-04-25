@@ -1,9 +1,8 @@
 from typing import List, Optional, Union, Dict, Any
-from .handlers.user_handler import UserHandler
 from ..utils.utils import get_user_type
 
 
-class GHUser:
+class InsightsUser:
     def __init__(self, user: Dict[str, Any]) -> None:
         self.login = user["login"]
         self.name = user["name"]

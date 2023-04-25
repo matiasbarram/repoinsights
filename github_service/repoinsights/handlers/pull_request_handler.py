@@ -1,13 +1,13 @@
 from typing import List, Union, Optional, Dict, Any
 from ..pull_request import GHPullRequest
-from ..comment import GHPullRequestComment
-from ..commit import GHCommit
+from ..comment import InsightsPullRequestComment
+from ..commit import InsightsCommit
 from datetime import datetime
 from ...github_api.github import GitHubExtractor
 from ...utils.utils import gh_api_to_datetime
 
 
-class PullRequestHandler:
+class InsightsPullRequestHandler:
     def __init__(self, repo: GitHubExtractor):
         self.repo = repo
 
@@ -31,7 +31,11 @@ class PullRequestHandler:
         return gh_pr
 
     def set_pull_request_commits(self, pull_request: GHPullRequest) -> None:
-        base_commit = GHCommit(self.repo.obtener_commit(pull_request.base_commit_sha))
-        head_commit = GHCommit(self.repo.obtener_commit(pull_request.head_commit_sha))
+        base_commit = InsightsCommit(
+            self.repo.obtener_commit(pull_request.base_commit_sha)
+        )
+        head_commit = InsightsCommit(
+            self.repo.obtener_commit(pull_request.head_commit_sha)
+        )
         pull_request.set_base_commit(base_commit)
         pull_request.set_head_commit(head_commit)

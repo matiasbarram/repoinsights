@@ -1,6 +1,6 @@
 from github_service.utils.paralell import run_in_parallel
-from github_service.repoinsights.client import GitHubClient
-from github_service.repoinsights.commit import GHCommit
+from github_service.repoinsights.client import InsightsClient
+from github_service.repoinsights.commit import InsightsCommit
 from datetime import datetime
 from github_service.utils.utils import is_valid_date
 from pprint import pprint
@@ -11,7 +11,7 @@ from loguru import logger
 
 
 class ExtractData:
-    def __init__(self, client: GitHubClient, owner, repo, since, until, data_types):
+    def __init__(self, client: InsightsClient, owner, repo, since, until, data_types):
         self.client = client
         self.owner = owner
         self.repo = repo
@@ -28,7 +28,11 @@ class ExtractData:
         LoadData(self.client).load_data(results)
 
     def extract_data(
-        self, client: GitHubClient, data_type: str, since: datetime, until: datetime
+        self,
+        client: InsightsClient,
+        data_type: str,
+        since: datetime,
+        until: datetime,
     ):
         if data_type == "commits":
             commits = self.client.commit_handler.get_commits(self.since, self.until)
@@ -105,7 +109,7 @@ def main():
     since = None
     until = None
 
-    client = GitHubClient(owner, repo)
+    client = InsightsClient(owner, repo)
     data_types = [
         "commits",
         "pull_requests",  # revisar
