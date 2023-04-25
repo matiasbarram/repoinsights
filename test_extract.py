@@ -97,12 +97,12 @@ class ExtractData:
 
 
 def main():
-    owner = "akka"
-    repo = "akka"
-    since = datetime(2015, 1, 10)
-    until = datetime(2019, 12, 20)
-    # since = None
-    # until = None
+    owner = "matiasbarram"
+    repo = "LibreriaCapullitoCodigosDeBarra"
+    # since = datetime(2015, 1, 10)
+    # until = datetime(2019, 2, 20)
+    since = None
+    until = None
 
     client = GitHubClient(owner, repo)
     data_types = [

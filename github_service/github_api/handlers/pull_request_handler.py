@@ -14,17 +14,11 @@ class PullRequestHandler:
     def get_all_pull_requests(
         self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
     ) -> List[GHPullRequest]:
-        pull_requests = self.repo.obtener_pull_requests(state="all")
+        pull_requests = self.repo.obtener_pull_requests(
+            state="all", since=start_date, until=end_date
+        )
 
-        if start_date is None or end_date is None:
-            return [self._process_pull_request(pr) for pr in pull_requests]
-
-        pull_requests_between_dates = [
-            self._process_pull_request(pr)
-            for pr in pull_requests
-            if start_date <= gh_api_to_datetime(pr["created_at"]) <= end_date
-        ]
-        return pull_requests_between_dates
+        return [self._process_pull_request(pr) for pr in pull_requests]
 
     # def get_pull_request_comments(
     #     self, pull_request: GHPullRequest
