@@ -1,7 +1,7 @@
 from github.Milestone import Milestone
 
 
-class GHMilestone:
+class InsightsMilestone:
     def __init__(self, milestone: Milestone):
         self.id = milestone.id
         self.title = milestone.title

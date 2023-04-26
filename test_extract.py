@@ -1,8 +1,8 @@
-from github_service.utils.paralell import run_in_parallel
-from github_service.github_api.client import GitHubClient
-from github_service.github_api.commit import GHCommit
+from extract_service.utils.paralell import run_in_parallel
+from extract_service.repoinsights.client import InsightsClient
+from extract_service.repoinsights.commit import InsightsCommit
 from datetime import datetime
-from github_service.utils.utils import is_valid_date
+from extract_service.utils.utils import is_valid_date
 from pprint import pprint
 import json
 from db_connector.connector import DBConnector
@@ -11,7 +11,7 @@ from loguru import logger
 
 
 class ExtractData:
-    def __init__(self, client: GitHubClient, owner, repo, since, until, data_types):
+    def __init__(self, client: InsightsClient, owner, repo, since, until, data_types):
         self.client = client
         self.owner = owner
         self.repo = repo
@@ -28,7 +28,11 @@ class ExtractData:
         LoadData(self.client).load_data(results)
 
     def extract_data(
-        self, client: GitHubClient, data_type: str, since: datetime, until: datetime
+        self,
+        client: InsightsClient,
+        data_type: str,
+        since: datetime,
+        until: datetime,
     ):
         if data_type == "commits":
             commits = self.client.commit_handler.get_commits(self.since, self.until)
@@ -57,6 +61,7 @@ class ExtractData:
             )
             logger.info(f"Total GHIssues: {len(issues)}")
             return {"name": "issue", "data": issues}
+
             for issue in issues:
                 events = client.issue_handler.get_issue_events(issue)
                 print(f"Total events: {len(events)}")
@@ -73,50 +78,37 @@ class ExtractData:
             logger.info(f"Total members GHUser: {len(members)}")
             return {"name": "member", "data": members}
 
-        elif data_type == "watchers":
-            watchers = self.client.project_handler.get_watchers(
-                since=self.since, until=self.until
-            )
-            logger.info(f"Total watchers GHWatchers: {len(watchers)}")
-            return {"name": "watcher", "data": watchers}
-
         elif data_type == "stargazers":
             stargazers = self.client.project_handler.get_stargazers(
                 since=self.since, until=self.until
             )
             logger.info(f"Total stargazers GHUser: {len(stargazers)}")
-            return {"name": "stargazer", "data": stargazers}
+            return {"name": "watchers", "data": stargazers}
 
-        elif data_type == "owner":
-            owner = self.client.project_handler.get_owner()
-            logger.info("Owner GHUser: {owner}", owner=owner.login)
-            return {"name": "owner", "data": owner}
-
-        elif data_type == "milestones":
-            milestones = self.client.issue_handler.get_milestones()
-            logger.info(f"Total GHMilestone: {len(milestones)}")
-            return {"name": "milestone", "data": milestones}
+        # elif data_type == "milestones":
+        #     milestones = self.client.issue_handler.get_milestones()
+        #     logger.info(f"Total GHMilestone: {len(milestones)}")
+        #     return {"name": "milestone", "data": milestones}
 
         else:
             print(f"Invalid data type: {data_type}")
 
 
 def main():
-    owner = "RepoReapers"
-    repo = "reaper"
-    since = datetime(2015, 1, 10)
-    until = datetime(2019, 12, 20)
-    # since = None
-    # until = None
+    owner = "openfootball"
+    repo = "worldcup"
+    # since = datetime(2019, 1, 10)
+    # until = datetime(2019, 2, 20)
+    since = None
+    until = None
 
-    client = GitHubClient(owner, repo)
+    client = InsightsClient(owner, repo)
     data_types = [
-        "owner",
         "commits",
         "pull_requests",  # revisar
         "issues",
         # "labels",
-        # "stargazers",  # eliminar, es lo mismo que watchers.
+        "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos
         # "members",  # se demora mucho, siempre se deben traer todos
         # "milestones",
@@ -135,5 +127,4 @@ def main():
 
 
 if __name__ == "__main__":
-    logger.add("logs/extract_data_{time}.log")
     main()

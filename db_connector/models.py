@@ -323,6 +323,7 @@ class Watcher(Base):
 
     repo_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(24), nullable=False, default="0")
 
     project = relationship("Project", back_populates="watchers")

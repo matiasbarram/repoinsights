@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta
-from typing import Union
+from typing import Union, List, Dict, Set
 
 
 def format_dt(dt: datetime) -> str:
     return dt.strftime("%B %d, %Y, %I:%M %p")
+
+
+def gh_api_to_datetime(date_str: str) -> datetime:
+    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
 
 
 def get_user_type(type) -> Union[str, None]:
@@ -52,3 +56,34 @@ def compare_dates(date1, date2):
     date1 = datetime.strptime(date1, "%Y-%m-%d")
     date2 = datetime.strptime(date2, "%Y-%m-%d")
     return (date1 > date2) - (date1 < date2)
+
+
+def add_users_to_dict_keys(list_dicts: List, users: Dict, user_keys: List[str]):
+    for dict in list_dicts:
+        for key in user_keys:
+            keys = key.split(".")
+            user_obj = dict
+            for k in keys[:-1]:
+                if user_obj is not None:
+                    user_obj = user_obj.get(k)
+                else:
+                    break
+            if user_obj is not None:
+                last_key = keys[-1]
+                if user_obj[last_key] is not None:
+                    user_obj[last_key] = users[user_obj[last_key]["login"]]
+
+
+def get_unique_users(elements, user_key: str) -> Set[str]:
+    users_to_fetch = set()
+    for element in elements:
+        keys = user_key.split(".")
+        user_obj = element
+        for key in keys:
+            if user_obj is not None:
+                user_obj = user_obj.get(key)
+            else:
+                break
+        if user_obj is not None:
+            users_to_fetch.add(user_obj["login"])
+    return users_to_fetch

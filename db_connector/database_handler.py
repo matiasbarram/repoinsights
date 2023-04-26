@@ -9,13 +9,15 @@ from .models import (
     PullRequest,
     PullRequestComment,
     Watcher,
+    ProjectMember,
 )
-from github_service.github_api.commit import GHCommit
-from github_service.github_api.user import GHUser
-from github_service.github_api.repository import GHRepository
-from github_service.github_api.pull_request import GHPullRequest
-from github_service.github_api.isssue import GHIssue
+from extract_service.repoinsights.commit import InsightsCommit
+from extract_service.repoinsights.user import InsightsUser
+from extract_service.repoinsights.repository import InsightsRepository
+from extract_service.repoinsights.pull_request import GHPullRequest
+from extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
+from typing import List, Union, Dict, Any
 from sqlalchemy.orm import sessionmaker
 from typing import Union, List, Optional
 from loguru import logger
@@ -64,9 +66,9 @@ class DatabaseHandler:
             logger.debug("Instance does not exist and not creating")
             return None
 
-    def create_watchers(self, watchers: List[GHUser], project_id: int):
+    def create_watchers(self, watchers: List[InsightsUser], project_id: int):
         watchers_db = []
-        watcher: GHUser
+        watcher: InsightsUser
         for watcher in watchers:
             user = self.get_or_create(User, **watcher.to_dict())
             user_id = int(user.id)  # type: ignore
@@ -80,20 +82,25 @@ class DatabaseHandler:
                 new_watcher = Watcher(
                     repo_id=project_id, user_id=user_id, created_at=watcher.created_at
                 )
+
                 watchers_db.append(new_watcher)
 
         self.session_temp.add_all(watchers_db)
         self.session_temp.commit()
 
-    def create_project(self, repository: GHRepository):
+    def create_members(self, member_data: Dict[str, Any]):
+        existing_member = self.get_or_create(ProjectMember, **member_data)
+        return int(existing_member.id)  # type: ignore
+
+    def create_project(self, repository: InsightsRepository):
         existing_project = self.get_or_create(Project, **repository.to_dict())
         return int(existing_project.id)  # type: ignore
 
-    def create_user(self, user: GHUser) -> int:
+    def create_user(self, user: InsightsUser) -> int:
         existing_user = self.get_or_create(User, **user.to_dict())
         return int(existing_user.id)  # type: ignore
 
-    def create_commit(self, commit: GHCommit):
+    def create_commit(self, commit: InsightsCommit):
         existing_commit = self.get_or_create(Commit, **commit.to_dict())
         return int(existing_commit.id)  # type: ignore
 
@@ -135,7 +142,7 @@ class DatabaseHandler:
         existing_pr = self.get_or_create(PullRequest, **pr.to_dict())
         return int(existing_pr.id)  # type: ignore
 
-    def create_issue(self, issue: GHIssue):
+    def create_issue(self, issue: InsightsIssue):
         existing_issue = self.get_or_create(Issue, **issue.to_dict())
         return int(existing_issue.id)  # type: ignore
 

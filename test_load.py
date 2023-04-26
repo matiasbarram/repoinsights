@@ -1,33 +1,42 @@
 from db_connector.connector import DBConnector
 from db_connector.database_handler import DatabaseHandler
-from github_service.github_api.client import GitHubClient
-from github_service.github_api.commit import GHCommit
-from github_service.github_api.repository import GHRepository
-from github_service.github_api.pull_request import GHPullRequest
-from github_service.github_api.user import GHUser
-from github_service.github_api.isssue import GHIssue
+from extract_service.repoinsights.client import InsightsClient
+from extract_service.repoinsights.commit import InsightsCommit
+from extract_service.repoinsights.repository import InsightsRepository
+from extract_service.repoinsights.pull_request import GHPullRequest
+from extract_service.repoinsights.label import InsightsLabel
+from extract_service.repoinsights.user import InsightsUser
+from extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
 import json
-from typing import List, Union
+from typing import List, Union, Dict
 from loguru import logger
 
 
 class LoadData:
-    def __init__(self, client: GitHubClient):
+    def __init__(self, client: InsightsClient):
         self.temp_db = DatabaseHandler(DBConnector())
         self.repository = client.repository
+        self.repository.set_owner_id(self.load_user(self.repository.owner))
+        self.repo_id = self.repository.set_repo_id(
+            self.load_repository(self.repository)
+        )
 
-    def load_data(self, results):
-        order = {"owner": 1, "commit": 2, "pull_request": 3, "issue": 4, "watchers": 5}
+    def load_data(self, results: List[Dict]):
+        order = {
+            "owner": 1,
+            "commit": 2,
+            "pull_request": 3,
+            "issue": 4,
+            "watchers": 5,
+            "members": 6,
+            # "labels": 6,
+        }
         sorted_results = sorted(results, key=lambda x: order[x["name"]])
         for result in sorted_results:
             name, data = result["name"], result["data"]
             logger.critical(f"Loading {name}")
-            if name == "owner":
-                self.load_owner_data(data)
-                self.repo_id = self.load_repository(self.repository)
-                self.repository.set_repo_id(self.repo_id)
-            elif name == "commit":
+            if name == "commit":
                 self.load_commits_data(data)
             elif name == "watchers":
                 self.load_watchers_data(data)
@@ -35,8 +44,25 @@ class LoadData:
                 self.load_pull_requests_data(data)
             elif name == "issue":
                 self.load_issues_data(data)
+            elif name == "labels":
+                self.load_labels_data(data)
+            elif name == "members":
+                self.load_members_data(data)
 
-    def load_repository(self, repository: GHRepository):
+    def load_labels_data(self, labels: List[InsightsLabel]):
+        logger.debug("Loading labels for repository {name}", name=self.repository.name)
+
+    def load_members_data(self, members: List[InsightsUser]):
+        logger.debug("Loading members for repository {name}", name=self.repository.name)
+        for member in members:
+            user_id = self.load_user(member)
+            member_data = {
+                "user_id": user_id,
+                "project_id": self.repository.id,
+            }
+            return self.temp_db.create_members(member_data)
+
+    def load_repository(self, repository: InsightsRepository):
         logger.debug(
             "Loading repository {owner} {name}",
             owner=repository.owner.login,
@@ -44,11 +70,11 @@ class LoadData:
         )
         return self.temp_db.create_project(repository)
 
-    def load_user(self, user: GHUser) -> int:
+    def load_user(self, user: InsightsUser) -> int:
         logger.debug("Loading user {login}", login=user.login)
         return self.temp_db.create_user(user)
 
-    def load_commit(self, commit: GHCommit) -> int:
+    def load_commit(self, commit: InsightsCommit) -> int:
         logger.debug("Loading commit {sha}", sha=commit.sha)
         return self.temp_db.create_commit(commit)
 
@@ -56,13 +82,13 @@ class LoadData:
         logger.debug("Loading pull request {number}", number=pr.number)
         self.temp_db.create_pull_request(pr)
 
-    def load_watchers(self, watchers: List[GHUser]):
+    def load_watchers(self, watchers: List[InsightsUser]):
         logger.debug(
             "Loading watchers for repository {name}", name=self.repository.name
         )
         self.temp_db.create_watchers(watchers, self.repository.id)
 
-    def load_issues_data(self, issues: List[GHIssue]):
+    def load_issues_data(self, issues: List[InsightsIssue]):
         for issue in issues:
             issue.set_project_id(self.repository.id)
             issue.set_reporter_id(self.load_user(issue.reporter))
@@ -71,10 +97,7 @@ class LoadData:
             self.set_pr_id(issue)
             self.temp_db.create_issue(issue)
 
-    def load_owner_data(self, owner: GHUser):
-        self.repository.set_owner_id(self.load_user(owner))
-
-    def load_commits_data(self, commits: List[GHCommit]):
+    def load_commits_data(self, commits: List[InsightsCommit]):
         for commit in commits:
             commit.set_project_id(self.repository.id)
             commit.set_author_id(
@@ -86,7 +109,7 @@ class LoadData:
             commit_id = self.load_commit(commit)
             # self.temp_db.create_commit_parents(commit_id, commit.parents)
 
-    def load_watchers_data(self, watchers: List[GHUser]):
+    def load_watchers_data(self, watchers: List[InsightsUser]):
         self.load_watchers(watchers)
 
     def load_pull_requests_data(self, pull_requests: List[GHPullRequest]):
@@ -104,7 +127,7 @@ class LoadData:
                 pr.set_base_repo_id(self.load_repository(pr.base_repo))  # type: ignore
             self.load_pull_request(pr)
 
-    def update_repo_data(self, pr_repo: Union[GHRepository, None]):
+    def update_repo_data(self, pr_repo: Union[InsightsRepository, None]):
         if pr_repo is None:
             return
 
@@ -113,7 +136,7 @@ class LoadData:
         if pr_repo.raw_repo["owner"] is not None:
             pr_repo.set_owner_id(self.load_user(pr_repo.owner))
 
-    def update_commit_data(self, pr_commit: GHCommit):
+    def update_commit_data(self, pr_commit: InsightsCommit):
         pr_commit.set_project_id(self.repository.id)
         if pr_commit.author is None:
             pr_commit.set_author_id(None)
@@ -125,7 +148,7 @@ class LoadData:
         else:
             pr_commit.set_committer_id(self.load_user(pr_commit.committer))
 
-    def set_pr_id(self, issue: GHIssue) -> None:
+    def set_pr_id(self, issue: InsightsIssue) -> None:
         if issue.pull_request is None or issue.pull_request == False:
             return
         else:
