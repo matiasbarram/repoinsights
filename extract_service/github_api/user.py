@@ -11,10 +11,14 @@ class Repository(GitHubResource):
         self.usuario = usuario
         self.repositorio = repositorio
         self.api = api
+        super().__init__(api)
 
     def obtener_repositorio(self) -> Dict[str, Any]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}"
         repo = self.api.get(url).json()
+        # repo = self.invoke_with_rate_limit_handling(
+        #     self.api.get, self.tokens_iter, url=url
+        # ).json()
         owner_name = repo["owner"]["login"]
         owner_data = User(self.api).obtener_usuario(owner_name)
         repo["owner"] = owner_data
@@ -28,11 +32,20 @@ class Repository(GitHubResource):
         )
         return contribuidores
 
-    def obtener_watchers(self):
-        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/subscribers"
-        params = {"per_page": 100}
-        watchers = self.api._realizar_solicitud_paginada("watchers", url, params)
-        return watchers
+    def obtener_stargazers(self):
+        url = (
+            f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/stargazers"
+        )
+        headers = {"Accept": "application/vnd.github.v3.star+json"}
+        stargazers = self.api._realizar_solicitud_paginada(
+            "stargazers", url, headers=headers
+        )
+        for stargazer in stargazers:
+            user_name = stargazer["user"]["login"]
+            user_data = User(self.api).obtener_usuario(user_name)
+            stargazer["user"] = user_data
+
+        return stargazers
 
     def obtener_labels(self) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/labels"

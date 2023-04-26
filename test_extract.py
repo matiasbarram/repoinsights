@@ -71,26 +71,19 @@ class ExtractData:
             logger.info(f"Total GHLabels: {len(labels)}")
             return {"name": "label", "data": labels}
 
-        # elif data_type == "members":
-        #     members = self.client.project_handler.get_members(
-        #         since=self.since, until=self.until
-        #     )
-        #     logger.info(f"Total members GHUser: {len(members)}")
-        #     return {"name": "member", "data": members}
+        elif data_type == "members":
+            members = self.client.project_handler.get_members(
+                since=self.since, until=self.until
+            )
+            logger.info(f"Total members GHUser: {len(members)}")
+            return {"name": "member", "data": members}
 
-        # elif data_type == "watchers":
-        #     watchers = self.client.project_handler.get_watchers(
-        #         since=self.since, until=self.until
-        #     )
-        #     logger.info(f"Total watchers GHWatchers: {len(watchers)}")
-        #     return {"name": "watcher", "data": watchers}
-
-        # elif data_type == "stargazers":
-        #     stargazers = self.client.project_handler.get_stargazers(
-        #         since=self.since, until=self.until
-        #     )
-        #     logger.info(f"Total stargazers GHUser: {len(stargazers)}")
-        #     return {"name": "stargazer", "data": stargazers}
+        elif data_type == "stargazers":
+            stargazers = self.client.project_handler.get_stargazers(
+                since=self.since, until=self.until
+            )
+            logger.info(f"Total stargazers GHUser: {len(stargazers)}")
+            return {"name": "watchers", "data": stargazers}
 
         # elif data_type == "milestones":
         #     milestones = self.client.issue_handler.get_milestones()
@@ -102,8 +95,8 @@ class ExtractData:
 
 
 def main():
-    owner = "reck1ess"
-    repo = "next-realworld-example-app"
+    owner = "microsoft"
+    repo = "vscode"
     # since = datetime(2019, 1, 10)
     # until = datetime(2019, 2, 20)
     since = None
@@ -115,7 +108,7 @@ def main():
         "pull_requests",  # revisar
         "issues",
         # "labels",
-        # "stargazers",  # eliminar, es lo mismo que watchers.
+        "stargazers",  # eliminar, es lo mismo que watchers.
         # "watchers",  # se demora mucho, siempre se deben traer todos
         # "members",  # se demora mucho, siempre se deben traer todos
         # "milestones",

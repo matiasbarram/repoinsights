@@ -29,6 +29,7 @@ class LoadData:
             "pull_request": 3,
             "issue": 4,
             "watchers": 5,
+            "members": 6,
             # "labels": 6,
         }
         sorted_results = sorted(results, key=lambda x: order[x["name"]])
@@ -43,11 +44,23 @@ class LoadData:
                 self.load_pull_requests_data(data)
             elif name == "issue":
                 self.load_issues_data(data)
-            else:
+            elif name == "labels":
                 self.load_labels_data(data)
+            elif name == "members":
+                self.load_members_data(data)
 
     def load_labels_data(self, labels: List[InsightsLabel]):
         logger.debug("Loading labels for repository {name}", name=self.repository.name)
+
+    def load_members_data(self, members: List[InsightsUser]):
+        logger.debug("Loading members for repository {name}", name=self.repository.name)
+        for member in members:
+            user_id = self.load_user(member)
+            member_data = {
+                "user_id": user_id,
+                "project_id": self.repository.id,
+            }
+            return self.temp_db.create_members(member_data)
 
     def load_repository(self, repository: InsightsRepository):
         logger.debug(

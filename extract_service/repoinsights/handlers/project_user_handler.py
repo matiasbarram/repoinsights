@@ -1,7 +1,8 @@
 from ..user import InsightsUser
 from ...github_api.extractor import GitHubExtractor
+from ...repoinsights.user import InsightsUser
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 
 class InsightsProjectUserHandler:
@@ -14,26 +15,18 @@ class InsightsProjectUserHandler:
             return [
                 InsightsUser(member)
                 for member in members
-                if since <= member.created_at <= until
+                if since <= member["created_at"] <= until
             ]
         return [InsightsUser(member) for member in members]
 
-    def get_watchers(self, since=None, until=None):
-        watchers = self.repo.obtener_watchers()
+    def get_stargazers(
+        self, since: Union[datetime, None] = None, until: Union[datetime, None] = None
+    ) -> List[InsightsUser]:
+        stargazers = self.repo.obtener_stargazers()
         if since and until:
             return [
-                InsightsUser(watcher)
-                for watcher in watchers
-                if since <= watcher.created_at <= until
+                InsightsUser(stargazer["user"])
+                for stargazer in stargazers
+                if since <= stargazer["starred_at"] <= until
             ]
-        return [InsightsUser(watcher) for watcher in watchers]
-
-    # def get_stargazers(self, since=None, until=None) -> List[GHUser]:
-    #     stargazers = self.repo.get_stargazers_with_dates()
-    #     if since and until:
-    #         return [
-    #             GHUser(stargazer.user)
-    #             for stargazer in stargazers
-    #             if since <= stargazer.starred_at <= until
-    #         ]
-    #     return [GHUser(stargazer.user) for stargazer in stargazers]
+        return [InsightsUser(stargazer["user"]) for stargazer in stargazers]

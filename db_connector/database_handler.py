@@ -9,6 +9,7 @@ from .models import (
     PullRequest,
     PullRequestComment,
     Watcher,
+    ProjectMember,
 )
 from extract_service.repoinsights.commit import InsightsCommit
 from extract_service.repoinsights.user import InsightsUser
@@ -16,6 +17,7 @@ from extract_service.repoinsights.repository import InsightsRepository
 from extract_service.repoinsights.pull_request import GHPullRequest
 from extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
+from typing import List, Union, Dict, Any
 from sqlalchemy.orm import sessionmaker
 from typing import Union, List, Optional
 from loguru import logger
@@ -80,10 +82,15 @@ class DatabaseHandler:
                 new_watcher = Watcher(
                     repo_id=project_id, user_id=user_id, created_at=watcher.created_at
                 )
+
                 watchers_db.append(new_watcher)
 
         self.session_temp.add_all(watchers_db)
         self.session_temp.commit()
+
+    def create_members(self, member_data: Dict[str, Any]):
+        existing_member = self.get_or_create(ProjectMember, **member_data)
+        return int(existing_member.id)  # type: ignore
 
     def create_project(self, repository: InsightsRepository):
         existing_project = self.get_or_create(Project, **repository.to_dict())

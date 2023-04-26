@@ -1,7 +1,7 @@
 import requests
 from loguru import logger
 from ..utils.utils import gh_api_to_datetime
-from typing import Optional, Dict, Any, List, Set, Iterator
+from typing import Optional, Dict, Any, List, Set, Iterator, Union
 from ..utils.utils import get_unique_users, add_users_to_dict_keys
 import json
 import redis
@@ -20,9 +20,15 @@ class GitHubAPI:
         self.token = new_token
         self.headers["Authorization"] = f"token {self.token}"
 
-    def get(self, url, params=None):
+    def get(self, url, params=None, headers: Optional[Dict] = None):
         try:
+            if headers is not None:
+                self.headers.update(headers)
             response = requests.get(url, headers=self.headers, params=params)
+            if "X-RateLimit-Remaining" in response.headers:
+                logger.info(
+                    f"API rate limit: {response.headers['X-RateLimit-Remaining']}/{response.headers['X-RateLimit-Limit']}"
+                )
             response.raise_for_status()
             return response
         except requests.exceptions.HTTPError as e:
@@ -31,19 +37,25 @@ class GitHubAPI:
                 and "X-RateLimit-Remaining" in e.response.headers
                 and int(e.response.headers["X-RateLimit-Remaining"]) == 0
             ):
+                logger.error("GitHub API rate limit exceeded.")
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
             else:
                 raise e
 
-    def _realizar_solicitud_paginada(self, name, url, params=None):
+    def _realizar_solicitud_paginada(
+        self,
+        name: str,
+        url: Union[str, None],
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+    ):
         if params is None:
             params = {}
         params.setdefault("per_page", 100)
-
         elementos = []
         pag = 1
         while url:
-            response = self.get(url, params=params)
+            response = self.get(url, params=params, headers=headers)
             elementos.extend(response.json())
             logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
             pag += 1

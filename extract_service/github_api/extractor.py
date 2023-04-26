@@ -28,9 +28,6 @@ class GitHubExtractor:
     def obtener_contribuidores(self):
         return self.repositorio.obtener_contribuidores()
 
-    def obtener_watchers(self):
-        return self.repositorio.obtener_watchers()
-
     def obtener_usuario(self, usuario):
         return self.user_repo.obtener_usuario(usuario)
 
@@ -52,3 +49,6 @@ class GitHubExtractor:
 
     def obtener_labels(self):
         return self.repositorio.obtener_labels()
+
+    def obtener_stargazers(self):
+        return self.repositorio.obtener_stargazers()
