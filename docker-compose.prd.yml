@@ -20,7 +20,7 @@ services:
     volumes:
       - ./docker/postgres:/var/lib/postgresql/data
       - ./docker/data:/app
-      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./${SCHEMA_CONSOLIDADA}:/docker-entrypoint-initdb.d/init.sql
 
   temporal:
     image: postgres
@@ -37,7 +37,7 @@ services:
     volumes:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
       - ./docker/data:/app
-      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./${SCHEMA_TEMP}:/docker-entrypoint-initdb.d/init.sql
 
   metabase-db:
     image: postgres
