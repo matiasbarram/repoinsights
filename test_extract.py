@@ -95,8 +95,8 @@ class ExtractData:
 
 
 def main():
-    owner = "microsoft"
-    repo = "vscode"
+    owner = "openfootball"
+    repo = "worldcup"
     # since = datetime(2019, 1, 10)
     # until = datetime(2019, 2, 20)
     since = None

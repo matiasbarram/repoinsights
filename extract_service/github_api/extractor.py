@@ -14,13 +14,13 @@ class GitHubExtractor:
         self.tokens_iter = tokens_iter
         self.api = GitHubAPI(token)
 
-        self.repositorio = Repository(self.api, repositorio, usuario)
+        self.repositorio = Repository(self.api, repositorio, usuario, self.tokens_iter)
         self.repo = self.obtener_repo_info()
 
-        self.user_repo = User(self.api)
-        self.commit_repo = Commit(self.api, usuario, repositorio)
-        self.issue = Issue(token, usuario, repositorio)
-        self.pull_request = PullRequest(self.api, usuario, repositorio)
+        self.user_repo = User(self.api, tokens_iter)
+        self.commit_repo = Commit(self.api, usuario, repositorio, tokens_iter)
+        self.issue = Issue(token, usuario, repositorio, tokens_iter)
+        self.pull_request = PullRequest(self.api, usuario, repositorio, tokens_iter)
 
     def obtener_repo_info(self):
         return self.repositorio.obtener_repositorio()

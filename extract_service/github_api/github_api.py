@@ -25,10 +25,11 @@ class GitHubAPI:
             if headers is not None:
                 self.headers.update(headers)
             response = requests.get(url, headers=self.headers, params=params)
-            if "X-RateLimit-Remaining" in response.headers:
-                logger.info(
-                    f"API rate limit: {response.headers['X-RateLimit-Remaining']}/{response.headers['X-RateLimit-Limit']}"
-                )
+            logger.debug(
+                "{current}/{limit}",
+                current=response.headers["X-RateLimit-Remaining"],
+                limit=response.headers["X-RateLimit-Limit"],
+            )
             response.raise_for_status()
             return response
         except requests.exceptions.HTTPError as e:
@@ -37,7 +38,6 @@ class GitHubAPI:
                 and "X-RateLimit-Remaining" in e.response.headers
                 and int(e.response.headers["X-RateLimit-Remaining"]) == 0
             ):
-                logger.error("GitHub API rate limit exceeded.")
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
             else:
                 raise e
@@ -104,6 +104,7 @@ class GitHubResource:
     def _handle_rate_limit_exceeded(self, tokens_iter):
         try:
             new_token = next(tokens_iter)
+            print("New token: ", new_token)
             self.api.update_token(new_token)
         except StopIteration:
             raise RateLimitExceededError(

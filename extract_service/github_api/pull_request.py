@@ -7,10 +7,11 @@ from ..utils.utils import add_users_to_dict_keys
 
 
 class PullRequest(GitHubResource):
-    def __init__(self, api: GitHubAPI, usuario, repositorio) -> None:
+    def __init__(self, api: GitHubAPI, usuario, repositorio, tokens_iter) -> None:
         self.api = api
         self.usuario = usuario
         self.repositorio = repositorio
+        self.tokens_iter = tokens_iter
 
     def obtener_pull_requests(
         self,
@@ -29,10 +30,15 @@ class PullRequest(GitHubResource):
         if direction:
             params["direction"] = direction
 
-        pull_requests = self.api._realizar_solicitud_paginada("PR", url, params)
+        pull_requests = self.invoke_with_rate_limit_handling(
+            self.api.get,
+            url=url,
+            params=params,
+            tokens_iter=self.tokens_iter,
+        ).json()
         prs_filtradas = self.api._filtrar_por_fecha(pull_requests, since, until)
 
-        users = User(self.api)._get_users_for_keys(
+        users = User(self.api, self.tokens_iter)._get_users_for_keys(
             prs_filtradas,
             [
                 "user",

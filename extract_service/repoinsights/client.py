@@ -15,7 +15,6 @@ class InsightsClient:
         tokens_iter = iter(tokens)
 
         self.repo = GitHubExtractor(owner, repo, tokens_iter)
-
         if self.repo.repositorio is None:
             raise Exception("Repository not found")
         self.repository = InsightsRepository(self.repo.repo)
