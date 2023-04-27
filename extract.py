@@ -16,12 +16,11 @@ def main():
     # until = None
     data_types = [
         "commits",
-        "pull_requests",  # revisar
+        "pull_requests",
         "issues",
         # "labels",
-        # "stargazers",  # eliminar, es lo mismo que watchers.
-        # "watchers",  # se demora mucho, siempre se deben traer todos
-        # "members",  # se demora mucho, siempre se deben traer todos
+        # "stargazers",
+        # "members",
         # "milestones",
     ]
 

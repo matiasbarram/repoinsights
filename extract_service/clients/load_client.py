@@ -15,12 +15,16 @@ class MainProjectError(Exception):
     pass
 
 
+class ExtractDataResulstsError(Exception):
+    pass
+
+
 class LoadDataClient:
     def __init__(self, results: List[Dict[str, Any]]) -> None:
         self.temp_db = DatabaseHandler(DBConnector())
-        self.results = results
+        self.sorted_results = self.sort_results(results)
 
-    def load_data(self):
+    def sort_results(self, results: List[Dict[str, Any]]):
         order = {
             "project": 0,
             "owner": 1,
@@ -31,8 +35,16 @@ class LoadDataClient:
             "members": 6,
             # "labels": 6,
         }
-        sorted_results = sorted(self.results, key=lambda x: order[x["name"]])
-        for result in sorted_results:
+        try:
+            self.sorted_results = sorted(results, key=lambda x: order[x["name"]])
+            return self.sorted_results
+        except KeyError as e:
+            raise ExtractDataResulstsError(
+                f"Results must contain a 'name' key. Error: {e}"
+            )
+
+    def load_data(self):
+        for result in self.sorted_results:
             name, data = result["name"], result["data"]
             logger.critical(f"Loading {name}")
             if name == "project":
