@@ -1,10 +1,11 @@
 import requests
 from loguru import logger
 from ..utils.utils import gh_api_to_datetime
+from ..config import GHToken
 from typing import Optional, Dict, Any, List, Set, Iterator, Union
-from ..utils.utils import get_unique_users, add_users_to_dict_keys
 import json
 import redis
+import time
 
 
 class RateLimitExceededError(Exception):
@@ -107,9 +108,10 @@ class GitHubResource:
             print("New token: ", new_token)
             self.api.update_token(new_token)
         except StopIteration:
-            raise RateLimitExceededError(
-                "GitHub API rate limit exceeded and no more tokens available."
-            )
+            token, wait_time = GHToken().get_token_lowest_wait_time()
+            logger.warning("No more tokens! Waiting 1 hour to continue")
+            time.sleep(wait_time - time.time() + 10)
+            self.api.update_token(token)
 
     def invoke_with_rate_limit_handling(self, func, tokens_iter, *args, **kwargs):
         while True:

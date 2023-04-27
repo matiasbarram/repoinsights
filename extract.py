@@ -9,7 +9,6 @@ from loguru import logger
 def main():
     owner = "gousiosg"
     repo = "github-mirror"
-
     since = datetime(2019, 1, 10)
     until = datetime(2022, 2, 20)
     # since = None
@@ -27,8 +26,7 @@ def main():
     client = InsightsClient(owner, repo, since, until, data_types)
     results = client.extract()
     client.load(results)
-
-    # client.enqueue_project()
+    client.enqueue()
 
 
 if __name__ == "__main__":

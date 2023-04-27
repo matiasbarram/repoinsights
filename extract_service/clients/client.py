@@ -23,3 +23,6 @@ class InsightsClient:
 
     def load(self, results):
         return LoadDataClient(results).load_data()
+
+    def enqueue(self):
+        pass
