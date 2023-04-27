@@ -3,18 +3,26 @@ from extract_service.github_api.user import Repository, Commit, User
 from extract_service.github_api.issue import Issue
 from extract_service.github_api.pull_request import PullRequest
 from extract_service.github_api.github_api import GitHubAPI
+from datetime import datetime
 
 
 class GitHubExtractor:
-    def __init__(self, usuario: str, repositorio: str, tokens_iter: Iterator[str]):
+    def __init__(
+        self,
+        usuario: str,
+        repositorio: str,
+        tokens_iter: Iterator[str],
+        since: Optional[datetime] = None,
+        until: Optional[datetime] = None,
+    ):
         self.usuario = usuario
+        self.since = since
+        self.until = until
         token = next(tokens_iter)
         self.tokens_iter = tokens_iter
         self.api = GitHubAPI(token)
 
         self.repositorio = Repository(self.api, repositorio, usuario, self.tokens_iter)
-        self.repo = self.obtener_repo_info()
-
         self.user_repo = User(self.api, tokens_iter)
         self.commit_repo = Commit(self.api, usuario, repositorio, tokens_iter)
         self.issue = Issue(token, usuario, repositorio, tokens_iter)

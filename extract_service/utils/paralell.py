@@ -8,5 +8,4 @@ def run_in_parallel(function, args_list, max_workers=5):
         futures = [executor.submit(function, *args) for args in args_list]
         for future in as_completed(futures):
             results.append(future.result())
-
     return results

@@ -1,29 +1,28 @@
-from db_connector.connector import DBConnector
-from db_connector.database_handler import DatabaseHandler
-from extract_service.repoinsights.client import InsightsClient
 from extract_service.repoinsights.commit import InsightsCommit
 from extract_service.repoinsights.repository import InsightsRepository
 from extract_service.repoinsights.pull_request import GHPullRequest
 from extract_service.repoinsights.label import InsightsLabel
 from extract_service.repoinsights.user import InsightsUser
 from extract_service.repoinsights.isssue import InsightsIssue
-from pprint import pprint
-import json
-from typing import List, Union, Dict
+from extract_service.db_connector.connector import DBConnector
+from extract_service.db_connector.database_handler import DatabaseHandler
+
+from typing import List, Union, Dict, Any
 from loguru import logger
 
 
-class LoadData:
-    def __init__(self, client: InsightsClient):
-        self.temp_db = DatabaseHandler(DBConnector())
-        self.repository = client.repository
-        self.repository.set_owner_id(self.load_user(self.repository.owner))
-        self.repo_id = self.repository.set_repo_id(
-            self.load_repository(self.repository)
-        )
+class MainProjectError(Exception):
+    pass
 
-    def load_data(self, results: List[Dict]):
+
+class LoadDataClient:
+    def __init__(self, results: List[Dict[str, Any]]) -> None:
+        self.temp_db = DatabaseHandler(DBConnector())
+        self.results = results
+
+    def load_data(self):
         order = {
+            "project": 0,
             "owner": 1,
             "commit": 2,
             "pull_request": 3,
@@ -32,10 +31,12 @@ class LoadData:
             "members": 6,
             # "labels": 6,
         }
-        sorted_results = sorted(results, key=lambda x: order[x["name"]])
+        sorted_results = sorted(self.results, key=lambda x: order[x["name"]])
         for result in sorted_results:
             name, data = result["name"], result["data"]
             logger.critical(f"Loading {name}")
+            if name == "project":
+                self.load_main_project(data)
             if name == "commit":
                 self.load_commits_data(data)
             elif name == "watchers":
@@ -48,6 +49,13 @@ class LoadData:
                 self.load_labels_data(data)
             elif name == "members":
                 self.load_members_data(data)
+
+    def load_main_project(self, repo_data: Dict[str, Any]):
+        self.repository = InsightsRepository(repo_data)
+        self.repository.set_owner_id(self.load_user(self.repository.owner))
+        self.repo_id = self.repository.set_repo_id(
+            self.load_repository(self.repository)
+        )
 
     def load_labels_data(self, labels: List[InsightsLabel]):
         logger.debug("Loading labels for repository {name}", name=self.repository.name)
@@ -122,9 +130,9 @@ class LoadData:
             pr.set_head_commit_id(self.load_commit(pr.head_commit))
             pr.set_base_commit_id(self.load_commit(pr.base_commit))
             if pr.head_repo is not None:
-                pr.set_head_repo_id(self.load_repository(pr.head_repo))  # type: ignore
+                pr.set_head_repo_id(self.load_repository(pr.head_repo))
             if pr.base_repo is not None:
-                pr.set_base_repo_id(self.load_repository(pr.base_repo))  # type: ignore
+                pr.set_base_repo_id(self.load_repository(pr.base_repo))
             self.load_pull_request(pr)
 
     def update_repo_data(self, pr_repo: Union[InsightsRepository, None]):
