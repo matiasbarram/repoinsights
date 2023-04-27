@@ -2,8 +2,11 @@ from database_handler import DBConnector
 from database_handler import DatabaseHandler
 import pika
 import json
+import os
 
-credentials = pika.PlainCredentials("user", "password")
+RABBIT_USER = os.environ["RABBIT_USER"]
+RABBIT_PASS = os.environ["RABBIT_PASS"]
+credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PASS)
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host="localhost", credentials=credentials)
 )
