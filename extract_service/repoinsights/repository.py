@@ -11,7 +11,7 @@ class InsightsRepository:
         self.url = repo["url"]
         self.owner = InsightsUser(repo["owner"])
         self.name = repo["name"]
-        self.description = repo["description"]
+        self.description = repo["description"][:255] if repo["description"] else None
         self.language = repo["language"]
         self.created_at = repo["created_at"]
         self.forked_from = False if repo["fork"] is False else True

@@ -1,5 +1,5 @@
-from connector import DBConnector
-from models import Project
+from check_update_service.connector import DBConnector
+from check_update_service.models import Project
 from typing import List, Union, Dict, Any
 from sqlalchemy.orm import sessionmaker
 from loguru import logger

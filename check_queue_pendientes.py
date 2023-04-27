@@ -1,5 +1,5 @@
-from database_handler import DBConnector
-from database_handler import DatabaseHandler
+from check_update_service.connector import DBConnector
+from check_update_service.database_handler import DatabaseHandler
 import pika
 import json
 import os

@@ -1,9 +1,13 @@
 from extract_service.github_api.github_api import GitHubAPI, GitHubResource
-from typing import Optional, Dict, Any, List, Set, Iterator
+from typing import Optional, Dict, Any, List, Set, Iterator, Union
 from loguru import logger
 from datetime import datetime
 from ..utils.utils import get_unique_users, add_users_to_dict_keys
 from .github_api import Cache
+
+
+class GitHubUserException(Exception):
+    pass
 
 
 class Repository(GitHubResource):
@@ -71,18 +75,22 @@ class User(GitHubResource):
         self.tokens_iter = tokens_iter
         super().__init__(self.api)
 
-    def obtener_usuario(self, usuario: str) -> Dict[str, Any]:
+    def obtener_usuario(self, usuario: str) -> Union[Dict[str, Any], None]:
         if self.cache.has(usuario):
             logger.debug("Getting usuario cacheado {commit_sha}", commit_sha=usuario)
             return self.cache.get(usuario)  # type: ignore
 
         url = f"https://api.github.com/users/{usuario}"
-        user_data = self.invoke_with_rate_limit_handling(
-            self.api.get, self.tokens_iter, url=url
-        ).json()
+        try:
+            user_data = self.invoke_with_rate_limit_handling(
+                self.api.get, self.tokens_iter, url=url
+            ).json()
 
-        self.cache.set(usuario, user_data)
-        return user_data
+            self.cache.set(usuario, user_data)
+            return user_data
+        except Exception as e:
+            logger.error(f"Error al obtener usuario {usuario}")
+            return None
 
     def _get_users_for_keys(
         self, elements, user_keys: List[str]
@@ -90,7 +98,14 @@ class User(GitHubResource):
         users_to_fetch = set()
         for user_key in user_keys:
             users_to_fetch.update(get_unique_users(elements, user_key))
-        return {user: self.obtener_usuario(user) for user in users_to_fetch}
+        users = {}
+        for user in users_to_fetch:
+            new_user = self.obtener_usuario(user)
+            if new_user:
+                users[user] = new_user
+        return users
+
+        # return {user: self.obtener_usuario(user) for user in users_to_fetch}
 
 
 class Commit(GitHubResource):
