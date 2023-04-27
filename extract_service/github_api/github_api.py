@@ -109,7 +109,9 @@ class GitHubResource:
             self.api.update_token(new_token)
         except StopIteration:
             token, wait_time = GHToken().get_token_lowest_wait_time()
-            logger.warning("No more tokens! Waiting for {wait_time} seconds")
+            logger.warning(
+                "No more tokens! Waiting for {wait_time} seconds", wait_time=wait_time
+            )
             time.sleep(wait_time - time.time() + 10)
             self.api.update_token(token)
 
