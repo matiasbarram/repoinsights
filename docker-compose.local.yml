@@ -81,6 +81,7 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - CONSOLIDADA_IP=consolidada
+
 volumes:
   db:
   data:

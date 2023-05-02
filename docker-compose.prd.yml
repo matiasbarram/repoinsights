@@ -9,14 +9,15 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: 'ghtorrent'
+      POSTGRES_USER: '${CONSOLIDADA_USER}'
       POSTGRES_DB: 'ghtorrent'
-      POSTGRES_PASSWORD: 'vps228.2o22'
+      POSTGRES_PASSWORD: '${CONSOLIDADA_PASS}'
+      SCHEMA: '${SCHEMA_CONSOLIDADA}'
     ports:
-      - '5432:5400'
+      - '${CONSOLIDADA_PORT}:${CONSOLIDADA_PORT}'
     expose:
-      - '5400'
-    command: -p 5400
+      - '${CONSOLIDADA_PORT}'
+    command: -p ${CONSOLIDADA_PORT}
     volumes:
       - ./docker/postgres:/var/lib/postgresql/data
       - ./docker/data:/app
@@ -26,32 +27,59 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: 'ghtorrent'
+      POSTGRES_USER: '${TEMP_USER}'
       POSTGRES_DB: 'ghtorrent'
-      POSTGRES_PASSWORD: 'vps228.2o22'
+      POSTGRES_PASSWORD: '${TEMP_PASS}'
     ports:
-      - '6611:5411'
+      - '${TEMP_PORT}:${TEMP_PORT}'
     expose:
-      - '5411'
-    command: -p 5411
+      - '${TEMP_PORT}'
+    command: -p ${TEMP_PORT}
     volumes:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
       - ./docker/data:/app
       - ./${SCHEMA_TEMP}:/docker-entrypoint-initdb.d/init.sql
 
-  metabase-db:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: 'metabase'
-      POSTGRES_DB: 'metabase'
-      POSTGRES_PASSWORD: 'vps228.2o22'
+  rabbitmq:
+    image: rabbitmq:3.9-management-alpine
     ports:
-      - '6606:5432'
-    expose:
-      - '5432'
+      - 5672:5672
+      - 15672:15672
     volumes:
-      - ./docker/metabase-db:/var/lib/postgresql/data
+      - ./docker/rabbitmq/:/var/lib/rabbitmq/
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
+
+  extract_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.extract
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - temporal
+      - redis
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - TEMP_IP=temporal
+      - REDIS_HOST=redis
+    deploy:
+      replicas: 2
+
+  check_queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.check
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - consolidada
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - CONSOLIDADA_IP=consolidada
 
   metabase:
     image: metabase/metabase
@@ -72,17 +100,19 @@ services:
       - metabase-db
     links:
       - metabase-db
-
-  rabbitmq:
-    image: rabbitmq:3.9-management-alpine
-    ports:
-      - 5672:5672
-      - 15672:15672
-    volumes:
-      - ./docker/rabbitmq/:/var/lib/rabbitmq/
+  metabase-db:
+    image: postgres
+    restart: always
     environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      POSTGRES_USER: 'metabase'
+      POSTGRES_DB: 'metabase'
+      POSTGRES_PASSWORD: 'vps228.2o22'
+    ports:
+      - '6606:5432'
+    expose:
+      - '5432'
+    volumes:
+      - ./docker/metabase-db:/var/lib/postgresql/data
 
 volumes:
   db:
