@@ -1,0 +1,23 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ["develop" ,"staging", "production" ]
+    
+env:
+ BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+    
+jobs:
+  build-extract:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile.extract --tag repoinsights-extract-${BRANCH_NAME}
+      
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile.extract --tag repoinsights-check-${BRANCH_NAME}
