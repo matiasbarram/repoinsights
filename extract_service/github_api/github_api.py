@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any, List, Set, Iterator, Union
 import json
 import redis
 import time
+import os
 
 
 class RateLimitExceededError(Exception):
@@ -82,8 +83,13 @@ class GitHubAPI:
 
 
 class Cache:
-    def __init__(self, host="localhost", port=6379, db=0):
-        self.cache = redis.StrictRedis(host=host, port=port, db=db)
+    def __init__(self):
+        self.redis_host = os.environ["REDIS_HOST"]
+        self.redis_port: int = int(os.environ["REDIS_PORT"])
+        self.redis_db = int(os.environ["REDIS_DB"])
+        self.cache = redis.StrictRedis(
+            host=self.redis_host, port=self.redis_port, db=self.redis_db
+        )
 
     def get(self, key):
         value = self.cache.get(key)

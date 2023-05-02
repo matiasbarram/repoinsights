@@ -3,23 +3,35 @@ from check_update_service.database_handler import DatabaseHandler
 import pika
 import json
 import os
+from typing import Dict, Any
 
-RABBIT_USER = os.environ["RABBIT_USER"]
-RABBIT_PASS = os.environ["RABBIT_PASS"]
-credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PASS)
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="localhost", credentials=credentials)
-)
-channel = connection.channel()
-channel.queue_declare(queue="pendientes")
+
+class QueueClient:
+    def connect(self):
+        self.rabbit_user = os.environ["RABBIT_USER"]
+        self.rabbit_pass = os.environ["RABBIT_PASS"]
+        self.rabbit_host = os.environ["RABBIT_HOST"]
+        credentials = pika.PlainCredentials(self.rabbit_user, self.rabbit_pass)
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=self.rabbit_host, credentials=credentials)
+        )
+        self.channel = connection.channel()
+        self.channel.queue_declare(queue="pendientes")
+
+    def enqueue(self, project: Dict[str, Any]):
+        project_json = json.dumps(project, default=str)
+        self.channel.basic_publish(
+            exchange="", routing_key="pendientes", body=project_json
+        )
+        print(
+            f'Project {project["owner"]}/{project["project"]} {project["last_extraction"]} published'
+        )
 
 
 connector = DBConnector()
 db_handler = DatabaseHandler(connector)
+queue_client = QueueClient()
+queue_client.connect()
 projects = db_handler.get_updated_projects()
 for project in projects:
-    project_json = json.dumps(project, default=str)
-    channel.basic_publish(exchange="", routing_key="pendientes", body=project_json)
-    print(
-        f'Project {project["owner"]}/{project["project"]} {project["last_extraction"]} published'
-    )
+    queue_client.enqueue(project)
