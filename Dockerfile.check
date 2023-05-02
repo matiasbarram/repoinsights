@@ -15,7 +15,6 @@ COPY Pipfile .
 COPY Pipfile.lock .
 
 COPY check_update_service/ ./check_update_service/
-COPY .env .
 COPY check_queue_pendientes.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile

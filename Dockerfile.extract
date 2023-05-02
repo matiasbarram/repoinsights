@@ -15,7 +15,6 @@ COPY Pipfile .
 COPY Pipfile.lock .
 
 COPY extract_service/ ./extract_service/
-COPY .env .
 COPY extract.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile
