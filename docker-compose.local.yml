@@ -1,9 +1,11 @@
-version: '3.8'
+version: '3.9'
 services:
   redis:
     image: "redis:latest"
     ports:
       - "6379:6379"
+    networks:
+      - extract
 
   consolidada:
     image: postgres
@@ -22,6 +24,8 @@ services:
       - ./docker/postgres:/var/lib/postgresql/data
       - ./docker/data:/app
       - ./${SCHEMA_CONSOLIDADA}:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - check
 
   temporal:
     image: postgres
@@ -39,6 +43,8 @@ services:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
       - ./docker/data:/app
       - ./${SCHEMA_TEMP}:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - extract
 
   rabbitmq:
     image: rabbitmq:3.9-management-alpine
@@ -50,6 +56,28 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - extract
+
+  extract_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.extract
+    env_file:
+      - .env
+    deploy:
+      replicas: 2
+    networks:
+      - extract
+
+  check_queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.check
+    env_file:
+      - .env
+    networks:
+      - check
 
 volumes:
   db:
@@ -59,3 +87,8 @@ volumes:
   postgres:
   postgres-temporal:
   pgadmin-data:
+
+
+networks:
+  extract:
+  check:

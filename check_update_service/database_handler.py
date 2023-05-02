@@ -25,7 +25,7 @@ class DatabaseHandler:
         )
         return [
             {
-                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "enqueue_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "owner": project.owner.login,
                 "project": project.name,
                 "last_extraction": project.last_extraction,
