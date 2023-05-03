@@ -1,10 +1,7 @@
-from datetime import datetime
 from typing import Union
-from ..comment import InsightsCommitComment
-from ..commit import InsightsCommit
-from loguru import logger
-from typing import Any, Dict
-from ...github_api.extractor import GitHubExtractor
+from extract_service.repoinsights.commit import InsightsCommit
+from extract_service.github_api.extractor import GitHubExtractor
+from datetime import datetime
 
 
 class InsightsCommitHandler:

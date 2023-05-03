@@ -1,4 +1,5 @@
-version: '3.8'
+version: '3.9'
+
 services:
   redis:
     image: "redis:latest"
@@ -14,10 +15,10 @@ services:
       POSTGRES_PASSWORD: '${CONSOLIDADA_PASS}'
       SCHEMA: '${SCHEMA_CONSOLIDADA}'
     ports:
-      - '${CONSOLIDADA_PORT}:5400'
+      - '${CONSOLIDADA_PORT}:${CONSOLIDADA_PORT}'
     expose:
-      - '5400'
-    command: -p 5400
+      - '${CONSOLIDADA_PORT}'
+    command: -p ${CONSOLIDADA_PORT}
     volumes:
       - ./docker/postgres:/var/lib/postgresql/data
       - ./docker/data:/app
@@ -31,10 +32,10 @@ services:
       POSTGRES_DB: 'ghtorrent'
       POSTGRES_PASSWORD: '${TEMP_PASS}'
     ports:
-      - '${TEMP_PORT}:5411'
+      - '${TEMP_PORT}:${TEMP_PORT}'
     expose:
-      - '5411'
-    command: -p 5411
+      - '${TEMP_PORT}'
+    command: -p ${TEMP_PORT}
     volumes:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
       - ./docker/data:/app
@@ -48,8 +49,38 @@ services:
     volumes:
       - ./docker/rabbitmq/:/var/lib/rabbitmq/
     environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
+
+  extract_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.extract
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - temporal
+      - redis
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - TEMP_IP=temporal
+      - REDIS_HOST=redis
+    deploy:
+      replicas: 2
+
+  check_queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.check
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - consolidada
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - CONSOLIDADA_IP=consolidada
 
 volumes:
   db:
@@ -59,3 +90,5 @@ volumes:
   postgres:
   postgres-temporal:
   pgadmin-data:
+
+

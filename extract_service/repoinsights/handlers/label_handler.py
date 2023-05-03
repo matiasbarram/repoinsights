@@ -1,5 +1,5 @@
-from ...github_api.extractor import GitHubExtractor
-from ..label import InsightsLabel
+from extract_service.github_api.extractor import GitHubExtractor
+from extract_service.repoinsights.label import InsightsLabel
 
 
 class InsightsLabelHandler:
