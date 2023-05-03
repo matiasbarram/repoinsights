@@ -2,12 +2,11 @@ name: Docker Image CI
 
 on:
   push:
-    branches: ["develop" ,"staging", "production" ]
-    
+    branches: ["develop", "staging", "production"]
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-extract
+  IMAGE_NAME: ${{ github.repository }}-extract-service
 
 jobs:
   build-and-push-image:
