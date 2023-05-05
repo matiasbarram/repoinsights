@@ -1,5 +1,6 @@
-from typing import Union
+from typing import Union, List
 from extract_service.repoinsights.commit import InsightsCommit
+from extract_service.repoinsights.comment import InsightsCommitComment
 from extract_service.github_api.extractor import GitHubExtractor
 from datetime import datetime
 
@@ -22,9 +23,16 @@ class InsightsCommitHandler:
         commit = self.repo.obtener_commit(commit_sha)
         return InsightsCommit(commit)
 
-    # def get_commit_comments(self, commit_sha: str):
-    #     comments = self.repo.get_commit(commit_sha).get_comments()
-    #     return [GHCommitComment(comment) for comment in comments]
+    def get_commit_comments(self, commits: List[InsightsCommit]):
+        comments = self.repo.obtener_comments()
+        for commit in commits:
+            # find commit.id in comments list
+            commit_comments = [
+                InsightsCommitComment(comment)
+                for comment in comments
+                if comment["commit_id"] == commit.sha
+            ]
+            commit.set_comments(commit_comments)
 
     # def get_commit_parents(self, commit_sha: str):
     #     parents = self.repo.get_commit(commit_sha).parents

@@ -7,15 +7,16 @@ from loguru import logger
 import json
 
 
-class GHPullRequest:
+class InsightsPullRequest:
     def __init__(self, pull_request: Dict[str, Any]):
-        self.number = pull_request["number"]
+        self.number: int = pull_request["number"]
         self.title = pull_request["title"]
         self.description = pull_request["body"]
         self.state = pull_request["state"]
         self.created_at = pull_request["created_at"]
         self.updated_at = pull_request["updated_at"]
         self.closed_at = pull_request["closed_at"]
+        self.merged_at = pull_request["merged_at"]
         self.merged = True if pull_request["merged_at"] else False
         self.base_branch = pull_request["base"]["ref"]
         self.head_branch = pull_request["head"]["ref"]
@@ -29,6 +30,7 @@ class GHPullRequest:
         self.head_repo_id = None
         self.intra_branch = self.set_intra_branch(pull_request)
         self.raw_pull_request = pull_request
+        self.comments = []
 
     def set_repo(self, repo: Dict[str, Any]) -> Union[InsightsRepository, None]:
         return InsightsRepository(repo) if repo else None

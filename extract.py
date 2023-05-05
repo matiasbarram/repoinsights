@@ -12,10 +12,10 @@ def main():
         "commits",
         "pull_requests",
         "issues",
-        # "labels",
+        "labels",
         # "stargazers",
         # "members",
-        # "milestones",
+        "milestones",
     ]
 
     client = InsightsClient(data_types)

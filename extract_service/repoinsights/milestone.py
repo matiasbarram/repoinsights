@@ -1,28 +1,24 @@
-from github.Milestone import Milestone
+from typing import Any, Dict
+from extract_service.repoinsights.user import InsightsUser
 
 
 class InsightsMilestone:
-    def __init__(self, milestone: Milestone):
-        self.id = milestone.id
-        self.title = milestone.title
-        self.description = milestone.description
-        self.state = milestone.state
-        self.created_at = milestone.created_at
-        self.updated_at = milestone.updated_at
-        self.due_on = milestone.due_on
-        self.creator = milestone.creator.login
+    def __init__(self, milestone: Dict[str, Any]):
+        self.id = milestone["id"]
+        self.name = milestone["title"]
+        self.description = milestone["description"]
+        self.state = milestone["state"]
+        self.created_at = milestone["created_at"]
+        self.updated_at = milestone["updated_at"]
+        self.due_on = milestone["due_on"]
+        self.creator = InsightsUser(milestone["creator"])
 
-    def __str__(self):
-        return f"Milestone {self.title} ({self.state})"
+    def set_repo_id(self, repo_id: int):
+        self.repo_id = repo_id
 
     def to_dict(self):
         return {
             "id": self.id,
-            "title": self.title,
-            "description": self.description,
-            "state": self.state,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-            "due_on": self.due_on,
-            "creator": self.creator,
+            "repo_id": self.repo_id,
+            "name": self.name,
         }

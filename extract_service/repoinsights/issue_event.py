@@ -1,23 +1,28 @@
-from github.IssueEvent import IssueEvent
+from typing import Any, Dict
+from extract_service.repoinsights.user import InsightsUser
+from extract_service.repoinsights.label import InsightsLabel
 
 
 class InsightsIssueEvent:
-    def __init__(self, event: IssueEvent) -> None:
-        self.event_id = event.id
-        self.action_specific = None
-        self.created_at = event.created_at
-        self.issue_id = event.issue.id
-        self.actor_id = event.actor.id
-        self.actor = event.actor.login if event.actor else None
-        self.action = event.event
+    def __init__(self, event: Dict[str, Any]) -> None:
+        self.event_id = event["id"]
+        self.action = event["event"]
+        self.action_specific = event["commit_id"]
+        self.created_at = event["created_at"]
+        self.actor = InsightsUser(event["actor"]) if event["actor"] else None
+
+    def set_issue_id(self, issue_id: int):
+        self.issue_id = issue_id
+
+    def set_actor_id(self, actor_id: int):
+        self.actor_id = actor_id
 
     def to_dict(self):
         return {
-            "event_id": self.event_id,
-            "action_specific": self.action_specific,
-            "created_at": self.created_at,
+            "event_id": str(self.event_id),
             "issue_id": self.issue_id,
             "actor_id": self.actor_id,
-            "actor": self.actor,
             "action": self.action,
+            "action_specific": self.action_specific,
+            "created_at": self.created_at,
         }

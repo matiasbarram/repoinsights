@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from typing import Union, List, Dict, Set
+from typing import Union, List, Dict, Set, Any
+from loguru import logger
 
 
 def format_dt(dt: datetime) -> str:
@@ -71,7 +72,11 @@ def add_users_to_dict_keys(list_dicts: List, users: Dict, user_keys: List[str]):
             if user_obj is not None:
                 last_key = keys[-1]
                 if user_obj[last_key] is not None:
-                    user_obj[last_key] = users[user_obj[last_key]["login"]]
+                    try:
+                        user_obj[last_key] = users[user_obj[last_key]["login"]]
+                    except KeyError:
+                        logger.error(f"User {user_obj[last_key]} not found")
+                        user_obj[last_key] = None
 
 
 def get_unique_users(elements, user_key: str) -> Set[str]:
@@ -85,5 +90,13 @@ def get_unique_users(elements, user_key: str) -> Set[str]:
             else:
                 break
         if user_obj is not None:
-            users_to_fetch.add(user_obj["login"])
+            try:
+                users_to_fetch.add(user_obj["login"])
+            except KeyError:
+                logger.error(f"User {user_obj} not found")
     return users_to_fetch
+
+
+def get_int_from_dict(comment: Dict[str, Any], key: str) -> int:
+    pr_url: str = comment[key]
+    return int(pr_url.split("/")[-1])

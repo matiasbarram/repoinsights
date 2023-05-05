@@ -1,5 +1,6 @@
 from datetime import datetime
 from .comment import InsightsIssueComment
+from .issue_event import InsightsIssueEvent
 from .label import InsightsLabel
 from .user import InsightsUser
 from typing import List, Union, Any, Dict
@@ -16,10 +17,10 @@ class InsightsIssue:
         self.issue_id = issue["number"]
         self.pull_request = True if issue.get("pull_requests") else False
         self.pull_request_id = None
-        self.labels = []
         self.reporter = InsightsUser(issue["user"])
         self.assignee = InsightsUser(issue["assignee"]) if issue["assignee"] else None
         self.assignee_id = None
+        self.labels = self.__set_issue_labels(issue["labels"])
 
     def set_id(self, id: int):
         self.id = id
@@ -45,6 +46,15 @@ class InsightsIssue:
 
     def set_comments(self, comments: list[InsightsIssueComment]):
         self.comments = comments
+
+    def set_events(self, events: list[InsightsIssueEvent]):
+        self.events = events
+
+    def __set_issue_labels(self, labels: Dict[str, Any]):
+        issue_labels = []
+        for label in labels:
+            issue_labels.append(InsightsLabel(label))
+        return issue_labels
 
     def get_comments(self) -> list[InsightsIssueComment]:
         return self.comments

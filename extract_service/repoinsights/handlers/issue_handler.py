@@ -8,6 +8,7 @@ from pprint import pprint
 from typing import Union, List, Any, Dict
 from ...github_api.extractor import GitHubExtractor
 import json
+from ...utils.utils import get_int_from_dict
 
 
 class InsightsIssueHandler:
@@ -44,17 +45,27 @@ class InsightsIssueHandler:
         for issue_obj, issue in zip(issue_objects, issues):
             issue_obj.set_labels(issue.labels)
 
-    # def get_milestones(self, state="all"):
-    #     milestones = self.repo.get_milestones(state=state)
-    #     milestone_objects = [GHMilestone(milestone) for milestone in milestones]
-    #     return milestone_objects
+    def get_milestones(self, state="all"):
+        milestones = self.repo.obtener_milestone(state=state)
+        milestone_objects = [InsightsMilestone(milestone) for milestone in milestones]
+        return milestone_objects
 
     # # ARREGLAR NO DEBERIAN LLAMAR A LA API DEBERIA HACERSE DE UNA MEJOR MANERA
 
-    # def get_issue_comments(self, issue):
-    #     comments = self.repo.get_issue(issue.number).get_comments()
-    #     return [GHIssueComment(comment) for comment in comments]
+    def get_issue_comments(self, issues: List[InsightsIssue]):
+        comments = self.repo.obtener_issues_comments()
+        issue: InsightsIssue
+        for issue in issues:
+            issue_comments = [
+                InsightsIssueComment(comment)
+                for comment in comments
+                if get_int_from_dict(comment, "issue_url") == issue.issue_id
+            ]
+            issue.set_comments(issue_comments)
 
-    # def get_issue_events(self, issue: GHIssue):
-    #     events = self.repo.get_issue(issue.issue_id).get_events()
-    #     return [GHIssueEvent(event) for event in events]
+    def get_issue_events(self, issues: List[InsightsIssue]):
+        # events = self.repo.obtener_issues_events()
+        for issue in issues:
+            events = self.repo.obtener_issue_events(issue.issue_id)
+            issue_events = [InsightsIssueEvent(event) for event in events if event]
+            issue.set_events(issue_events)

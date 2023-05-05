@@ -1,10 +1,11 @@
 from typing import List, Union, Optional, Dict, Any
-from ..pull_request import GHPullRequest
+from ..pull_request import InsightsPullRequest
 from ..comment import InsightsPullRequestComment
 from ..commit import InsightsCommit
 from datetime import datetime
 from ...github_api.extractor import GitHubExtractor
-from ...utils.utils import gh_api_to_datetime
+from ...utils.utils import gh_api_to_datetime, get_int_from_dict
+from pprint import pprint
 
 
 class InsightsPullRequestHandler:
@@ -13,7 +14,7 @@ class InsightsPullRequestHandler:
 
     def get_all_pull_requests(
         self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
-    ) -> List[GHPullRequest]:
+    ) -> List[InsightsPullRequest]:
         pull_requests = self.repo.obtener_pull_requests(
             state="all", since=start_date, until=end_date
         )
@@ -26,11 +27,11 @@ class InsightsPullRequestHandler:
     #     return pull_request.get_comments()
 
     def _process_pull_request(self, pr: Dict[str, Any]):
-        gh_pr = GHPullRequest(pr)
+        gh_pr = InsightsPullRequest(pr)
         self.set_pull_request_commits(gh_pr)
         return gh_pr
 
-    def set_pull_request_commits(self, pull_request: GHPullRequest) -> None:
+    def set_pull_request_commits(self, pull_request: InsightsPullRequest) -> None:
         base_commit = InsightsCommit(
             self.repo.obtener_commit(pull_request.base_commit_sha)
         )
@@ -39,3 +40,18 @@ class InsightsPullRequestHandler:
         )
         pull_request.set_base_commit(base_commit)
         pull_request.set_head_commit(head_commit)
+
+    def get_pull_request_comments(self, pull_requests: List[InsightsPullRequest]):
+        comments = self.repo.obtener_pull_requests_comments()
+        for pull_request in pull_requests:
+            pull_request_comments = [
+                InsightsPullRequestComment(comment)
+                for comment in comments
+                if get_int_from_dict(comment, "pull_request_url") == pull_request.number
+            ]
+            pprint(pull_request_comments)
+            pull_request.set_comments(pull_request_comments)
+
+    def __get_comment_pull_request_number(self, comment: Dict[str, Any]) -> int:
+        pr_url: str = comment["pull_request_url"]
+        return int(pr_url.split("/")[-1])

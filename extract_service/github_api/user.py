@@ -68,6 +68,29 @@ class Repository(GitHubResource):
         )
         return labels
 
+    def obtener_milestone(self, state=None) -> List[Dict[str, Any]]:
+        url = (
+            f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/milestones"
+        )
+        params = {"state": state}
+        milestone = self.invoke_with_rate_limit_handling(
+            self.api._realizar_solicitud_paginada,
+            self.tokens_iter,
+            url=url,
+            params=params,
+            name="milestone",
+        )
+        users = User(self.api, self.tokens_iter)._get_users_for_keys(
+            milestone,
+            ["creator"],
+        )
+        add_users_to_dict_keys(
+            milestone,
+            users,
+            ["creator"],
+        )
+        return milestone
+
 
 class User(GitHubResource):
     def __init__(self, api: GitHubAPI, tokens_iter):
@@ -151,3 +174,37 @@ class Commit(GitHubResource):
         )
         add_users_to_dict_keys(commits, users, ["author", "committer"])
         return commits
+
+    def obtener_comments(self) -> List[Dict[str, Any]]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/comments"
+        params = {"per_page": 100}
+        comments = self.invoke_with_rate_limit_handling(
+            self.api._realizar_solicitud_paginada,
+            tokens_iter=self.tokens_iter,
+            url=url,
+            params=params,
+            name="all commits comments",
+        )
+        if comments:
+            users = User(self.api, self.tokens_iter)._get_users_for_keys(
+                comments, ["user"]
+            )
+            add_users_to_dict_keys(comments, users, ["user"])
+        return comments
+
+    def obtener_commit_comments(self, commit: str) -> List[Dict[str, Any]]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit}/comments"
+        params = {"per_page": 100}
+        comments = self.invoke_with_rate_limit_handling(
+            self.api._realizar_solicitud_paginada,
+            tokens_iter=self.tokens_iter,
+            url=url,
+            params=params,
+            name=f"commit {commit} comments",
+        )
+        if comments:
+            users = User(self.api, self.tokens_iter)._get_users_for_keys(
+                comments, ["user"]
+            )
+            add_users_to_dict_keys(comments, users, ["user"])
+        return comments

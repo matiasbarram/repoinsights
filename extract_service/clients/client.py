@@ -23,7 +23,7 @@ class LoadError(Exception):
 class InsightsClient:
     def __init__(self, data_types: List) -> None:
         self.data_types = data_types
-        self.until = datetime(2017, 1, 1)  # datetime.now()
+        self.until = datetime(2021, 1, 1)  # datetime.now()
 
     def get_from_pendientes(self):
         repo = QueueClient().get_from_queue()

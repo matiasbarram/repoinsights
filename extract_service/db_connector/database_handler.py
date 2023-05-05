@@ -10,12 +10,27 @@ from .models import (
     PullRequestComment,
     Watcher,
     ProjectMember,
+    CommitComment,
+    PullRequestHistory,
+    ProjectCommit,
+    IssueEvent,
+    RepoLabel,
+    IssueLabel,
+    RepoMilestone,
 )
 from extract_service.repoinsights.commit import InsightsCommit
 from extract_service.repoinsights.user import InsightsUser
 from extract_service.repoinsights.repository import InsightsRepository
-from extract_service.repoinsights.pull_request import GHPullRequest
+from extract_service.repoinsights.pull_request import InsightsPullRequest
 from extract_service.repoinsights.isssue import InsightsIssue
+from extract_service.repoinsights.issue_event import InsightsIssueEvent
+from extract_service.repoinsights.label import InsightsLabel
+from extract_service.repoinsights.milestone import InsightsMilestone
+from extract_service.repoinsights.comment import (
+    InsightsCommitComment,
+    InsightsPullRequestComment,
+    InsightsIssueComment,
+)
 from pprint import pprint
 from typing import List, Union, Dict, Any
 from sqlalchemy.orm import sessionmaker
@@ -41,6 +56,7 @@ class DatabaseHandler:
             PullRequest,
             PullRequestComment,
             Watcher,
+            CommitComment,
         ],
         create: Optional[bool] = True,
         **kwargs,
@@ -89,6 +105,13 @@ class DatabaseHandler:
         existing_member = self.get_or_create(ProjectMember, **member_data)
         return int(existing_member.id)  # type: ignore
 
+    def create_label(self, label_data: InsightsLabel):
+        existing_label = self.get_or_create(RepoLabel, **label_data.to_dict())
+        return int(existing_label.id)  # type: ignore
+
+    def create_issue_label_relation(self, issue_id: int, label_id: int):
+        self.get_or_create(IssueLabel, issue_id=issue_id, label_id=label_id)
+
     def create_project(self, repository: InsightsRepository):
         existing_project = self.get_or_create(Project, **repository.to_dict())
         return int(existing_project.id)  # type: ignore
@@ -100,6 +123,9 @@ class DatabaseHandler:
     def create_commit(self, commit: InsightsCommit):
         existing_commit = self.get_or_create(Commit, **commit.to_dict())
         return int(existing_commit.id)  # type: ignore
+
+    def create_project_commit(self, project_id: int, commit_id: int):
+        self.get_or_create(ProjectCommit, project_id=project_id, commit_id=commit_id)
 
     def create_commit_parent_relation(self, commit_id: int, parent_id: int):
         existing_relation = (
@@ -135,17 +161,51 @@ class DatabaseHandler:
         self.session_temp.add_all(commits_parents)
         self.session_temp.commit()
 
-    def create_pull_request(self, pr: GHPullRequest):
+    def create_commit_comments(self, commit_id: int, comments: list):
+        comment: InsightsCommitComment
+        for comment in comments:
+            if comment.author:
+                user = self.get_or_create(User, **comment.author.to_dict())
+                user_id = int(user.id)  # type: ignore
+            else:
+                user_id = None
+            # add user_id to comment
+            comment.set_user_id(user_id)
+            comment.set_commit_id(commit_id)
+            self.get_or_create(CommitComment, **comment.to_dict())
+
+    def create_pull_request(self, pr: InsightsPullRequest):
         existing_pr = self.get_or_create(PullRequest, **pr.to_dict())
+        return int(existing_pr.id)  # type: ignore
+
+    def create_pull_request_comment(self, comment: InsightsPullRequestComment):
+        self.get_or_create(PullRequestComment, **comment.to_dict())
+
+    def create_pull_request_history(self, pr: Dict[str, Any]):
+        existing_pr = self.get_or_create(PullRequestHistory, **pr)
         return int(existing_pr.id)  # type: ignore
 
     def create_issue(self, issue: InsightsIssue):
         existing_issue = self.get_or_create(Issue, **issue.to_dict())
         return int(existing_issue.id)  # type: ignore
 
+    def create_issue_comment(self, comment: InsightsIssueComment):
+        self.get_or_create(IssueComment, **comment.to_dict())
+
+    def create_issue_event(self, event: InsightsIssueEvent):
+        self.get_or_create(IssueEvent, **event.to_dict())
+
     def find_pr_id(self, **kwargs) -> int:
         pr = self.get_or_create(PullRequest, create=False, **kwargs)
         return int(pr.id)  # type: ignore
+
+    def find_commit_id(self, **kwargs) -> int:
+        commit = self.get_or_create(Commit, **kwargs, create=False)
+        return int(commit.id) if commit else None  # type: ignore
+
+    def create_milestone(self, milestone: InsightsMilestone):
+        existing_milestone = self.get_or_create(RepoMilestone, **milestone.to_dict())
+        return int(existing_milestone.id)  # type: ignore
 
     def close(self):
         self.session_temp.close()

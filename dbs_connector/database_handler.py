@@ -14,7 +14,7 @@ from .models import (
 from extract_service.repoinsights.commit import InsightsCommit
 from extract_service.repoinsights.user import InsightsUser
 from extract_service.repoinsights.repository import InsightsRepository
-from extract_service.repoinsights.pull_request import GHPullRequest
+from extract_service.repoinsights.pull_request import InsightsPullRequest
 from extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
 from typing import List, Union, Dict, Any
@@ -138,7 +138,7 @@ class DatabaseHandler:
         self.session_temp.add_all(commits_parents)
         self.session_temp.commit()
 
-    def create_pull_request(self, pr: GHPullRequest):
+    def create_pull_request(self, pr: InsightsPullRequest):
         existing_pr = self.get_or_create(PullRequest, **pr.to_dict())
         return int(existing_pr.id)  # type: ignore
 

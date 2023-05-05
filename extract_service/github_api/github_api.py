@@ -18,7 +18,7 @@ class GitHubAPI:
         self.token = token
         self.headers = {"Authorization": f"token {self.token}"}
 
-    def update_token(self, new_token):
+    def update_token(self, new_token: str):
         self.token = new_token
         self.headers["Authorization"] = f"token {self.token}"
 
@@ -108,18 +108,10 @@ class GitHubResource:
         self.api = api
         self.cache = Cache()
 
-    def _handle_rate_limit_exceeded(self, tokens_iter):
-        try:
-            new_token = next(tokens_iter)
-            print("New token: ", new_token)
-            self.api.update_token(new_token)
-        except StopIteration:
-            token, wait_time = GHToken().get_token_lowest_wait_time()
-            logger.warning(
-                "No more tokens! Waiting for {wait_time} seconds", wait_time=wait_time
-            )
-            time.sleep(wait_time - time.time() + 10)
-            self.api.update_token(token)
+    def _handle_rate_limit_exceeded(self, tokens_iter: Iterator[str]):
+        new_token = next(tokens_iter)
+        print("New token: ", new_token)
+        self.api.update_token(new_token)
 
     def invoke_with_rate_limit_handling(self, func, tokens_iter, *args, **kwargs):
         while True:
@@ -127,3 +119,5 @@ class GitHubResource:
                 return func(*args, **kwargs)
             except RateLimitExceededError:
                 self._handle_rate_limit_exceeded(tokens_iter)
+            except StopIteration:
+                print("All tokens exhausted")
