@@ -76,7 +76,7 @@ class DatabaseHandler:
                 logger.error(f"Error creating")
                 raise BaseException(e)
         else:
-            logger.debug("Instance does not exist and not creating")
+            logger.debug("Instance does not exist and not created")
             return None
 
     def create_watchers(self, watchers: List[InsightsUser], project_id: int):
