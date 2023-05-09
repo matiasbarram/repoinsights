@@ -1,11 +1,15 @@
 from typing import Any, Dict
-from extract_service.repoinsights.user import InsightsUser
+from services.extract_service.repoinsights.user import InsightsUser
 
 
 class InsightsMilestone:
     def __init__(self, milestone: Dict[str, Any]):
         self.id = milestone["id"]
-        self.name = milestone["title"]
+        self.name = (
+            milestone["title"]
+            if len(milestone["title"]) <= 24
+            else milestone["title"][:24]
+        )
         self.description = milestone["description"]
         self.state = milestone["state"]
         self.created_at = milestone["created_at"]

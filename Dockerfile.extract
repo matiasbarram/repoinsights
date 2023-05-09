@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc
 
 COPY Pipfile .
 COPY Pipfile.lock .
-
-COPY extract_service/ ./extract_service/
+COPY services/extract_service/ ./services/extract_service/
 COPY extract.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile

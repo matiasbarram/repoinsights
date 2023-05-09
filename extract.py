@@ -1,4 +1,4 @@
-from extract_service.clients.client import InsightsClient
+from services.extract_service.clients.client import InsightsClient
 
 
 from datetime import datetime

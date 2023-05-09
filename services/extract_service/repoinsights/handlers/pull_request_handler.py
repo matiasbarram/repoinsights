@@ -49,7 +49,6 @@ class InsightsPullRequestHandler:
                 for comment in comments
                 if get_int_from_dict(comment, "pull_request_url") == pull_request.number
             ]
-            pprint(pull_request_comments)
             pull_request.set_comments(pull_request_comments)
 
     def __get_comment_pull_request_number(self, comment: Dict[str, Any]) -> int:

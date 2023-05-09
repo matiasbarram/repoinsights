@@ -50,6 +50,7 @@ class Commit(Base):
     committer_id = Column(Integer, ForeignKey("users.id"))
     project_id = Column(Integer, ForeignKey("projects.id"))
     created_at = Column(TIMESTAMP, nullable=False)
+    message = Column(String(256))
     ext_ref_id = Column(String(24), default="0", nullable=False)
 
     commit_comments = relationship("CommitComment", back_populates="commit")

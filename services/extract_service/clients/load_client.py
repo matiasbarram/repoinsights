@@ -1,18 +1,18 @@
-from extract_service.repoinsights.commit import InsightsCommit
-from extract_service.repoinsights.repository import InsightsRepository
-from extract_service.repoinsights.pull_request import InsightsPullRequest
-from extract_service.repoinsights.milestone import InsightsMilestone
-from extract_service.repoinsights.comment import (
+from services.extract_service.repoinsights.commit import InsightsCommit
+from services.extract_service.repoinsights.repository import InsightsRepository
+from services.extract_service.repoinsights.pull_request import InsightsPullRequest
+from services.extract_service.repoinsights.milestone import InsightsMilestone
+from services.extract_service.repoinsights.comment import (
     InsightsCommitComment,
     InsightsPullRequestComment,
     InsightsIssueComment,
 )
-from extract_service.repoinsights.label import InsightsLabel
-from extract_service.repoinsights.user import InsightsUser
-from extract_service.repoinsights.isssue import InsightsIssue
-from extract_service.repoinsights.issue_event import InsightsIssueEvent
-from extract_service.db_connector.connector import DBConnector
-from extract_service.db_connector.database_handler import DatabaseHandler
+from services.extract_service.repoinsights.label import InsightsLabel
+from services.extract_service.repoinsights.user import InsightsUser
+from services.extract_service.repoinsights.isssue import InsightsIssue
+from services.extract_service.repoinsights.issue_event import InsightsIssueEvent
+from services.extract_service.db_connector.connector import DBConnector
+from services.extract_service.db_connector.database_handler import DatabaseHandler
 
 from typing import List, Union, Dict, Any
 from loguru import logger
@@ -85,7 +85,7 @@ class LoadDataClient:
         )
         milestone: InsightsMilestone
         for milestone in milestones:
-            milestone.set_repo_id(self.repo_id)
+            milestone.set_repo_id(self.repo_id)  # type: ignore
             self.temp_db.create_milestone(milestone)
 
     def load_labels_data(self, labels: List[InsightsLabel]):
@@ -198,7 +198,11 @@ class LoadDataClient:
                 event.set_issue_id(issue_id)
                 if event.actor:
                     event.set_actor_id(self.load_user(event.actor))
-                self.temp_db.create_issue_event(event)
+                    self.temp_db.create_issue_event(event)
+                else:
+                    logger.error(
+                        "Event without actor {event}", event=event.actor.__dict__
+                    )
 
     def load_commits_data(self, commits: List[InsightsCommit]):
         commit: InsightsCommit

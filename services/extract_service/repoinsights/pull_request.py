@@ -29,8 +29,10 @@ class InsightsPullRequest:
         self.head_repo = self.set_repo(pull_request["head"]["repo"])
         self.head_repo_id = None
         self.intra_branch = self.set_intra_branch(pull_request)
-        self.raw_pull_request = pull_request
         self.comments = []
+        # self.additions = pull_request["additions"]
+        # self.deletions = pull_request["deletions"]
+        # self.changed_files = pull_request["changed_files"]
 
     def set_repo(self, repo: Dict[str, Any]) -> Union[InsightsRepository, None]:
         return InsightsRepository(repo) if repo else None
@@ -74,10 +76,6 @@ class InsightsPullRequest:
     def set_project_id(self, project_id: int):
         self.project_id = project_id
 
-    # def get_comments(self):
-    #     comments = self.raw_pull_request.get_comments()
-    #     return [GHPullRequestComment(comment) for comment in comments]
-
     def to_dict(self):
         return {
             "head_repo_id": self.head_repo_id,
@@ -88,4 +86,7 @@ class InsightsPullRequest:
             "pullreq_id": self.number,
             "intra_branch": self.intra_branch,
             "merged": self.merged,
+            # "additions": self.additions,
+            # "deletions": self.deletions,
+            # "changed_files": self.changed_files,
         }

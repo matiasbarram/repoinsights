@@ -1,23 +1,23 @@
 from ..config import GHToken
-from extract_service.repoinsights.repository import InsightsRepository
-from extract_service.repoinsights.handlers.commit_handler import InsightsCommitHandler
-from extract_service.repoinsights.handlers.project_user_handler import (
+from services.extract_service.repoinsights.repository import InsightsRepository
+from services.extract_service.repoinsights.handlers.commit_handler import InsightsCommitHandler
+from services.extract_service.repoinsights.handlers.project_user_handler import (
     InsightsProjectUserHandler,
 )
-from extract_service.repoinsights.handlers.label_handler import InsightsLabelHandler
-from extract_service.repoinsights.handlers.issue_handler import InsightsIssueHandler
-from extract_service.repoinsights.handlers.pull_request_handler import (
+from services.extract_service.repoinsights.handlers.label_handler import InsightsLabelHandler
+from services.extract_service.repoinsights.handlers.issue_handler import InsightsIssueHandler
+from services.extract_service.repoinsights.handlers.pull_request_handler import (
     InsightsPullRequestHandler,
 )
-from extract_service.repoinsights.handlers.repository_handler import (
+from services.extract_service.repoinsights.handlers.repository_handler import (
     InsightsRepositoryHandler,
 )
-from extract_service.github_api.extractor import GitHubExtractor
+from services.extract_service.github_api.extractor import GitHubExtractor
 
 from datetime import datetime
 from loguru import logger
 from typing import Union, List
-from extract_service.utils.paralell import run_in_parallel
+from services.extract_service.utils.paralell import run_in_parallel
 import json
 from pprint import pprint
 
@@ -63,9 +63,6 @@ class ExtractDataClient:
             commits = self.commit_handler.get_commits(self.since, self.until)
             logger.info(f"Total GHCommits: {len(commits)}")
             self.commit_handler.get_commit_comments(commits)
-            # for commit in commits:
-            #     # parents = self.commit_handler.get_commit_parents(commit.sha)
-            #     # print(f"Total parents: {len(parents)}")
             return {"name": "commit", "data": commits}
 
         elif data_type == "project":

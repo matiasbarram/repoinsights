@@ -1,4 +1,4 @@
-from extract_service.github_api.github_api import GitHubAPI, GitHubResource
+from services.extract_service.github_api.github_api import GitHubAPI, GitHubResource
 from typing import Optional, Dict, Any, List, Set, Iterator, Union
 from loguru import logger
 from datetime import datetime

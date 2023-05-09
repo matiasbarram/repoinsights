@@ -1,7 +1,7 @@
 from typing import Union, List
-from extract_service.repoinsights.commit import InsightsCommit
-from extract_service.repoinsights.comment import InsightsCommitComment
-from extract_service.github_api.extractor import GitHubExtractor
+from services.extract_service.repoinsights.commit import InsightsCommit
+from services.extract_service.repoinsights.comment import InsightsCommitComment
+from services.extract_service.github_api.extractor import GitHubExtractor
 from datetime import datetime
 
 

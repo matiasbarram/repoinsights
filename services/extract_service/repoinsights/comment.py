@@ -1,5 +1,5 @@
 from typing import Any, Dict, Union
-from extract_service.repoinsights.user import InsightsUser
+from services.extract_service.repoinsights.user import InsightsUser
 
 
 class InsightsComment:

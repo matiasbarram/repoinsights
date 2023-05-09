@@ -1,6 +1,6 @@
 from typing import Any, Dict
-from extract_service.repoinsights.user import InsightsUser
-from extract_service.repoinsights.label import InsightsLabel
+from services.extract_service.repoinsights.user import InsightsUser
+from services.extract_service.repoinsights.label import InsightsLabel
 
 
 class InsightsIssueEvent:

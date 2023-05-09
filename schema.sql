@@ -134,6 +134,7 @@ CREATE TABLE ghtorrent_restore_2015.commits (
     committer_id integer,
     project_id integer,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    message character varying(256),
     ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
 );
 
@@ -210,7 +211,7 @@ CREATE TABLE ghtorrent_restore_2015.issue_comments (
 CREATE TABLE ghtorrent_restore_2015.issue_events (
     event_id text NOT NULL,
     issue_id integer NOT NULL,
-    actor_id integer NOT NULL,
+    actor_id integer NULL,
     action character varying(255) NOT NULL,
     action_specific character varying(50),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -429,6 +430,9 @@ CREATE TABLE ghtorrent_restore_2015.pull_requests (
     user_id integer NOT NULL,
     pullreq_id integer NOT NULL,
     intra_branch boolean NOT NULL,
+    additions integer,
+    deletions integer,
+    changed_files integer,
     merged boolean DEFAULT false NOT NULL
 );
 

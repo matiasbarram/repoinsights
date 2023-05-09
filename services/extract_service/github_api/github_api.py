@@ -7,6 +7,8 @@ import json
 import redis
 import time
 import os
+from datetime import datetime
+from pprint import pprint
 
 
 class RateLimitExceededError(Exception):
@@ -56,6 +58,13 @@ class GitHubAPI:
         params.setdefault("per_page", 100)
         elementos = []
         pag = 1
+        if params.get("since"):
+            since: datetime = params["since"]
+            params["since"] = since.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if params.get("until"):
+            until: datetime = params["until"]
+            params["until"] = until.strftime("%Y-%m-%dT%H:%M:%SZ")
+
         while url:
             response = self.get(url, params=params, headers=headers)
             elementos.extend(response.json())

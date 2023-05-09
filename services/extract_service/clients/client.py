@@ -23,7 +23,7 @@ class LoadError(Exception):
 class InsightsClient:
     def __init__(self, data_types: List) -> None:
         self.data_types = data_types
-        self.until = datetime(2021, 1, 1)  # datetime.now()
+        self.until = datetime.now()
 
     def get_from_pendientes(self):
         repo = QueueClient().get_from_queue()
@@ -31,7 +31,7 @@ class InsightsClient:
             self.owner = repo["owner"]
             self.repo = repo["project"]
             self.since = (
-                datetime.strptime(repo["last_extraction"], "%Y-%m-%d %H:%M:%S")
+                datetime.strptime(repo["last_extraction"], "%Y-%m-%dT%H:%M:%SZ")
                 if repo["last_extraction"]
                 else None
             )

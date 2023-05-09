@@ -13,7 +13,12 @@ import json
 class InsightsCommit:
     def __init__(self, commit: Dict[str, Any]):
         self.sha = commit["sha"]
-        self.message = commit["commit"]["message"]
+        # if length < 256
+        self.message = (
+            commit["commit"]["message"]
+            if len(commit["commit"]["message"]) < 256
+            else commit["commit"]["message"][0:255]
+        )
         self.author = InsightsUser(commit["author"]) if commit["author"] else None
         self.committer = (
             InsightsUser(commit["committer"]) if commit["committer"] else None
@@ -21,8 +26,6 @@ class InsightsCommit:
         self.date = commit["commit"]["author"]["date"]
         self.parents = [parent["sha"] for parent in commit["parents"]]
         self.comments: List[InsightsCommitComment] = []
-
-        self.raw_commit = commit
 
     def set_comments(self, comments: list[InsightsCommitComment]):
         self.comments = comments
@@ -46,4 +49,5 @@ class InsightsCommit:
             "committer_id": self.committer_id,
             "created_at": self.date,
             "project_id": self.project_id,
+            "message": self.message,
         }

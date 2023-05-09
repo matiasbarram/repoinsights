@@ -18,15 +18,15 @@ from .models import (
     IssueLabel,
     RepoMilestone,
 )
-from extract_service.repoinsights.commit import InsightsCommit
-from extract_service.repoinsights.user import InsightsUser
-from extract_service.repoinsights.repository import InsightsRepository
-from extract_service.repoinsights.pull_request import InsightsPullRequest
-from extract_service.repoinsights.isssue import InsightsIssue
-from extract_service.repoinsights.issue_event import InsightsIssueEvent
-from extract_service.repoinsights.label import InsightsLabel
-from extract_service.repoinsights.milestone import InsightsMilestone
-from extract_service.repoinsights.comment import (
+from services.extract_service.repoinsights.commit import InsightsCommit
+from services.extract_service.repoinsights.user import InsightsUser
+from services.extract_service.repoinsights.repository import InsightsRepository
+from services.extract_service.repoinsights.pull_request import InsightsPullRequest
+from services.extract_service.repoinsights.isssue import InsightsIssue
+from services.extract_service.repoinsights.issue_event import InsightsIssueEvent
+from services.extract_service.repoinsights.label import InsightsLabel
+from services.extract_service.repoinsights.milestone import InsightsMilestone
+from services.extract_service.repoinsights.comment import (
     InsightsCommitComment,
     InsightsPullRequestComment,
     InsightsIssueComment,

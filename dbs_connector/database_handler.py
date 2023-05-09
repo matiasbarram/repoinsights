@@ -11,11 +11,11 @@ from .models import (
     Watcher,
     ProjectMember,
 )
-from extract_service.repoinsights.commit import InsightsCommit
-from extract_service.repoinsights.user import InsightsUser
-from extract_service.repoinsights.repository import InsightsRepository
-from extract_service.repoinsights.pull_request import InsightsPullRequest
-from extract_service.repoinsights.isssue import InsightsIssue
+from services.extract_service.repoinsights.commit import InsightsCommit
+from services.extract_service.repoinsights.user import InsightsUser
+from services.extract_service.repoinsights.repository import InsightsRepository
+from services.extract_service.repoinsights.pull_request import InsightsPullRequest
+from services.extract_service.repoinsights.isssue import InsightsIssue
 from pprint import pprint
 from typing import List, Union, Dict, Any
 from sqlalchemy.orm import sessionmaker
