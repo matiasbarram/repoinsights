@@ -39,10 +39,11 @@ from loguru import logger
 
 
 class DatabaseHandler:
-    def __init__(self, connector: DBConnector):
+    def __init__(self, connector: DBConnector, uuid: str):
         self.connector = connector
         self.Session_temp = sessionmaker(bind=connector.engine)
         self.session_temp = self.Session_temp()
+        self.uuid = uuid
 
     def get_or_create(
         self,
@@ -61,6 +62,7 @@ class DatabaseHandler:
         create: Optional[bool] = True,
         **kwargs,
     ):
+        kwargs["ext_ref_id"] = self.uuid
         instance = self.session_temp.query(model).filter_by(**kwargs).first()
         if instance:
             logger.debug("Instance already exists")

@@ -27,8 +27,8 @@ class ExtractDataResulstsError(Exception):
 
 
 class LoadDataClient:
-    def __init__(self, results: List[Dict[str, Any]]) -> None:
-        self.temp_db = DatabaseHandler(DBConnector("temp"))
+    def __init__(self, results: List[Dict[str, Any]], uuid: str) -> None:
+        self.temp_db = DatabaseHandler(DBConnector("temp"), uuid)
         self.sorted_results = self.sort_results(results)
 
     def sort_results(self, results: List[Dict[str, Any]]):

@@ -118,7 +118,8 @@ ALTER SEQUENCE ghtorrent_restore_2015.commit_comments_id_seq OWNED BY ghtorrent_
 
 CREATE TABLE ghtorrent_restore_2015.commit_parents (
     commit_id integer NOT NULL,
-    parent_id integer NOT NULL
+    parent_id integer NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -226,7 +227,8 @@ CREATE TABLE ghtorrent_restore_2015.issue_events (
 
 CREATE TABLE ghtorrent_restore_2015.issue_labels (
     label_id integer DEFAULT 0 NOT NULL,
-    issue_id integer DEFAULT 0 NOT NULL
+    issue_id integer DEFAULT 0 NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -279,7 +281,8 @@ ALTER SEQUENCE ghtorrent_restore_2015.issues_id_seq OWNED BY ghtorrent_restore_2
 CREATE TABLE ghtorrent_restore_2015.organization_members (
     org_id integer NOT NULL,
     user_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -290,7 +293,8 @@ CREATE TABLE ghtorrent_restore_2015.organization_members (
 
 CREATE TABLE ghtorrent_restore_2015.project_commits (
     project_id integer DEFAULT 0 NOT NULL,
-    commit_id integer DEFAULT 0 NOT NULL
+    commit_id integer DEFAULT 0 NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -374,7 +378,8 @@ CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
 
 CREATE TABLE ghtorrent_restore_2015.pull_request_commits (
     pull_request_id integer NOT NULL,
-    commit_id integer NOT NULL
+    commit_id integer NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -433,7 +438,8 @@ CREATE TABLE ghtorrent_restore_2015.pull_requests (
     additions integer,
     deletions integer,
     changed_files integer,
-    merged boolean DEFAULT false NOT NULL
+    merged boolean DEFAULT false NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
