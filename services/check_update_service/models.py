@@ -25,7 +25,7 @@ class CommitComment(Base):
     line = Column(Integer)
     position = Column(Integer)
     comment_id = Column(Integer, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
 
     commit = relationship("Commit", back_populates="commit_comments")
@@ -50,7 +50,7 @@ class Commit(Base):
     committer_id = Column(Integer, ForeignKey("users.id"))
     project_id = Column(Integer, ForeignKey("projects.id"))
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     commit_comments = relationship("CommitComment", back_populates="commit")
     project = relationship("Project", back_populates="commits")
@@ -63,7 +63,7 @@ class Follower(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     follower_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     user = relationship("User", foreign_keys=[user_id], back_populates="followers")
     follower = relationship(
@@ -78,7 +78,7 @@ class Fork(Base):
     forked_from_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
     fork_id = Column(Integer, primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     forked_project = relationship(
         "Project", foreign_keys=[forked_project_id], back_populates="forks"
@@ -93,7 +93,7 @@ class IssueComment(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     comment_id = Column(Text, primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     user = relationship("User", back_populates="issue_comments")
 
@@ -107,7 +107,7 @@ class IssueEvent(Base):
     action = Column(String(255), nullable=False)
     action_specific = Column(String(50))
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     issue = relationship("Issue", back_populates="issue_events")
     user = relationship("User", back_populates="issue_events")
@@ -131,7 +131,7 @@ class Issue(Base):
     pull_request = Column(Boolean, nullable=False)
     pull_request_id = Column(Integer)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     project = relationship("Project", back_populates="issues")
     reporter = relationship(
@@ -167,7 +167,7 @@ class ProjectMember(Base):
     repo_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     repo = relationship("Project", back_populates="project_members")
     user = relationship("User", back_populates="project_members")
@@ -183,7 +183,7 @@ class Project(Base):
     description = Column(String(255))
     language = Column(String(255))
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
     forked_from = Column(Integer, nullable=True)
     deleted = Column(Boolean, default=False, nullable=False)
     last_extraction = Column(TIMESTAMP, nullable=True)
@@ -216,7 +216,7 @@ class PullRequestComment(Base):
     body = Column(String(256))
     commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     user = relationship("User", back_populates="pull_request_comments")
 
@@ -234,7 +234,7 @@ class PullRequestHistory(Base):
     id = Column(Integer, primary_key=True)
     pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
     action = Column(String(255), nullable=False)
     actor_id = Column(Integer, ForeignKey("users.id"))
 
@@ -267,7 +267,7 @@ class RepoLabel(Base):
     id = Column(Integer, primary_key=True)
     repo_id = Column(Integer, ForeignKey("projects.id"))
     name = Column(String(24), nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     project = relationship("Project", back_populates="repo_labels")
 
@@ -278,7 +278,7 @@ class RepoMilestone(Base):
     id = Column(Integer, primary_key=True)
     repo_id = Column(Integer, ForeignKey("projects.id"))
     name = Column(String(24), nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     project = relationship("Project", back_populates="repo_milestones")
 
@@ -293,7 +293,7 @@ class User(Base):
     location = Column(String(255))
     email = Column(String(255))
     created_at = Column(TIMESTAMP, nullable=False)
-    ext_ref_id = Column(String(24), default="0", nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
     type = Column(String(255), default="USR", nullable=False)
 
     projects = relationship("Project", back_populates="owner")
