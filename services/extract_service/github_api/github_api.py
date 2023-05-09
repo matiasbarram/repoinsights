@@ -66,11 +66,13 @@ class GitHubAPI:
                 since=params["since"],
                 name=name,
             )
-            since: datetime = params["since"]
-            params["since"] = format_dt(since)
+            since = params["since"]
+            if type(since) == "datetime":
+                params["since"] = format_dt(since)
         if params.get("until") is not None:
             until: datetime = params["until"]
-            params["until"] = format_dt(until)
+            if type(until) == datetime:
+                params["until"] = format_dt(until)
 
         while url:
             response = self.get(url, params=params, headers=headers)
@@ -126,7 +128,7 @@ class GitHubResource:
 
     def _handle_rate_limit_exceeded(self, tokens_iter: Iterator[str]):
         new_token = next(tokens_iter)
-        print("New token: ", new_token)
+        logger.warning("Token changed ")
         self.api.update_token(new_token)
 
     def invoke_with_rate_limit_handling(self, func, tokens_iter, *args, **kwargs):

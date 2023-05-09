@@ -15,7 +15,9 @@ class InsightsMilestone:
         self.created_at = milestone["created_at"]
         self.updated_at = milestone["updated_at"]
         self.due_on = milestone["due_on"]
-        self.creator = InsightsUser(milestone["creator"])
+        self.creator = (
+            InsightsUser(milestone["creator"]) if milestone["creator"] else None
+        )
 
     def set_repo_id(self, repo_id: int):
         self.repo_id = repo_id

@@ -25,19 +25,29 @@ class InsightsClient:
         self.data_types = data_types
         self.until = datetime.now()
 
+    def logger(self):
+        logger.remove(0)
+        since = format_dt(self.since) if self.since else "None"
+        until = format_dt(self.until) if self.until else "None"
+        logger.add(
+            f"logs/{self.owner}_{self.repo}_{since}_{until}.log",
+            backtrace=True,
+            diagnose=True,
+        )
+        logger.critical(f"Extracting data from GitHub")
+
     def get_from_pendientes(self):
         repo = QueueClient().get_from_queue()
         if repo:
             self.owner = repo["owner"]
             self.repo = repo["project"]
             self.since: datetime = gh_api_to_datetime(repo["last_extraction"])
-
             logger.critical("QUEUE pendientes {project}", project=repo)
         else:
             raise EmptyQueueError("No hay proyectos en la cola")
 
     def extract(self) -> List[Dict[str, Any]]:
-        logger.critical(f"Extracting data from GitHub")
+        self.logger()
         extract_data = ExtractDataClient(
             owner=self.owner,
             repo=self.repo,
