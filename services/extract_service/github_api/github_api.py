@@ -9,6 +9,7 @@ import time
 import os
 from datetime import datetime
 from pprint import pprint
+from ..utils.utils import format_dt
 
 
 class RateLimitExceededError(Exception):
@@ -58,12 +59,18 @@ class GitHubAPI:
         params.setdefault("per_page", 100)
         elementos = []
         pag = 1
-        if params.get("since"):
+        if params.get("since") is not None:
+            logger.warning(
+                "{name} \t Since: {type} - {since}",
+                type=type(params["since"]),
+                since=params["since"],
+                name=name,
+            )
             since: datetime = params["since"]
-            params["since"] = since.strftime("%Y-%m-%dT%H:%M:%SZ")
-        if params.get("until"):
+            params["since"] = format_dt(since)
+        if params.get("until") is not None:
             until: datetime = params["until"]
-            params["until"] = until.strftime("%Y-%m-%dT%H:%M:%SZ")
+            params["until"] = format_dt(until)
 
         while url:
             response = self.get(url, params=params, headers=headers)

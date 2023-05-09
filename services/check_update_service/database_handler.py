@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from loguru import logger
 from datetime import datetime
 from sqlalchemy.sql.schema import Column
+from .utils import format_dt
 
 
 class DatabaseHandler:
@@ -41,7 +42,7 @@ class DatabaseHandler:
             if project.last_extraction is None:
                 last_extraction = self.get_last_commit_date(project)
                 if last_extraction is not None:
-                    last_extraction = last_extraction.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    last_extraction = format_dt(last_extraction)
             enqueue_list.append(
                 {
                     "enqueue_time": datetime.now(),

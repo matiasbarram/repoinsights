@@ -4,7 +4,7 @@ from github import Label, Issue, Project
 
 class InsightsLabel:
     def __init__(self, label):
-        self.name = label["name"]
+        self.name = label["name"] if len(label["name"]) < 24 else label["name"][:24]
         self.color = label["color"]
         self.description = label["description"]
 

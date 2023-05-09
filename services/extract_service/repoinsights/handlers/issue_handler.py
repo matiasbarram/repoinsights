@@ -50,8 +50,6 @@ class InsightsIssueHandler:
         milestone_objects = [InsightsMilestone(milestone) for milestone in milestones]
         return milestone_objects
 
-    # # ARREGLAR NO DEBERIAN LLAMAR A LA API DEBERIA HACERSE DE UNA MEJOR MANERA
-
     def get_issue_comments(self, issues: List[InsightsIssue]):
         comments = self.repo.obtener_issues_comments()
         issue: InsightsIssue

@@ -4,7 +4,7 @@ from loguru import logger
 
 
 def format_dt(dt: datetime) -> str:
-    return dt.strftime("%B %d, %Y, %I:%M %p")
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def gh_api_to_datetime(date_str: str) -> datetime:

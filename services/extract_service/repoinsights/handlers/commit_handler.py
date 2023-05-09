@@ -3,6 +3,7 @@ from services.extract_service.repoinsights.commit import InsightsCommit
 from services.extract_service.repoinsights.comment import InsightsCommitComment
 from services.extract_service.github_api.extractor import GitHubExtractor
 from datetime import datetime
+from typing import Dict, Any
 
 
 class InsightsCommitHandler:
@@ -10,7 +11,7 @@ class InsightsCommitHandler:
         self.repo = repo
 
     def get_commits(self, since: Union[None, datetime], until: Union[None, datetime]):
-        kwargs = {}
+        kwargs: Dict[str, Any] = {}
         if since:
             kwargs["since"] = since
         if until:

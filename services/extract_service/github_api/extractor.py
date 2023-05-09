@@ -37,7 +37,7 @@ class GitHubExtractor:
     def obtener_usuario(self, usuario):
         return self.user_repo.obtener_usuario(usuario)
 
-    def obtener_commits(self, since=None, until=None):
+    def obtener_commits(self, since: Optional[datetime] = None, until=None):
         return self.commit_repo.obtener_commits(since=since, until=until)
 
     def obtener_commit(self, commit_sha):

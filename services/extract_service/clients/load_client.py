@@ -51,7 +51,7 @@ class LoadDataClient:
                 f"Results must contain a 'name' key. Error: {e}"
             )
 
-    def load_data(self):
+    def load_to_temp_db(self):
         for result in self.sorted_results:
             name, data = result["name"], result["data"]
             logger.critical(f"Loading {name}")
@@ -200,9 +200,7 @@ class LoadDataClient:
                     event.set_actor_id(self.load_user(event.actor))
                     self.temp_db.create_issue_event(event)
                 else:
-                    logger.error(
-                        "Event without actor {event}", event=event.actor.__dict__
-                    )
+                    logger.error("Event without actor")
 
     def load_commits_data(self, commits: List[InsightsCommit]):
         commit: InsightsCommit
@@ -275,3 +273,6 @@ class LoadDataClient:
         return self.temp_db.find_commit_id(
             sha=sha,
         )
+
+    def get_project_id(self) -> int:
+        return self.repository.id

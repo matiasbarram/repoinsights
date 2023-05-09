@@ -4,7 +4,7 @@ from .enqueue_client import QueueClient
 import json
 from typing import Dict, Any, List
 from datetime import datetime
-from ..utils.utils import format_dt
+from ..utils.utils import format_dt, gh_api_to_datetime
 from loguru import logger
 
 
@@ -30,11 +30,8 @@ class InsightsClient:
         if repo:
             self.owner = repo["owner"]
             self.repo = repo["project"]
-            self.since = (
-                datetime.strptime(repo["last_extraction"], "%Y-%m-%dT%H:%M:%SZ")
-                if repo["last_extraction"]
-                else None
-            )
+            self.since: datetime = gh_api_to_datetime(repo["last_extraction"])
+
             logger.critical("QUEUE pendientes {project}", project=repo)
         else:
             raise EmptyQueueError("No hay proyectos en la cola")
@@ -58,7 +55,9 @@ class InsightsClient:
     def load(self, results) -> None:
         logger.critical(f"Loading to TEMP DB")
         try:
-            LoadDataClient(results).load_data()
+            load_client = LoadDataClient(results)
+            load_client.load_to_temp_db()
+            self.project_id = load_client.get_project_id()
         except Exception as e:
             logger.critical(f"Error loading data to TEMP DB: {e}")
             raise LoadError("Error loading data to TEMP DB")
@@ -67,8 +66,9 @@ class InsightsClient:
         project_data = {
             "owner": self.owner,
             "repo": self.repo,
+            "project_id": self.project_id,
             "since": format_dt(self.since) if self.since else None,
-            "until": format_dt(self.until),
+            "until": format_dt(self.until) if self.until else None,
             "data_types": self.data_types,
         }
         json_data = json.dumps(project_data)
