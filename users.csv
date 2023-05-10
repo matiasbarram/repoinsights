@@ -1,0 +1,83 @@
+id,login,name,company,location,email,created_at,ext_ref_id,type
+1,gousiosg,Georgios Gousios,Endor Labs,"Delft, The Netherlands",gousiosg@gmail.com,2010-09-03 07:32:45+00:00,b87d3bc7827341028a110ec3580ae523,USR
+2,dspinellis,Diomidis Spinellis,Athens University of Economics and Business,"Athens, Greece",dds@aueb.gr,2011-11-22 11:25:12+00:00,b87d3bc7827341028a110ec3580ae523,USR
+3,web-flow,GitHub Web Flow,,,,2016-06-10 22:16:20+00:00,b87d3bc7827341028a110ec3580ae523,USR
+4,larsborn,Lars Wallenborn,,Bonn,,2012-06-07 13:11:15+00:00,b87d3bc7827341028a110ec3580ae523,USR
+5,XChikuX,Srikanth,,sunnyvale,,2013-11-09 07:31:59+00:00,b87d3bc7827341028a110ec3580ae523,USR
+6,Priya5,Priya Rani,,India,priya.rani549@gmail.com,2016-01-19 09:01:22+00:00,b87d3bc7827341028a110ec3580ae523,USR
+7,PDegenPortnoy,Peter Degen-Portnoy,@klaviyo ,Massachusetts,,2008-12-09 16:16:07+00:00,b87d3bc7827341028a110ec3580ae523,USR
+8,notalex,Alex,,,,2012-04-12 18:14:00+00:00,b87d3bc7827341028a110ec3580ae523,USR
+9,Bhlowe,,,94507,,2011-07-26 17:08:14+00:00,b87d3bc7827341028a110ec3580ae523,USR
+10,rtlee9,Ryan,Facebook,"Redwood City, CA",ryantlee9@gmail.com,2016-05-25 20:29:27+00:00,b87d3bc7827341028a110ec3580ae523,USR
+11,vmarkovtsev,Vadim Markovtsev,@athenianco,Madrid,gmarkhor@gmail.com,2012-11-14 06:39:09+00:00,b87d3bc7827341028a110ec3580ae523,USR
+12,colelloa,Andrew Colello,School Improvement Partnership,"Menlo Park, CA",,2014-04-03 16:44:38+00:00,b87d3bc7827341028a110ec3580ae523,USR
+13,sbaltes,Sebastian Baltes,SAP SE & University of Adelaide,Germany,,2015-01-12 13:10:34+00:00,b87d3bc7827341028a110ec3580ae523,USR
+14,jeffmcaffer,Jeff McAffer,GitHub,,,2014-12-04 06:30:00+00:00,b87d3bc7827341028a110ec3580ae523,USR
+15,ryanfarr01,Ryan Farr,,,ryanfarr01@gmail.com,2015-02-04 18:10:29+00:00,b87d3bc7827341028a110ec3580ae523,USR
+16,tesder,,,,,2016-10-05 23:51:22+00:00,b87d3bc7827341028a110ec3580ae523,USR
+17,ward,Ward Muylaert,Vrije Universiteit Brussel,Brussels,ward.muylaert@gmail.com,2009-12-22 14:12:23+00:00,b87d3bc7827341028a110ec3580ae523,USR
+18,hahnicity,Gregory Rehm,,Davis,grehm87@gmail.com,2013-02-08 07:00:51+00:00,b87d3bc7827341028a110ec3580ae523,USR
+19,boyang9602,,,,,2017-08-10 06:11:16+00:00,b87d3bc7827341028a110ec3580ae523,USR
+20,dependabot[bot],,,,,2019-04-16 22:34:25+00:00,b87d3bc7827341028a110ec3580ae523,BOT
+21,SiRumCz,zkchen,CSE@Huawei Canada,Ontario,,2016-06-04 22:45:36+00:00,b87d3bc7827341028a110ec3580ae523,USR
+22,gingerhot,B1nj0y,,Beijing,idegorepl@gmail.com,2012-04-19 09:23:29+00:00,b87d3bc7827341028a110ec3580ae523,USR
+23,elhoyos,Juan Hoyos,Shopify,"London, ON",juan.hoyosr@gmail.com,2011-01-22 02:01:14+00:00,b87d3bc7827341028a110ec3580ae523,USR
+24,blackducksoftware,"Black Duck Software, Inc.",,"Burlington, MA",,2010-10-07 19:09:56+00:00,b87d3bc7827341028a110ec3580ae523,ORG
+25,sig-krasnick,mkrasnick,,,,2013-06-24 00:14:05+00:00,b87d3bc7827341028a110ec3580ae523,USR
+26,schlubbi,Stefan Jöst ,Microsoft,Berlin,,2012-05-18 20:37:07+00:00,b87d3bc7827341028a110ec3580ae523,USR
+27,DerekTBrown,Derek Brown,Lacework,"Mountain View, CA",,2014-03-04 01:24:50+00:00,b87d3bc7827341028a110ec3580ae523,USR
+28,Zearin,Zearin,,"Virginia, U.S.A.",,2011-02-21 15:27:25+00:00,b87d3bc7827341028a110ec3580ae523,USR
+29,007gzs,,,,,2013-11-05 02:01:18+00:00,b87d3bc7827341028a110ec3580ae523,USR
+30,5chenyu,吴晨钰,,,,2022-01-05 11:11:26+00:00,b87d3bc7827341028a110ec3580ae523,USR
+31,Glorindor,Mehmet Alp Sözüdüz,,,mehmetalp.sozuduz@gmail.com,2016-12-14 06:18:29+00:00,b87d3bc7827341028a110ec3580ae523,USR
+32,Shakikhanli,,,"Szeged, Hungary",shekikhanli@gmail.com,2017-07-26 07:51:19+00:00,b87d3bc7827341028a110ec3580ae523,USR
+33,AimerYi,,,,,2019-04-11 03:00:55+00:00,b87d3bc7827341028a110ec3580ae523,USR
+34,xhinker,Andrew Zhu,Microsoft,United States ,xhinker@hotmail.com,2014-06-16 03:17:48+00:00,b87d3bc7827341028a110ec3580ae523,USR
+35,stuartbates,Stuart Bates,,"London, United Kingdom",,2011-09-26 15:24:58+00:00,b87d3bc7827341028a110ec3580ae523,USR
+36,huichen-cs,,Brooklyn College of the City University of New York,"Brooklyn, NY",,2015-08-22 15:45:37+00:00,b87d3bc7827341028a110ec3580ae523,USR
+37,swagatam11,,,,,2017-12-20 10:02:53+00:00,b87d3bc7827341028a110ec3580ae523,USR
+38,Luizvx,,,,,2017-01-29 21:37:55+00:00,b87d3bc7827341028a110ec3580ae523,USR
+39,Khsaf,Khadijah Al Safwan,,,khsaf@vt.edu,2016-03-29 16:21:18+00:00,b87d3bc7827341028a110ec3580ae523,USR
+40,ArjunSarihyan,,,,,2018-07-06 07:25:18+00:00,b87d3bc7827341028a110ec3580ae523,USR
+41,amintos,Toni Mattis,,Berlin,,2012-02-03 21:29:45+00:00,b87d3bc7827341028a110ec3580ae523,USR
+42,sherrykidlee,,,,,2018-06-29 14:17:54+00:00,b87d3bc7827341028a110ec3580ae523,USR
+43,maboeckmann,Matthias Böckmann,,Siegburg,,2015-07-13 13:29:33+00:00,b87d3bc7827341028a110ec3580ae523,USR
+44,beasknees,,,,,2014-11-07 04:00:30+00:00,b87d3bc7827341028a110ec3580ae523,USR
+45,jwarz,Joschka Schwarz,Hamburg University of Technology - TUHH Institute of Entrepreneurship,Hamburg,,2018-06-18 14:30:11+00:00,b87d3bc7827341028a110ec3580ae523,USR
+46,acs,Alvaro del Castillo,Cobee,"Getafe, Madrid, Spain",alvarodelcastillo@gmail.com,2010-02-23 23:13:16+00:00,b87d3bc7827341028a110ec3580ae523,USR
+47,whystar,WhyStar,,,,2013-10-10 09:36:26+00:00,b87d3bc7827341028a110ec3580ae523,USR
+48,nasifimtiazohi,Nasif Imtiaz ,North Carolina State University,Raleigh,simtiaz@ncsu.edu,2017-08-16 00:28:51+00:00,b87d3bc7827341028a110ec3580ae523,USR
+49,gabrielcalegari,Gabriel Calegari,,"Belo Horizonte, MG, Brazil",gabriel@calegari.dev,2013-12-17 17:06:55+00:00,b87d3bc7827341028a110ec3580ae523,USR
+50,shehan,Anthony Peruma,University of Hawai‘i at Mānoa,"Honolulu, Hawaii",,2012-07-09 19:55:32+00:00,b87d3bc7827341028a110ec3580ae523,USR
+51,samwalkow,Sam Walkow,,,swalkow2@illinois.edu,2018-04-05 19:27:34+00:00,b87d3bc7827341028a110ec3580ae523,USR
+52,m98,Mohammad Kermani,@findhotel,Netherlands,98kermani@gmail.com,2014-05-06 03:59:39+00:00,b87d3bc7827341028a110ec3580ae523,USR
+53,gordongli,Gordon Li,,"San Francisco, CA",,2016-08-24 17:50:01+00:00,b87d3bc7827341028a110ec3580ae523,USR
+54,SainathKaluva,sainath kaluva,,,,2016-11-10 19:15:36+00:00,b87d3bc7827341028a110ec3580ae523,USR
+55,dong-qiu,Dong Qiu,Southeast University,Nanjing,dolphinqd@gmail.com,2011-12-15 21:04:46+00:00,b87d3bc7827341028a110ec3580ae523,USR
+56,JPeer264,Jan Peer Stöcklmair,@dynatrace,Vienna / AUT / Europe / Earth ,,2015-01-23 22:28:17+00:00,b87d3bc7827341028a110ec3580ae523,USR
+57,Jandisson,,,,,2015-10-29 01:26:11+00:00,b87d3bc7827341028a110ec3580ae523,USR
+58,bluecoco,Ning,,,,2014-01-21 15:59:27+00:00,b87d3bc7827341028a110ec3580ae523,USR
+59,dufferzafar,Shadab Zafar,@tower-research,"New Delhi, India",dufferzafar0@gmail.com,2012-02-18 16:43:26+00:00,b87d3bc7827341028a110ec3580ae523,USR
+60,Inventitech,Moritz Beller,Delft University of Technology,,,2010-07-16 17:47:38+00:00,b87d3bc7827341028a110ec3580ae523,USR
+61,idlesign,Igor Starikov,,"Russia, Novosibirsk",,2009-10-28 05:25:48+00:00,b87d3bc7827341028a110ec3580ae523,USR
+62,kelewis,Kevin Lewis,,"Redmond, Washington",,2013-06-09 18:13:55+00:00,b87d3bc7827341028a110ec3580ae523,USR
+63,sgoggins,Sean P. Goggins,University of Missouri & Linux Foundation CHAOSS Working Group,"Columbia, MO",s@goggins.com,2010-08-29 16:25:48+00:00,b87d3bc7827341028a110ec3580ae523,USR
+64,kirshanluhana,,,,,2015-04-27 07:27:40+00:00,b87d3bc7827341028a110ec3580ae523,USR
+65,LeonFedotov,Leon Fedotov,,cyberspace,,2009-09-23 11:49:31+00:00,b87d3bc7827341028a110ec3580ae523,USR
+66,Hjdskes,Jente Hidskes Ankarberg,@griffinbank,"Stockholm, Sweden",dev@hjdskes.nl,2011-12-13 16:11:44+00:00,b87d3bc7827341028a110ec3580ae523,USR
+67,sammy-SC,Samuel Susla,Facebook,"London, United Kingdom",samuel.susla@gmail.com,2012-05-12 21:41:01+00:00,b87d3bc7827341028a110ec3580ae523,USR
+68,stoivo,Simon,,"Oslo, Norway",,2013-02-06 13:57:37+00:00,b87d3bc7827341028a110ec3580ae523,USR
+69,legendtang,,,,sp3478@gmail.com,2012-01-19 11:56:30+00:00,b87d3bc7827341028a110ec3580ae523,USR
+70,jlcanovas,Javier Canovas,,Barcelona,me@jlcanovas.es,2012-07-18 07:39:00+00:00,b87d3bc7827341028a110ec3580ae523,USR
+71,ghost,Deleted user,,"Nothing to see here, move along.",,2008-05-13 06:14:25+00:00,b87d3bc7827341028a110ec3580ae523,USR
+72,edwardmp,Edward Poot,,"Amsterdam, The Netherlands",edwardmp@gmail.com,2012-04-27 23:54:32+00:00,b87d3bc7827341028a110ec3580ae523,USR
+73,dollyexpise,,,,,2016-03-01 23:22:51+00:00,b87d3bc7827341028a110ec3580ae523,USR
+74,fulibacsi,András Fülöp,,"Budapest, Hungary",fulibacsi.at.gmail.com,2012-03-07 13:43:16+00:00,b87d3bc7827341028a110ec3580ae523,USR
+75,zseder,Attila Zséder,,,,2011-07-08 09:37:41+00:00,b87d3bc7827341028a110ec3580ae523,USR
+76,igorsteinmacher,Igor Steinmacher,NAU,"Flagstaff, AZ, USA",igorsteinmacher@gmail.com,2012-12-03 17:04:04+00:00,b87d3bc7827341028a110ec3580ae523,USR
+77,baishakhir,Baishakhi,Columbia University ,New York,baishakhir@gmail.com,2012-03-28 02:16:34+00:00,b87d3bc7827341028a110ec3580ae523,USR
+78,ayushidalmia,Ayushi Dalmia,,India,,2013-09-06 14:54:39+00:00,b87d3bc7827341028a110ec3580ae523,USR
+79,Jakobovski,Zohar Jackson,,,,2012-11-05 04:53:37+00:00,b87d3bc7827341028a110ec3580ae523,USR
+80,craigcabrey,Craig Cabrey,@facebook,"Austin, TX",craigcabrey@gmail.com,2011-07-05 01:45:41+00:00,b87d3bc7827341028a110ec3580ae523,USR
+81,notslang,Sean Lang,@scoremedia,"Valdosta, GA",me@slang.dev,2011-09-14 03:46:33+00:00,b87d3bc7827341028a110ec3580ae523,USR
+82,zhemao,Howard Mao,,"Berkeley, CA",,2010-10-09 20:47:46+00:00,b87d3bc7827341028a110ec3580ae523,USR

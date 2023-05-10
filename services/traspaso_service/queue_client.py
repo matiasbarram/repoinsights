@@ -33,11 +33,12 @@ class QueueClient:
     ) -> Union[Dict[str, Any], None]:
         if debug:
             return {
-                "owner": "mavam",
-                "repo": "stat-cookbook",
-                "project_id": 41,
-                "since": "2013-01-31T03:46:46Z",
-                "until": "2023-05-08T21:41:05Z",
+                "uuid": "b87d3bc7827341028a110ec3580ae523",
+                "owner": "gousiosg",
+                "repo": "github-mirror",
+                "project_id": 1,
+                "since": None,
+                "until": "2023-05-09T14:23:16Z",
                 "data_types": [
                     "commits",
                     "pull_requests",
@@ -46,9 +47,8 @@ class QueueClient:
                     "milestones",
                 ],
             }
-
         self.channel.queue_declare(queue=self.queue_curado)
-        method_frame, header_frame, body = self.channel.basic_get(self.queue_pendientes)
+        method_frame, header_frame, body = self.channel.basic_get(self.queue_curado)
         if method_frame:
             self.channel.basic_ack(method_frame.delivery_tag)
             data = body.decode("utf-8")

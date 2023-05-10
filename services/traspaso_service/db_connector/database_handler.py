@@ -11,10 +11,8 @@ from .models import (
     Watcher,
     ProjectMember,
 )
-from pprint import pprint
-from typing import List, Union, Dict, Any
+from typing import List, Union, Dict, Any, Optional, Type
 from sqlalchemy.orm import sessionmaker, Session
-from typing import Union, List, Optional
 from loguru import logger
 
 
@@ -29,25 +27,30 @@ class DatabaseHandler:
 
     def get_or_create(
         self,
-        model: Union[
-            User,
-            Project,
-            Commit,
-            CommitParent,
-            Issue,
-            IssueComment,
-            PullRequest,
-            PullRequestComment,
-            Watcher,
+        model: Type[
+            Union[
+                User,
+                Project,
+                Commit,
+                CommitParent,
+                Issue,
+                IssueComment,
+                PullRequest,
+                PullRequestComment,
+                Watcher,
+            ]
         ],
         session: Session,
         create: Optional[bool] = True,
+        many: Optional[bool] = False,
         **kwargs,
     ):
-        instance = session.query(model).filter_by(**kwargs).first()
-        if instance:
+        query = session.query(model).filter_by(**kwargs)
+        exist_instance = query.all() if many else query.first()
+
+        if exist_instance:
             logger.debug("Instance already exists")
-            return instance
+            return exist_instance
         elif create:
             try:
                 logger.debug("Creating new instance")
@@ -56,7 +59,7 @@ class DatabaseHandler:
                 session.commit()
                 return instance
             except Exception as e:
-                logger.error(f"Error creating")
+                logger.error(f"Error creating: {e}")
                 raise BaseException(e)
         else:
             logger.debug("Instance does not exist and not created")
