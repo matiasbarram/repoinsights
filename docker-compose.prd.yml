@@ -66,7 +66,7 @@ services:
     deploy:
       replicas: 2
 
-  check_queue:
+  encolar_service:
     image: ghcr.io/matiasbarram/repoinsights-pendientes-service:staging
     env_file:
       - .env
@@ -76,6 +76,19 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - CONSOLIDADA_IP=consolidada
+
+  traspaso_service:
+    image: ghcr.io/matiasbarram/repoinsights-traspaso-service:staging
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - consolidada
+      - temporal
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - CONSOLIDADA_IP=consolidada
+      - TEMP_IP=temporal
 
   metabase:
     image: metabase/metabase
