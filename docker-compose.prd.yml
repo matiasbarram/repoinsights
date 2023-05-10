@@ -52,9 +52,7 @@ services:
       - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
 
   extract_service:
-    build:
-      context: .
-      dockerfile: Dockerfile.extract
+    image: ghcr.io/matiasbarram/repoinsights-extract-service:staging
     env_file:
       - .env
     depends_on:
@@ -68,10 +66,8 @@ services:
     deploy:
       replicas: 2
 
-  check_queue:
-    build:
-      context: .
-      dockerfile: Dockerfile.check
+  encolar_service:
+    image: ghcr.io/matiasbarram/repoinsights-pendientes-service:staging
     env_file:
       - .env
     depends_on:
@@ -80,6 +76,19 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - CONSOLIDADA_IP=consolidada
+
+  traspaso_service:
+    image: ghcr.io/matiasbarram/repoinsights-traspaso-service:staging
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - consolidada
+      - temporal
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - CONSOLIDADA_IP=consolidada
+      - TEMP_IP=temporal
 
   metabase:
     image: metabase/metabase

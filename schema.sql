@@ -83,7 +83,7 @@ CREATE TABLE ghtorrent_restore_2015.commit_comments (
     line integer,
     "position" integer,
     comment_id integer NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL,
+    ext_ref_id character varying(32) NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -118,7 +118,8 @@ ALTER SEQUENCE ghtorrent_restore_2015.commit_comments_id_seq OWNED BY ghtorrent_
 
 CREATE TABLE ghtorrent_restore_2015.commit_parents (
     commit_id integer NOT NULL,
-    parent_id integer NOT NULL
+    parent_id integer NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -134,7 +135,8 @@ CREATE TABLE ghtorrent_restore_2015.commits (
     committer_id integer,
     project_id integer,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    message character varying(256),
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -170,7 +172,7 @@ CREATE TABLE ghtorrent_restore_2015.followers (
     user_id integer NOT NULL,
     follower_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -184,7 +186,7 @@ CREATE TABLE ghtorrent_restore_2015.forks (
     forked_from_id integer NOT NULL,
     fork_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -198,7 +200,7 @@ CREATE TABLE ghtorrent_restore_2015.issue_comments (
     user_id integer NOT NULL,
     comment_id text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -210,11 +212,11 @@ CREATE TABLE ghtorrent_restore_2015.issue_comments (
 CREATE TABLE ghtorrent_restore_2015.issue_events (
     event_id text NOT NULL,
     issue_id integer NOT NULL,
-    actor_id integer NOT NULL,
+    actor_id integer NULL,
     action character varying(255) NOT NULL,
     action_specific character varying(50),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -225,7 +227,8 @@ CREATE TABLE ghtorrent_restore_2015.issue_events (
 
 CREATE TABLE ghtorrent_restore_2015.issue_labels (
     label_id integer DEFAULT 0 NOT NULL,
-    issue_id integer DEFAULT 0 NOT NULL
+    issue_id integer DEFAULT 0 NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -243,7 +246,7 @@ CREATE TABLE ghtorrent_restore_2015.issues (
     pull_request boolean NOT NULL,
     pull_request_id integer,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -278,7 +281,8 @@ ALTER SEQUENCE ghtorrent_restore_2015.issues_id_seq OWNED BY ghtorrent_restore_2
 CREATE TABLE ghtorrent_restore_2015.organization_members (
     org_id integer NOT NULL,
     user_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -289,7 +293,8 @@ CREATE TABLE ghtorrent_restore_2015.organization_members (
 
 CREATE TABLE ghtorrent_restore_2015.project_commits (
     project_id integer DEFAULT 0 NOT NULL,
-    commit_id integer DEFAULT 0 NOT NULL
+    commit_id integer DEFAULT 0 NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -302,7 +307,7 @@ CREATE TABLE ghtorrent_restore_2015.project_members (
     repo_id integer NOT NULL,
     user_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -319,10 +324,10 @@ CREATE TABLE ghtorrent_restore_2015.projects (
     description character varying(255),
     language character varying(255),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL,
+    ext_ref_id character varying(32) NOT NULL,
     forked_from integer,
     deleted boolean DEFAULT false NOT NULL,
-    last_extraction timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    /*last_extraction timestamp with time zone DEFAULT CURRENT_TIMESTAMP*/
 );
 
 
@@ -349,6 +354,25 @@ CREATE SEQUENCE ghtorrent_restore_2015.projects_id_seq
 ALTER SEQUENCE ghtorrent_restore_2015.projects_id_seq OWNED BY ghtorrent_restore_2015.projects.id;
 
 
+
+CREATE TABLE ghtorrent_restore_2015.extractions (
+    id integer NOT NULL,
+    project_id integer NOT NULL,
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ext_ref_id character varying(32) NOT NULL
+);
+
+CREATE SEQUENCE ghtorrent_restore_2015.extractions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.extractions_id_seq OWNED BY ghtorrent_restore_2015.extractions.id;
+
+
 --
 -- TOC entry 234 (class 1259 OID 16471)
 -- Name: pull_request_comments; Type: TABLE; Schema: ghtorrent_restore_2015; Owner: -
@@ -362,7 +386,7 @@ CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
     body character varying(256),
     commit_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -373,7 +397,8 @@ CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
 
 CREATE TABLE ghtorrent_restore_2015.pull_request_commits (
     pull_request_id integer NOT NULL,
-    commit_id integer NOT NULL
+    commit_id integer NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -386,7 +411,7 @@ CREATE TABLE ghtorrent_restore_2015.pull_request_history (
     id integer NOT NULL,
     pull_request_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL,
+    ext_ref_id character varying(32) NOT NULL,
     action character varying(255) NOT NULL,
     actor_id integer
 );
@@ -429,7 +454,11 @@ CREATE TABLE ghtorrent_restore_2015.pull_requests (
     user_id integer NOT NULL,
     pullreq_id integer NOT NULL,
     intra_branch boolean NOT NULL,
-    merged boolean DEFAULT false NOT NULL
+    additions integer,
+    deletions integer,
+    changed_files integer,
+    merged boolean DEFAULT false NOT NULL,
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -465,7 +494,7 @@ CREATE TABLE ghtorrent_restore_2015.repo_labels (
     id integer NOT NULL,
     repo_id integer,
     name character varying(24) NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -501,7 +530,7 @@ CREATE TABLE ghtorrent_restore_2015.repo_milestones (
     id integer NOT NULL,
     repo_id integer,
     name character varying(24) NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -551,7 +580,7 @@ CREATE TABLE ghtorrent_restore_2015.users (
     location character varying(255),
     email character varying(255),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL,
+    ext_ref_id character varying(32) NOT NULL,
     type character varying(255) DEFAULT 'USR'::character varying NOT NULL
 );
 
@@ -588,7 +617,7 @@ CREATE TABLE ghtorrent_restore_2015.watchers (
     repo_id integer NOT NULL,
     user_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ext_ref_id character varying(24) DEFAULT '0'::character varying NOT NULL
+    ext_ref_id character varying(32) NOT NULL
 );
 
 
@@ -663,6 +692,13 @@ ALTER TABLE ONLY ghtorrent_restore_2015.repo_milestones ALTER COLUMN id SET DEFA
 
 ALTER TABLE ONLY ghtorrent_restore_2015.users ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.users_id_seq'::regclass);
 
+
+-- CUSTOM
+
+ALTER TABLE ONLY ghtorrent_restore_2015.extractions ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.extractions_id_seq'::regclass);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.extractions
+    ADD CONSTRAINT idx_12393_primary PRIMARY KEY (id);
 
 --
 -- TOC entry 3320 (class 2606 OID 16606)
@@ -944,6 +980,10 @@ CREATE INDEX idx_16426_actor_id ON ghtorrent_restore_2015.issue_events USING btr
 --
 
 CREATE INDEX idx_16426_issue_id ON ghtorrent_restore_2015.issue_events USING btree (issue_id);
+
+-- CUSTOM 
+CREATE INDEX idx_16426_extraction_id ON ghtorrent_restore_2015.extractions USING btree (project_id);
+
 
 
 --
@@ -1421,6 +1461,10 @@ ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments
 
 ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments
     ADD CONSTRAINT pull_request_comments_ibfk_3 FOREIGN KEY (commit_id) REFERENCES ghtorrent_restore_2015.commits(id);
+
+-- CUSTOM
+ALTER TABLE ONLY ghtorrent_restore_2015.extractions
+    ADD CONSTRAINT extraction_metadata_ibfk_1 FOREIGN KEY (project_id) REFERENCES ghtorrent_restore_2015.projects(id);
 
 
 --

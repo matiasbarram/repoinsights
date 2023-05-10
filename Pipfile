@@ -17,6 +17,7 @@ psycopg2 = "*"
 loguru = "*"
 httpx = "*"
 redis = "*"
+pandas = "*"
 
 [dev-packages]
 black = "*"

@@ -1,9 +1,10 @@
-from check_update_service.connector import DBConnector
-from check_update_service.database_handler import DatabaseHandler
+from services.check_update_service.connector import DBConnector
+from services.check_update_service.database_handler import DatabaseHandler
 import pika
 import json
 import os
 from typing import Dict, Any
+from loguru import logger
 
 
 class QueueClient:
@@ -23,9 +24,7 @@ class QueueClient:
         self.channel.basic_publish(
             exchange="", routing_key="pendientes", body=project_json
         )
-        print(
-            f'Project {project["owner"]}/{project["project"]} {project["last_extraction"]} published'
-        )
+        logger.info("Enqueued project {project}", project=project_json)
 
 
 connector = DBConnector()
