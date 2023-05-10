@@ -21,6 +21,7 @@ from services.traspaso_service.db_connector.models import (
     RepoLabel,
     RepoMilestone,
     Watcher,
+    Extraction,
 )
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
 import pandas as pd
@@ -47,6 +48,12 @@ class TempClient:
             self.db.session_temp.query(Project).filter_by(ext_ref_id=self.uuid).all()
         )
         return projects
+
+    def get_extractions(self) -> List[Extraction]:
+        extractions = (
+            self.db.session_temp.query(Extraction).filter_by(ext_ref_id=self.uuid).all()
+        )
+        return extractions
 
     def get_project_members(self) -> List[ProjectMember]:
         project_members = (

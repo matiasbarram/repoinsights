@@ -15,6 +15,17 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+class Extraction(Base):
+    __tablename__ = "extractions"
+
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    date = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
+
+    project = relationship("Project", back_populates="extractions")
+
+
 class CommitComment(Base):
     __tablename__ = "commit_comments"
 
@@ -191,7 +202,7 @@ class Project(Base):
     ext_ref_id = Column(String(32), nullable=False)
     forked_from = Column(Integer, nullable=True)
     deleted = Column(Boolean, default=False, nullable=False)
-    last_extraction = Column(TIMESTAMP, nullable=True)
+    # last_extraction = Column(TIMESTAMP, nullable=True)
 
     owner = relationship("User", back_populates="projects")
     repo_labels = relationship("RepoLabel", back_populates="project")
@@ -209,6 +220,7 @@ class Project(Base):
     forks = relationship(
         "Fork", foreign_keys="Fork.forked_project_id", back_populates="forked_project"
     )
+    extractions = relationship("Extraction", back_populates="project")
 
 
 class PullRequestComment(Base):
@@ -231,7 +243,6 @@ class PullRequestCommit(Base):
 
     pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), primary_key=True)
     commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
-    ext_ref_id = Column(String(32), nullable=False)
 
 
 class PullRequestHistory(Base):

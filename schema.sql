@@ -327,7 +327,7 @@ CREATE TABLE ghtorrent_restore_2015.projects (
     ext_ref_id character varying(32) NOT NULL,
     forked_from integer,
     deleted boolean DEFAULT false NOT NULL,
-    last_extraction timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    /*last_extraction timestamp with time zone DEFAULT CURRENT_TIMESTAMP*/
 );
 
 
@@ -352,6 +352,25 @@ CREATE SEQUENCE ghtorrent_restore_2015.projects_id_seq
 --
 
 ALTER SEQUENCE ghtorrent_restore_2015.projects_id_seq OWNED BY ghtorrent_restore_2015.projects.id;
+
+
+
+CREATE TABLE ghtorrent_restore_2015.extractions (
+    id integer NOT NULL,
+    project_id integer NOT NULL,
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ext_ref_id character varying(32) NOT NULL
+);
+
+CREATE SEQUENCE ghtorrent_restore_2015.extractions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.extractions_id_seq OWNED BY ghtorrent_restore_2015.extractions.id;
 
 
 --
@@ -674,6 +693,13 @@ ALTER TABLE ONLY ghtorrent_restore_2015.repo_milestones ALTER COLUMN id SET DEFA
 ALTER TABLE ONLY ghtorrent_restore_2015.users ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.users_id_seq'::regclass);
 
 
+-- CUSTOM
+
+ALTER TABLE ONLY ghtorrent_restore_2015.extractions ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.extractions_id_seq'::regclass);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.extractions
+    ADD CONSTRAINT idx_12393_primary PRIMARY KEY (id);
+
 --
 -- TOC entry 3320 (class 2606 OID 16606)
 -- Name: commit_comments idx_16393_primary; Type: CONSTRAINT; Schema: ghtorrent_restore_2015; Owner: -
@@ -954,6 +980,10 @@ CREATE INDEX idx_16426_actor_id ON ghtorrent_restore_2015.issue_events USING btr
 --
 
 CREATE INDEX idx_16426_issue_id ON ghtorrent_restore_2015.issue_events USING btree (issue_id);
+
+-- CUSTOM 
+CREATE INDEX idx_16426_extraction_id ON ghtorrent_restore_2015.extractions USING btree (project_id);
+
 
 
 --
@@ -1431,6 +1461,10 @@ ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments
 
 ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments
     ADD CONSTRAINT pull_request_comments_ibfk_3 FOREIGN KEY (commit_id) REFERENCES ghtorrent_restore_2015.commits(id);
+
+-- CUSTOM
+ALTER TABLE ONLY ghtorrent_restore_2015.extractions
+    ADD CONSTRAINT extraction_metadata_ibfk_1 FOREIGN KEY (project_id) REFERENCES ghtorrent_restore_2015.projects(id);
 
 
 --

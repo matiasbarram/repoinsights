@@ -1,13 +1,15 @@
 from services.check_update_service.connector import DBConnector
-from services.check_update_service.models import Project, Commit
-from sqlalchemy import func
-
-from typing import List, Union, Dict, Any
-from sqlalchemy.orm import sessionmaker
+from services.check_update_service.models import Project, Commit, Extraction
+from sqlalchemy.orm import sessionmaker, aliased
 from loguru import logger
 from datetime import datetime
 from sqlalchemy.sql.schema import Column
+from sqlalchemy import func, and_
+from sqlalchemy.sql.functions import coalesce
+
+from typing import List, Union, Dict, Any
 from .utils import format_dt
+from pprint import pprint
 
 
 class DatabaseHandler:
@@ -16,46 +18,59 @@ class DatabaseHandler:
         self.Session = sessionmaker(bind=connector.engine)
         self.session = self.Session()
 
-    def get_last_commit_date(self, project: Project) -> Union[datetime, None]:
-        # Query to get the latest commit date for the given project
-        last_commit_date = (
-            self.session.query(func.max(Commit.created_at).label("last_commit_date"))
-            .filter(Commit.project_id == project.id)  # type: ignore
-            .scalar()
-        )
-        if last_commit_date is None:
-            logger.warning(
-                f"Project {project.owner.login}/{project.name} has no commits"
-            )
-            return None
-
-        return format_dt(last_commit_date)  # type: ignore
-
     def get_updated_projects(self) -> List[Dict[str, Any]]:
         enqueue_list = []
-        current_date = datetime.now().date()
-        projects = (
-            self.session.query(Project)
-            .filter(
-                (Project.last_extraction < current_date)
-                | (Project.last_extraction == None)
+        ExtractionAlias = aliased(Extraction)
+        CommitAlias = aliased(Commit)
+
+        last_extractions = (
+            self.session.query(
+                ExtractionAlias.project_id.label("project_id"),
+                func.max(ExtractionAlias.date).label("max_extraction_date"),
             )
+            .group_by(ExtractionAlias.project_id)
+            .subquery()
+        )
+
+        last_commits = (
+            self.session.query(
+                CommitAlias.project_id.label("project_id"),
+                func.max(CommitAlias.created_at).label("max_commit_date"),
+            )
+            .group_by(CommitAlias.project_id)
+            .subquery()
+        )
+
+        projects_with_dates = (
+            self.session.query(
+                Project,
+                coalesce(
+                    last_extractions.c.max_extraction_date,
+                    last_commits.c.max_commit_date,
+                    datetime.min,
+                ).label("last_activity_date"),
+            )
+            .outerjoin(last_extractions, Project.id == last_extractions.c.project_id)
+            .outerjoin(last_commits, Project.id == last_commits.c.project_id)
             .filter(Project.forked_from == None)
+            .filter(
+                coalesce(
+                    last_extractions.c.max_extraction_date,
+                    last_commits.c.max_commit_date,
+                    datetime.min,
+                )
+                < datetime.utcnow().date()
+            )
             .all()
         )
-        for project in projects:
-            last_extraction = project.last_extraction
-            if project.last_extraction is None:
-                last_extraction = self.get_last_commit_date(project)
-            else:
-                last_extraction = format_dt(last_extraction)  # type: ignore
 
+        for project, last_activity_date in projects_with_dates:
             enqueue_list.append(
                 {
                     "enqueue_time": datetime.now(),
                     "owner": project.owner.login,
                     "project": project.name,
-                    "last_extraction": last_extraction,
+                    "last_extraction": format_dt(last_activity_date),
                 }
             )
         return enqueue_list

@@ -78,6 +78,14 @@ class LoadDataClient:
         self.repo_id = self.repository.set_repo_id(
             self.load_repository(self.repository)
         )
+        self.project_id = self.load_extraction_project(self.repository.id)
+
+    def load_extraction_project(self, repo_id: int):
+        logger.debug(
+            "Loading extraction project for repository {name}",
+            name=self.repository.name,
+        )
+        return self.temp_db.create_extraction_project(repo_id)
 
     def load_milestones_data(self, milestones: List[InsightsMilestone]):
         logger.debug(

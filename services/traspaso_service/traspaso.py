@@ -23,6 +23,7 @@ from services.traspaso_service.db_connector.models import (
     RepoLabel,
     RepoMilestone,
     Watcher,
+    Extraction,
 )
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
 import pandas as pd
@@ -111,7 +112,6 @@ class Client:
             ext_ref_id=self.uuid,
             forked_from=project.forked_from,
             deleted=project.deleted,
-            last_extraction=project.last_extraction,
         )
         self.db.session_consolidada.add(consolidada_main_project)
         self.db.session_consolidada.commit()
@@ -145,7 +145,6 @@ class Client:
                     ext_ref_id=self.uuid,
                     forked_from=main_project_id,
                     deleted=project.deleted,
-                    last_extraction=project.last_extraction,
                 )
                 self.db.session_consolidada.add(new_project)
                 self.db.session_consolidada.commit()
@@ -614,9 +613,34 @@ class Client:
                 self.db.session_consolidada.add(new_project_member)
                 self.db.session_consolidada.commit()
 
+    def add_extractions(self, extractions: List[Extraction]):
+        for extraction in extractions:
+            # Obtén el proyecto correspondiente en la base de datos consolidada
+            project_id = get_from_map(self.project_id_map, extraction.project_id)
+
+            # Verifica si el pull request comment ya existe en la base de datos consolidada
+            existing_extraction = (
+                self.db.session_consolidada.query(Extraction)
+                .filter_by(
+                    project_id=project_id,
+                    date=extraction.date,
+                )
+                .first()
+            )
+
+            if existing_extraction is None:
+                new_extraction = Extraction(
+                    project_id=project_id,
+                    date=extraction.date,
+                    ext_ref_id=self.uuid,
+                )
+                self.db.session_consolidada.add(new_extraction)
+                self.db.session_consolidada.commit()
+
     def migrate(self):
         users = self.temp.get_users()
         projects = self.temp.get_projects()
+        extractions = self.temp.get_extractions()
         project_members = self.temp.get_project_members()
         labels = self.temp.get_labels()
         milestones = self.temp.get_milestones()
@@ -637,7 +661,7 @@ class Client:
         watchers = self.temp.get_watchers()
         followers = self.temp.get_followers()
 
-        logger.info("Migrando usuarios... {uuid}", uuid=self.uuid)
+        logger.info("Migrando data... {uuid}", uuid=self.uuid)
         print(f"Users: {len(users)}")
 
         print(f"Watchers: {len(watchers)}")
@@ -664,6 +688,7 @@ class Client:
             logger.warning("No hay proyectos para migrar")
             return
         self.add_projects(projects)
+        self.add_extractions(extractions)
         self.add_project_members(project_members)
 
         self.add_labels(labels)

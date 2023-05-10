@@ -15,6 +15,17 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+class Extraction(Base):
+    __tablename__ = "extractions"
+
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    date = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
+
+    project = relationship("Project", back_populates="extractions")
+
+
 class CommitComment(Base):
     __tablename__ = "commit_comments"
 
@@ -37,6 +48,7 @@ class CommitParent(Base):
 
     commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
     parent_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    ext_ref_id = Column(String(32), nullable=False)
 
     __table_args__ = (Index("idx_16399_parent_id", parent_id),)
 
@@ -50,6 +62,7 @@ class Commit(Base):
     committer_id = Column(Integer, ForeignKey("users.id"))
     project_id = Column(Integer, ForeignKey("projects.id"))
     created_at = Column(TIMESTAMP, nullable=False)
+    message = Column(String(256))
     ext_ref_id = Column(String(32), nullable=False)
 
     commit_comments = relationship("CommitComment", back_populates="commit")
@@ -118,6 +131,7 @@ class IssueLabel(Base):
 
     label_id = Column(Integer, default=0, primary_key=True)
     issue_id = Column(Integer, ForeignKey("issues.id"), default=0, primary_key=True)
+    ext_ref_id = Column(String(32), nullable=False)
 
 
 class Issue(Base):
@@ -149,6 +163,7 @@ class OrganizationMember(Base):
     org_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
 
 class ProjectCommit(Base):
@@ -156,6 +171,7 @@ class ProjectCommit(Base):
 
     project_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
     commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    ext_ref_id = Column(String(32), nullable=False)
 
     project = relationship("Project", back_populates="project_commits")
     commit = relationship("Commit", back_populates="project_commits")
@@ -186,7 +202,7 @@ class Project(Base):
     ext_ref_id = Column(String(32), nullable=False)
     forked_from = Column(Integer, nullable=True)
     deleted = Column(Boolean, default=False, nullable=False)
-    last_extraction = Column(TIMESTAMP, nullable=True)
+    # last_extraction = Column(TIMESTAMP, nullable=True)
 
     owner = relationship("User", back_populates="projects")
     repo_labels = relationship("RepoLabel", back_populates="project")
@@ -204,6 +220,7 @@ class Project(Base):
     forks = relationship(
         "Fork", foreign_keys="Fork.forked_project_id", back_populates="forked_project"
     )
+    extractions = relationship("Extraction", back_populates="project")
 
 
 class PullRequestComment(Base):
@@ -253,6 +270,7 @@ class PullRequest(Base):
     pullreq_id = Column(Integer, nullable=False)
     intra_branch = Column(Boolean, nullable=False)
     merged = Column(Boolean, default=False, nullable=False)
+    ext_ref_id = Column(String(32), nullable=False)
 
     head_repo = relationship("Project", foreign_keys=[head_repo_id])
     base_repo = relationship("Project", foreign_keys=[base_repo_id])

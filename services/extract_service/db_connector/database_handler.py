@@ -18,6 +18,7 @@ from .models import (
     RepoLabel,
     IssueLabel,
     RepoMilestone,
+    Extraction,
 )
 from services.extract_service.repoinsights.commit import InsightsCommit
 from services.extract_service.repoinsights.user import InsightsUser
@@ -68,8 +69,6 @@ class DatabaseHandler:
             logger.debug("Instance already exists")
             return instance
         elif create:
-            if model == Project:
-                kwargs["last_extraction"] = datetime.now()
             try:
                 logger.debug("Creating new instance")
                 kwargs["ext_ref_id"] = self.uuid
@@ -211,6 +210,12 @@ class DatabaseHandler:
     def create_milestone(self, milestone: InsightsMilestone):
         existing_milestone = self.get_or_create(RepoMilestone, **milestone.to_dict())
         return int(existing_milestone.id)  # type: ignore
+
+    def create_extraction_project(self, project_id: int):
+        extraction = self.get_or_create(
+            model=Extraction, project_id=project_id, date=datetime.now()
+        )
+        return int(extraction.id)  # type: ignore
 
     def close(self):
         self.session_temp.close()
