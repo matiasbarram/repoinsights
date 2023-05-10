@@ -1,3 +1,4 @@
+from datetime import datetime
 from .connector import DBConnector
 from .models import (
     User,
@@ -67,6 +68,8 @@ class DatabaseHandler:
             logger.debug("Instance already exists")
             return instance
         elif create:
+            if model == Project:
+                kwargs["last_extraction"] = datetime.now()
             try:
                 logger.debug("Creating new instance")
                 kwargs["ext_ref_id"] = self.uuid

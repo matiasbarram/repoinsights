@@ -676,11 +676,6 @@ class Client:
         self.add_commit_comments(commit_comments)
         self.add_commit_parents(commit_parents)
 
-        # debug equivalence tables
-        pprint(self.user_id_map)
-        pprint(self.project_id_map)
-        pprint(self.commit_id_map)
-
         self.add_pull_requests(prs)
         self.add_pull_request_comments(pr_comments)
         self.add_pull_request_history(pr_history)
