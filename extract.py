@@ -5,9 +5,10 @@ from datetime import datetime
 from pprint import pprint
 import json
 from loguru import logger
+import argparse
 
 
-def main():
+def main(debug=None):
     data_types = [
         "commits",
         "pull_requests",
@@ -19,6 +20,12 @@ def main():
     ]
 
     client = InsightsClient(data_types)
+    if not debug:
+        logger.remove()
+
+    dt = datetime.now()
+    dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
+    logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
     while True:
         client.get_from_pendientes()
         results = client.extract()
@@ -27,4 +34,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="InsightsClient script")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
+    main(args.debug)

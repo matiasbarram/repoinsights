@@ -27,19 +27,6 @@ class InsightsClient:
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
 
-    def logger(self, method: str):
-        try:
-            logger.remove(0)
-        except ValueError:
-            pass
-        since = format_dt(self.since) if self.since else "None"
-        until = format_dt(self.until) if self.until else "None"
-        logger.add(
-            f"logs/{method}/{self.owner}_{self.repo}_{since}_{until}.log",
-            backtrace=True,
-            diagnose=True,
-        )
-
     def get_from_pendientes(self):
         queue_repo = QueueClient().get_from_queue()
         if queue_repo:
@@ -55,7 +42,6 @@ class InsightsClient:
             raise EmptyQueueError("No hay proyectos en la cola")
 
     def extract(self) -> List[Dict[str, Any]]:
-        self.logger("extract")
         logger.critical(
             "Extracting from GitHub {owner}/{project} DESDE -> {since} HASTA -> {until} {data_types}",
             owner=self.owner,
@@ -80,7 +66,6 @@ class InsightsClient:
             raise ExtractError("Error extracting data from GitHub")
 
     def load(self, results) -> None:
-        self.logger("load")
         logger.critical(f"Loading to TEMP DB")
         try:
             load_client = LoadDataClient(results, self.uuid)
