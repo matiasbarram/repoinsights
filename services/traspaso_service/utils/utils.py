@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Dict, Union
+from loguru import logger
 
 
 def format_dt(dt: datetime) -> str:
@@ -7,3 +9,10 @@ def format_dt(dt: datetime) -> str:
 
 def gh_api_to_datetime(date_str: str) -> datetime:
     return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+
+
+def get_from_map(map: Dict, id):
+    value = map.get(id)
+    if value is None:
+        return id
+    return value

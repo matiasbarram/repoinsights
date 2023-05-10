@@ -1,5 +1,6 @@
 import datetime
 from services.traspaso_service.get_from_temp import TempClient
+from services.traspaso_service.utils.utils import get_from_map
 from services.traspaso_service.db_connector.models import (
     User,
     Project,
@@ -26,12 +27,9 @@ from services.traspaso_service.db_connector.models import (
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
 import pandas as pd
 from sqlalchemy.orm import Session
-from pandas import Series, DataFrame
 from pprint import pprint
 from loguru import logger
-import csv
-from typing import List
-import copy
+from typing import List, Dict, Any, Tuple, Union
 
 
 class Client:
@@ -70,6 +68,7 @@ class Client:
                     ext_ref_id=self.uuid,
                     type=user.type,
                 )
+
                 self.db.session_consolidada.add(new_user)
                 self.db.session_consolidada.commit()
                 self.user_id_map[old_id] = new_user.id
@@ -85,13 +84,15 @@ class Client:
                 temp_main_project = project
                 break
         if temp_main_project is None:
+            # obtener project from consolidada usando info de la cola
+            # este caso ocurre cuando el proyecto principal no se extrajo pero si esta en consolidada
             raise Exception("No se encontró un proyecto no forkeado")
 
         project = temp_main_project
         exist_in_consolidada = (
             self.db.session_consolidada.query(Project)
             .filter_by(
-                owner_id=self.user_id_map.get(project.owner_id),
+                owner_id=get_from_map(self.user_id_map, project.owner_id),
                 name=project.name,
             )
             .first()
@@ -102,7 +103,7 @@ class Client:
 
         consolidada_main_project = Project(
             url=project.url,
-            owner_id=self.user_id_map.get(project.owner_id),
+            owner_id=get_from_map(self.user_id_map, project.owner_id),
             name=project.name,
             description=project.description,
             language=project.language,
@@ -113,7 +114,7 @@ class Client:
             last_extraction=project.last_extraction,
         )
         self.db.session_consolidada.add(consolidada_main_project)
-        self.db.session_consolidada.flush()
+        self.db.session_consolidada.commit()
         self.project_id_map[project.id] = consolidada_main_project.id
 
         if consolidada_main_project is None:
@@ -126,7 +127,7 @@ class Client:
         for project in projects:
             if project.forked_from is None:
                 continue
-            owner_id = self.user_id_map.get(project.owner_id)
+            owner_id = get_from_map(self.user_id_map, project.owner_id)
             existing_project = (
                 self.db.session_consolidada.query(Project)
                 .filter_by(owner_id=owner_id, name=project.name)
@@ -155,7 +156,7 @@ class Client:
     def add_commits(self, commits: List[Commit]):
         for commit in commits:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            project_id = self.project_id_map.get(commit.project_id)
+            project_id = get_from_map(self.project_id_map, commit.project_id)
 
             # Verifica si el commit ya existe en la base de datos consolidada
             existing_commit = (
@@ -167,8 +168,8 @@ class Client:
             if existing_commit is None:
                 new_commit = Commit(
                     sha=commit.sha,
-                    author_id=self.user_id_map.get(commit.author_id),
-                    committer_id=self.user_id_map.get(commit.committer_id),
+                    author_id=get_from_map(self.user_id_map, commit.author_id),
+                    committer_id=get_from_map(self.user_id_map, commit.committer_id),
                     project_id=project_id,
                     created_at=commit.created_at,
                     message=commit.message,
@@ -183,14 +184,14 @@ class Client:
     def add_commit_comments(self, commit_comments: List[CommitComment]):
         for commit_comment in commit_comments:
             # Obtén el commit correspondiente en la base de datos consolidada
-            commit_id = self.commit_id_map.get(commit_comment.commit_id)
+            commit_id = get_from_map(self.commit_id_map, commit_comment.commit_id)
 
             # Verifica si el commit ya existe en la base de datos consolidada
             existing_commit_comment = (
                 self.db.session_consolidada.query(CommitComment)
                 .filter_by(
                     commit_id=commit_id,
-                    user_id=self.user_id_map.get(commit_comment.user_id),
+                    user_id=get_from_map(self.user_id_map, commit_comment.user_id),
                 )
                 .first()
             )
@@ -198,7 +199,7 @@ class Client:
             if existing_commit_comment is None:
                 new_commit_comment = CommitComment(
                     commit_id=commit_id,
-                    user_id=self.user_id_map.get(commit_comment.user_id),
+                    user_id=get_from_map(self.user_id_map, commit_comment.user_id),
                     body=commit_comment.body,
                     line=commit_comment.line,
                     position=commit_comment.position,
@@ -218,11 +219,15 @@ class Client:
     def add_pull_requests(self, pull_requests: List[PullRequest]):
         for pull_request in pull_requests:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            head_repo_id = self.project_id_map.get(pull_request.head_repo_id)
-            base_repo_id = self.project_id_map.get(pull_request.base_repo_id)
-            head_commit_id = self.commit_id_map.get(pull_request.head_commit_id)
-            base_commit_id = self.commit_id_map.get(pull_request.base_commit_id)
-            user_id = self.user_id_map.get(pull_request.user_id)
+            head_repo_id = get_from_map(self.project_id_map, pull_request.head_repo_id)
+            base_repo_id = get_from_map(self.project_id_map, pull_request.base_repo_id)
+            head_commit_id = get_from_map(
+                self.commit_id_map, pull_request.head_commit_id
+            )
+            base_commit_id = get_from_map(
+                self.commit_id_map, pull_request.base_commit_id
+            )
+            user_id = get_from_map(self.user_id_map, pull_request.user_id)
 
             # Verifica si el pull request ya existe en la base de datos consolidada
             existing_pull_request = (
@@ -259,10 +264,12 @@ class Client:
     def add_issues(self, issues: List[Issue]):
         for issue in issues:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            repo_id = self.project_id_map.get(issue.repo_id)
-            reporter_id = self.user_id_map.get(issue.reporter_id)
-            assignee_id = self.user_id_map.get(issue.assignee_id)
-            pull_request_id = self.pull_request_id_map.get(issue.pull_request_id)
+            repo_id = get_from_map(self.project_id_map, issue.repo_id)
+            reporter_id = get_from_map(self.user_id_map, issue.reporter_id)
+            assignee_id = get_from_map(self.user_id_map, issue.assignee_id)
+            pull_request_id = get_from_map(
+                self.pull_request_id_map, issue.pull_request_id
+            )
 
             # Verifica si el issue ya existe en la base de datos consolidada
             existing_issue = (
@@ -293,11 +300,12 @@ class Client:
     ):
         for pull_request_comment in pull_request_comments:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            pull_request_id = self.pull_request_id_map.get(
-                pull_request_comment.pull_request_id
+            pull_request_id = get_from_map(
+                self.pull_request_id_map, pull_request_comment.pull_request_id
             )
-            user_id = self.user_id_map.get(pull_request_comment.user_id)
-            commit_id = self.commit_id_map.get(pull_request_comment.commit_id)
+
+            user_id = get_from_map(self.user_id_map, pull_request_comment.user_id)
+            commit_id = get_from_map(self.commit_id_map, pull_request_comment.commit_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_pull_request_comment = (
@@ -329,10 +337,10 @@ class Client:
     def add_pull_request_history(self, pull_request_history: List[PullRequestHistory]):
         for pull_request_history in pull_request_history:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            pull_request_id = self.pull_request_id_map.get(
-                pull_request_history.pull_request_id
+            pull_request_id = get_from_map(
+                self.pull_request_id_map, pull_request_history.pull_request_id
             )
-            actor_id = self.user_id_map.get(pull_request_history.actor_id)
+            actor_id = get_from_map(self.user_id_map, pull_request_history.actor_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_pull_request_history = (
@@ -367,8 +375,8 @@ class Client:
     def add_issue_comments(self, issue_comments: List[IssueComment]):
         for issue_comment in issue_comments:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            issue_id = self.issue_id_map.get(issue_comment.issue_id)
-            user_id = self.user_id_map.get(issue_comment.user_id)
+            issue_id = get_from_map(self.issue_id_map, issue_comment.issue_id)
+            user_id = get_from_map(self.user_id_map, issue_comment.user_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_issue_comment = (
@@ -396,8 +404,8 @@ class Client:
     def add_issue_events(self, issue_events: List[IssueEvent]):
         for issue_event in issue_events:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            issue_id = self.issue_id_map.get(issue_event.issue_id)
-            actor_id = self.user_id_map.get(issue_event.actor_id)
+            issue_id = get_from_map(self.issue_id_map, issue_event.issue_id)
+            actor_id = get_from_map(self.user_id_map, issue_event.actor_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_issue_event = (
@@ -427,7 +435,7 @@ class Client:
     def add_labels(self, labels: List[RepoLabel]):
         for label in labels:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            repo_id = self.project_id_map.get(label.repo_id)
+            repo_id = get_from_map(self.project_id_map, label.repo_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_label = (
@@ -455,8 +463,8 @@ class Client:
     def add_issue_labels(self, issue_labels: List[IssueLabel]):
         for issue_label in issue_labels:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            label_id = self.label_id_map.get(issue_label.label_id)
-            issue_id = self.issue_id_map.get(issue_label.issue_id)
+            label_id = get_from_map(self.label_id_map, issue_label.label_id)
+            issue_id = get_from_map(self.issue_id_map, issue_label.issue_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_issue_label = (
@@ -481,7 +489,7 @@ class Client:
     def add_milestones(self, milestones: List[RepoMilestone]):
         for milestone in milestones:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            repo_id = self.project_id_map.get(milestone.repo_id)
+            repo_id = get_from_map(self.project_id_map, milestone.repo_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_milestone = (
@@ -505,8 +513,8 @@ class Client:
     def add_watchers(self, watchers: List[Watcher]):
         for watcher in watchers:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            repo_id = self.project_id_map.get(watcher.repo_id)
-            user_id = self.user_id_map.get(watcher.user_id)
+            repo_id = get_from_map(self.project_id_map, watcher.repo_id)
+            user_id = get_from_map(self.user_id_map, watcher.user_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_watcher = (
@@ -531,8 +539,8 @@ class Client:
     def add_commit_parents(self, commit_parents: List[CommitParent]):
         for commit_parent in commit_parents:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            commit_id = self.commit_id_map.get(commit_parent.commit_id)
-            parent_id = self.commit_id_map.get(commit_parent.parent_id)
+            commit_id = get_from_map(self.commit_id_map, commit_parent.commit_id)
+            parent_id = get_from_map(self.commit_id_map, commit_parent.parent_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_commit_parent = (
@@ -557,8 +565,8 @@ class Client:
     def add_followers(self, followers: List[Follower]):
         for follower in followers:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            user_id = self.user_id_map.get(follower.user_id)
-            follower_id = self.user_id_map.get(follower.follower_id)
+            user_id = get_from_map(self.user_id_map, follower.user_id)
+            follower_id = get_from_map(self.user_id_map, follower.follower_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_follower = (
@@ -583,8 +591,8 @@ class Client:
     def add_project_members(self, project_members: List[ProjectMember]):
         for project_member in project_members:
             # Obtén el proyecto correspondiente en la base de datos consolidada
-            repo_id = self.project_id_map.get(project_member.repo_id)
-            user_id = self.user_id_map.get(project_member.user_id)
+            repo_id = get_from_map(self.project_id_map, project_member.repo_id)
+            user_id = get_from_map(self.user_id_map, project_member.user_id)
 
             # Verifica si el pull request comment ya existe en la base de datos consolidada
             existing_project_member = (
@@ -652,7 +660,9 @@ class Client:
         print(f"Pull Request History: {len(pr_history)}")
 
         self.add_users(users)
-
+        if len(projects) == 0:
+            logger.warning("No hay proyectos para migrar")
+            return
         self.add_projects(projects)
         self.add_project_members(project_members)
 
@@ -665,6 +675,11 @@ class Client:
         self.add_commits(commits)
         self.add_commit_comments(commit_comments)
         self.add_commit_parents(commit_parents)
+
+        # debug equivalence tables
+        pprint(self.user_id_map)
+        pprint(self.project_id_map)
+        pprint(self.commit_id_map)
 
         self.add_pull_requests(prs)
         self.add_pull_request_comments(pr_comments)

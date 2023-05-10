@@ -23,7 +23,13 @@ class DatabaseHandler:
             .filter(Commit.project_id == project.id)  # type: ignore
             .scalar()
         )
-        return last_commit_date
+        if last_commit_date is None:
+            logger.warning(
+                f"Project {project.owner.login}/{project.name} has no commits"
+            )
+            return None
+
+        return format_dt(last_commit_date)  # type: ignore
 
     def get_updated_projects(self) -> List[Dict[str, Any]]:
         enqueue_list = []
@@ -41,8 +47,9 @@ class DatabaseHandler:
             last_extraction = project.last_extraction
             if project.last_extraction is None:
                 last_extraction = self.get_last_commit_date(project)
-                if last_extraction is not None:
-                    last_extraction = format_dt(last_extraction)
+            else:
+                last_extraction = format_dt(last_extraction)  # type: ignore
+
             enqueue_list.append(
                 {
                     "enqueue_time": datetime.now(),

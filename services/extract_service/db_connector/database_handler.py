@@ -62,7 +62,6 @@ class DatabaseHandler:
         create: Optional[bool] = True,
         **kwargs,
     ):
-        kwargs["ext_ref_id"] = self.uuid
         instance = self.session_temp.query(model).filter_by(**kwargs).first()
         if instance:
             logger.debug("Instance already exists")
@@ -70,6 +69,7 @@ class DatabaseHandler:
         elif create:
             try:
                 logger.debug("Creating new instance")
+                kwargs["ext_ref_id"] = self.uuid
                 instance = model(**kwargs)
                 self.session_temp.add(instance)
                 self.session_temp.commit()

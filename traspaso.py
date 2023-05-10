@@ -22,12 +22,13 @@ class Client:
 
 def main():
     queue_client = QueueClient()
-    project = queue_client.get_from_queue_curado(debug=True)
+    project = queue_client.get_from_queue_curado()
     if project is None:
         raise EmptyQueueException("No hay proyectos en la cola")
 
     db_handler = DatabaseHandler(DBConnector())
     uuid = project["uuid"]
+    logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
     traspaso_client.migrate()
 
