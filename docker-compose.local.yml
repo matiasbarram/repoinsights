@@ -100,6 +100,40 @@ services:
       - TEMP_IP=temporal
       - CONSOLIDADA_IP=consolidada
 
+  metabase:
+    image: metabase/metabase
+    restart: always
+    ports:
+      - 8080:3000
+    volumes:
+      - ./docker/metabase-data:/metabase-data
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 6606
+      MB_DB_USER: metabase
+      MB_DB_PASS: vps228.2o22
+      MB_DB_HOST: metabase-db
+    depends_on:
+      - metabase-db
+    links:
+      - metabase-db
+
+  metabase-db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'metabase'
+      POSTGRES_DB: 'metabase'
+      POSTGRES_PASSWORD: 'vps228.2o22'
+    ports:
+      - '6606:6606'
+    expose:
+      - '6606'
+    volumes:
+      - ./docker/metabase-db:/var/lib/postgresql/data
+
 volumes:
   db:
   data:

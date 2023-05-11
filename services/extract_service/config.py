@@ -15,7 +15,21 @@ class GHToken:
         with open(file_path, "r") as keys_file:
             keys_file = json.load(keys_file)
             keys_list = keys_file["keys"]
-        return keys_list
+
+        tokens_with_calls = []
+        for token in keys_list:
+            headers = {"Authorization": f"token {token}"}
+            response = requests.get(
+                "https://api.github.com/rate_limit", headers=headers
+            )
+            calls_left = int(response.json()["resources"]["core"]["remaining"])
+            tokens_with_calls.append((token, calls_left))
+
+        # Sort tokens by remaining calls, in descending order
+        tokens_with_calls.sort(key=lambda x: x[1], reverse=True)
+
+        # Return only the list of tokens
+        return [token for token, calls_left in tokens_with_calls]
 
     def get_token_lowest_wait_time(self) -> Tuple:
         tokens = self.get_public_tokens()

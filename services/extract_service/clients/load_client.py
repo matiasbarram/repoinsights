@@ -154,11 +154,15 @@ class LoadDataClient:
     ):
         for comment in comments:
             comment.set_pull_request_id(pr_id)
+            # TODO - this is a hack, we need to fix this in the future
+            # se debe cambiar en el schema.sql que el user_id sea nullable
             if comment.author is not None:
                 comment.set_user_id(self.load_user(comment.author))
-            commit_id = self.find_commit_sha(comment.commit_sha)
-            comment.set_commit_id(commit_id)
-            self.temp_db.create_pull_request_comment(comment)
+                commit_id = self.find_commit_sha(comment.commit_sha)
+                comment.set_commit_id(commit_id)
+                self.temp_db.create_pull_request_comment(comment)
+            else:
+                logger.error("Comment {id} has no author, skipping", id=comment)
 
     def load_pull_request_history(self, pr: InsightsPullRequest, pr_id):
         if pr.created_at is not None:

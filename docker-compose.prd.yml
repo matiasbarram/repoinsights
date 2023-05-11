@@ -112,6 +112,7 @@ services:
       - metabase-db
     links:
       - metabase-db
+
   metabase-db:
     image: postgres
     restart: always

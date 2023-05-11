@@ -77,7 +77,6 @@ class Client:
                 self.user_id_map[user.id] = existing_user.id
 
     def add_main_project(self, projects: List[Project]):
-        consolidada_main_project = None
         temp_main_project = None
 
         for project in projects:
@@ -98,7 +97,7 @@ class Client:
             )
             .first()
         )
-        if exist_in_consolidada is not None:
+        if exist_in_consolidada:
             self.project_id_map[project.id] = exist_in_consolidada.id
             return exist_in_consolidada.id
 
@@ -116,9 +115,6 @@ class Client:
         self.db.session_consolidada.add(consolidada_main_project)
         self.db.session_consolidada.commit()
         self.project_id_map[project.id] = consolidada_main_project.id
-
-        if consolidada_main_project is None:
-            raise Exception("No se encontró un proyecto no forkeado")
 
         return consolidada_main_project.id
 
@@ -154,10 +150,7 @@ class Client:
 
     def add_commits(self, commits: List[Commit]):
         for commit in commits:
-            # Obtén el proyecto correspondiente en la base de datos consolidada
             project_id = get_from_map(self.project_id_map, commit.project_id)
-
-            # Verifica si el commit ya existe en la base de datos consolidada
             existing_commit = (
                 self.db.session_consolidada.query(Commit)
                 .filter_by(project_id=project_id, sha=commit.sha)

@@ -17,23 +17,53 @@ class RateLimitExceededError(Exception):
 
 
 class GitHubAPI:
-    def __init__(self, token):
-        self.token = token
+    def __init__(self, tokens: Iterator[str]):
+        self.cache = Cache()
+        self.tokens_iter = tokens
+        self.token = next(tokens)
         self.headers = {"Authorization": f"token {self.token}"}
+
+    def invoke_with_rate_limit_handling(self, func, *args, **kwargs):
+        while True:
+            try:
+                return func(*args, **kwargs)
+            except RateLimitExceededError:
+                self._handle_rate_limit_exceeded()
+                self.invoke_with_rate_limit_handling(func, *args, **kwargs)
+            except StopIteration:
+                print("All tokens exhausted")
+                # wait one hour and try again
+                time.sleep(3600)
+                tokens_iter = GHToken().get_public_tokens()
+                self.tokens_iter = iter(tokens_iter)
+                self.token = next(self.tokens_iter)
+                self.invoke_with_rate_limit_handling(func, *args, **kwargs)
 
     def update_token(self, new_token: str):
         self.token = new_token
         self.headers["Authorization"] = f"token {self.token}"
 
-    def get(self, url, params=None, headers: Optional[Dict] = None):
+    def _handle_rate_limit_exceeded(self):
+        new_token = next(self.tokens_iter)
+        logger.warning("Token changed ")
+        self.update_token(new_token)
+
+    def get(
+        self,
+        url,
+        params=None,
+        name: Optional[str] = None,
+        headers: Optional[Dict] = None,
+    ):
         try:
             if headers is not None:
                 self.headers.update(headers)
             response = requests.get(url, headers=self.headers, params=params)
             logger.debug(
-                "{current}/{limit}",
+                "{name} \t {current}/{limit}",
                 current=response.headers["X-RateLimit-Remaining"],
                 limit=response.headers["X-RateLimit-Limit"],
+                name=name,
             )
             response.raise_for_status()
             return response
@@ -75,7 +105,7 @@ class GitHubAPI:
                 params["until"] = format_dt(until)
 
         while url:
-            response = self.get(url, params=params, headers=headers)
+            response = self.get(url, params=params, headers=headers, name=name)
             elementos.extend(response.json())
             logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
             pag += 1
@@ -119,23 +149,3 @@ class Cache:
 
     def has(self, key):
         return self.cache.exists(key)
-
-
-class GitHubResource:
-    def __init__(self, api: GitHubAPI):
-        self.api = api
-        self.cache = Cache()
-
-    def _handle_rate_limit_exceeded(self, tokens_iter: Iterator[str]):
-        new_token = next(tokens_iter)
-        logger.warning("Token changed ")
-        self.api.update_token(new_token)
-
-    def invoke_with_rate_limit_handling(self, func, tokens_iter, *args, **kwargs):
-        while True:
-            try:
-                return func(*args, **kwargs)
-            except RateLimitExceededError:
-                self._handle_rate_limit_exceeded(tokens_iter)
-            except StopIteration:
-                print("All tokens exhausted")

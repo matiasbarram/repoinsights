@@ -212,7 +212,7 @@ CREATE TABLE ghtorrent_restore_2015.issue_comments (
 CREATE TABLE ghtorrent_restore_2015.issue_events (
     event_id text NOT NULL,
     issue_id integer NOT NULL,
-    actor_id integer NULL,
+    actor_id integer,
     action character varying(255) NOT NULL,
     action_specific character varying(50),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -380,7 +380,7 @@ ALTER SEQUENCE ghtorrent_restore_2015.extractions_id_seq OWNED BY ghtorrent_rest
 
 CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
     pull_request_id integer NOT NULL,
-    user_id integer NOT NULL,
+    user_id integer,
     comment_id text NOT NULL,
     "position" integer,
     body character varying(256),
