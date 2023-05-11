@@ -27,10 +27,17 @@ class QueueClient:
         logger.info("Enqueued project {project}", project=project_json)
 
 
-connector = DBConnector()
-db_handler = DatabaseHandler(connector)
-queue_client = QueueClient()
-queue_client.connect()
-projects = db_handler.get_updated_projects()
-for project in projects:
-    queue_client.enqueue(project)
+def main():
+    connector = DBConnector()
+    db_handler = DatabaseHandler(connector)
+    queue_client = QueueClient()
+    queue_client.connect()
+    projects = db_handler.get_updated_projects()
+    for project in projects:
+        queue_client.enqueue(project)
+
+
+if __name__ == "__main__":
+    import sys
+    sys.stdout.flush()
+    main()
