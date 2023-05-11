@@ -56,6 +56,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.extract
+    restart: "no"
     env_file:
       - .env
     depends_on:
@@ -69,10 +70,11 @@ services:
     deploy:
       replicas: 2
 
-  check_queue:
+  pendientes_service:
     build:
       context: .
-      dockerfile: Dockerfile.check
+      dockerfile: Dockerfile.pendientes
+    restart: "no"
     env_file:
       - .env
     depends_on:
@@ -80,6 +82,22 @@ services:
       - consolidada
     environment:
       - RABBIT_HOST=rabbitmq
+      - CONSOLIDADA_IP=consolidada
+
+  traspaso_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.traspaso
+    restart: "no"
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - temporal
+      - consolidada
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - TEMP_IP=temporal
       - CONSOLIDADA_IP=consolidada
 
 volumes:

@@ -53,6 +53,7 @@ services:
 
   extract_service:
     image: ghcr.io/matiasbarram/repoinsights-extract-service:staging
+    restart: "no"
     env_file:
       - .env
     depends_on:
@@ -68,6 +69,7 @@ services:
 
   encolar_service:
     image: ghcr.io/matiasbarram/repoinsights-pendientes-service:staging
+    restart: "no"
     env_file:
       - .env
     depends_on:
@@ -79,6 +81,7 @@ services:
 
   traspaso_service:
     image: ghcr.io/matiasbarram/repoinsights-traspaso-service:staging
+    restart: "no"
     env_file:
       - .env
     depends_on:
