@@ -26,11 +26,11 @@ def main(debug=None):
     dt = datetime.now()
     dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
     logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
-    while True:
-        client.get_from_pendientes()
-        results = client.extract()
-        client.load(results)
-        client.enqueue_to_curado()
+
+    client.get_from_pendientes()
+    results = client.extract()
+    client.load(results)
+    client.enqueue_to_curado()
 
 
 if __name__ == "__main__":
