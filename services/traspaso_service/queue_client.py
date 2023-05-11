@@ -4,17 +4,6 @@ from loguru import logger
 import json
 from typing import Dict, Any, Union, Optional
 
-"""
-{
-    "owner": "mavam", 
-    "repo": "stat-cookbook", 
-    "since": "May 18, 2013, 12:00 AM", 
-    "until": "June 17, 2013, 12:00 AM", 
-    "data_types": ["commits", "pull_requests", "issues", "labels", "milestones"]
-}
-"""
-
-
 class QueueClient:
     def __init__(self):
         self.user = os.environ["RABBIT_USER"]

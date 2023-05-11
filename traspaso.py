@@ -24,7 +24,8 @@ def main():
     queue_client = QueueClient()
     project = queue_client.get_from_queue_curado()
     if project is None:
-        raise EmptyQueueException("No hay proyectos en la cola")
+        logger.warning("No hay proyectos en la cola")
+        exit(0)
 
     db_handler = DatabaseHandler(DBConnector())
     uuid = project["uuid"]

@@ -74,6 +74,11 @@ class GitHubAPI:
                 and int(e.response.headers["X-RateLimit-Remaining"]) == 0
             ):
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
+            if (
+                e.response.status_code == 451
+            ):
+                logger.error("Proyecto eliminado")
+                exit(1)  
             else:
                 raise e
 
