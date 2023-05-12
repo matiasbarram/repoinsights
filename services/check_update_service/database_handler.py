@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, aliased
 from loguru import logger
 from datetime import datetime
 from sqlalchemy.sql.schema import Column
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, asc
 from sqlalchemy.sql.functions import coalesce
 
 from typing import List, Union, Dict, Any
@@ -61,6 +61,7 @@ class DatabaseHandler:
                 )
                 < datetime.utcnow().date()
             )
+            .order_by(asc("last_activity_date"))
             .all()
         )
 
@@ -70,7 +71,9 @@ class DatabaseHandler:
                     "enqueue_time": datetime.now(),
                     "owner": project.owner.login,
                     "project": project.name,
-                    "last_extraction": format_dt(last_activity_date),
+                    "last_extraction": format_dt(last_activity_date)
+                    if last_activity_date != datetime.min
+                    else None,
                 }
             )
         return enqueue_list

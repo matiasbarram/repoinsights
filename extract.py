@@ -35,6 +35,7 @@ def main(debug=None):
 
 if __name__ == "__main__":
     import sys
+
     sys.stdout.flush()
     parser = argparse.ArgumentParser(description="InsightsClient script")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")

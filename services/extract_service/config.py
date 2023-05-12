@@ -8,7 +8,7 @@ from loguru import logger
 
 
 class GHToken:
-    def get_public_tokens(self) -> List[str]:
+    def get_public_tokens(self, many: bool = False) -> List[str]:
         keys_list = []
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, "tokens.json")
@@ -28,7 +28,9 @@ class GHToken:
         # Sort tokens by remaining calls, in descending order
         tokens_with_calls.sort(key=lambda x: x[1], reverse=True)
 
-        # Return only the list of tokens
+        if many:
+            return tokens_with_calls
+
         return [token for token, calls_left in tokens_with_calls]
 
     def get_token_lowest_wait_time(self) -> Tuple:
