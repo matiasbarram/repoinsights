@@ -383,7 +383,10 @@ class Client:
                 self.db.session_consolidada.query(PullRequest)
                 .filter_by(
                     base_commit_id=base_commit_id,
+                    head_commmit_id=head_commit_id,
                     pullreq_id=pull_request.pullreq_id,
+                    base_repo_id=base_repo_id,
+                    head_repo_id=head_repo_id,
                 )
                 .first()
             )
