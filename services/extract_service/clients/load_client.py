@@ -253,7 +253,6 @@ class LoadDataClient:
     def update_repo_data(self, pr_repo: Union[InsightsRepository, None]):
         if pr_repo is None:
             return
-
         if pr_repo.forked_from is True:
             pr_repo.set_forked_from_id(self.repository.id)
         if pr_repo.raw_repo["owner"] is not None:

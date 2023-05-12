@@ -77,7 +77,7 @@ class Client:
                 language=temp_project.language,  # type: ignore
                 created_at=temp_project.created_at,  # type: ignore
                 ext_ref_id=temp_project.id,
-                forked_from_id=self.get_from_map(self.project_id_map, temp_project.forked_from_id),  # type: ignore
+                forked_from_id=self.get_from_map(self.project_id_map, temp_project.forked_from),  # type: ignore
                 deleted=temp_project.deleted,  # type: ignore
             )
 
