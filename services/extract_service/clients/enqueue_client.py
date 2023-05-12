@@ -31,6 +31,11 @@ class QueueClient:
     def enqueue(self, project: str):
         self.channel.queue_declare(queue=self.queue_curado)
         self.channel.basic_publish(
-            exchange="", routing_key=self.queue_curado, body=project
+            exchange="",
+            routing_key=self.queue_curado,
+            body=project,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ),
         )
         logger.info(f"Project {project} published")

@@ -30,13 +30,13 @@ class QueueClient:
         self.channel = self.connection.channel()
 
     def get_from_queue(self, queue_name: str) -> Union[Dict[str, Any], None]:
-        if  queue_name == "curado":
-            queue =  self.queue_curado
+        if queue_name == "curado":
+            queue = self.queue_curado
         elif queue_name == "pendientes":
             queue = self.queue_pendientes
         else:
             raise ValueError(f"Queue {queue_name} not found")
-        
+
         # get message but dont delete it from queue
         method_frame, header_frame, body = self.channel.basic_get(queue, auto_ack=False)
         if method_frame:
@@ -45,11 +45,15 @@ class QueueClient:
         else:
             return None
 
-
     def enqueue(self, project: str):
         self.channel.queue_declare(queue=self.queue_curado)
         self.channel.basic_publish(
-            exchange="", routing_key=self.queue_curado, body=project
+            exchange="",
+            routing_key=self.queue_curado,
+            body=project,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ),
         )
         logger.info(f"Project {project} published")
 
@@ -66,6 +70,7 @@ def main():
             logger.info(f"Message received from {args.name}: {message}")
         else:
             logger.info(f"No message found in {args.name} queue")
+
 
 if __name__ == "__main__":
     main()

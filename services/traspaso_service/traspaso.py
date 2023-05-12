@@ -153,7 +153,7 @@ class Client:
             project_id = get_from_map(self.project_id_map, commit.project_id)
             existing_commit = (
                 self.db.session_consolidada.query(Commit)
-                .filter_by(project_id=project_id, sha=commit.sha)
+                .filter_by(sha=commit.sha)
                 .first()
             )
 
@@ -673,39 +673,34 @@ class Client:
         print(f"Pull Request Comments: {len(pr_comments)}")
         print(f"Pull Request History: {len(pr_history)}")
 
-        # if all are 0 
+        # if all are 0
         if (
-            len(users) == 0 and
-            len(projects) == 0 and
-            len(extractions) == 0 and
-            len(project_members) == 0 and
-            len(labels) == 0 and
-            len(milestones) == 0 and
-            len(commits) and
-            len(commit_comments) and
-            len(commit_parents) and
-            len(issues) and
-            len(issue_comments) and
-            len(issue_events) and
-            len(issue_labels) and
-            len(prs) and
-            len(pr_comments) and
-            len(pr_history) and
-            len(watchers) and
-            len(followers)
-            ):
+            len(users) == 0
+            and len(projects) == 0
+            and len(extractions) == 0
+            and len(project_members) == 0
+            and len(labels) == 0
+            and len(milestones) == 0
+            and len(commits)
+            and len(commit_comments)
+            and len(commit_parents)
+            and len(issues)
+            and len(issue_comments)
+            and len(issue_events)
+            and len(issue_labels)
+            and len(prs)
+            and len(pr_comments)
+            and len(pr_history)
+            and len(watchers)
+            and len(followers)
+        ):
             logger.error("No data to traspasar")
             exit(0)
 
-
         self.add_users(users)
-        pprint(
-            self.user_id_map
-        )
+        pprint(self.user_id_map)
         self.add_projects(projects)
-        pprint(
-            self.project_id_map
-        )
+        pprint(self.project_id_map)
         self.add_extractions(extractions)
         self.add_project_members(project_members)
 
@@ -716,23 +711,17 @@ class Client:
         self.add_followers(followers)
 
         self.add_commits(commits)
-        pprint(
-            self.commit_id_map
-        )
+        pprint(self.commit_id_map)
         self.add_commit_comments(commit_comments)
         self.add_commit_parents(commit_parents)
 
         self.add_pull_requests(prs)
-        pprint(
-            self.pull_request_id_map
-        )
+        pprint(self.pull_request_id_map)
         self.add_pull_request_comments(pr_comments)
         self.add_pull_request_history(pr_history)
 
         self.add_issues(issues)
-        pprint(
-            self.issue_id_map
-        )
+        pprint(self.issue_id_map)
         self.add_issue_comments(issue_comments)
         self.add_issue_events(issue_events)
         self.add_issue_labels(issue_labels)
