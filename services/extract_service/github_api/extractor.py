@@ -11,15 +11,13 @@ class GitHubExtractor:
         self,
         usuario: str,
         repositorio: str,
-        tokens_iter: Iterator[str],
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
     ):
         self.usuario = usuario
         self.since = since
         self.until = until
-        self.tokens_iter = tokens_iter
-        self.api = GitHubAPI(tokens_iter)
+        self.api = GitHubAPI()
 
         self.repositorio = Repository(self.api, repositorio, usuario)
         self.user_repo = User(self.api)

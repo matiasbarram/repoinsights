@@ -8,7 +8,7 @@ from loguru import logger
 
 
 class GHToken:
-    def get_public_tokens(self, many: bool = False) -> List[str]:
+    def get_public_tokens(self, only_token: bool = True):
         keys_list = []
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, "tokens.json")
@@ -23,33 +23,19 @@ class GHToken:
                 "https://api.github.com/rate_limit", headers=headers
             )
             calls_left = int(response.json()["resources"]["core"]["remaining"])
-            tokens_with_calls.append((token, calls_left))
+            reset_time = int(response.json()["resources"]["core"]["reset"])
+            tokens_with_calls.append((token, calls_left, reset_time))
 
         # Sort tokens by remaining calls, in descending order
         tokens_with_calls.sort(key=lambda x: x[1], reverse=True)
-
-        if many:
-            return tokens_with_calls
-
-        return [token for token, calls_left in tokens_with_calls]
+        if only_token:
+            return [token for token, _, _ in tokens_with_calls]
+        return tokens_with_calls
 
     def get_token_lowest_wait_time(self) -> Tuple:
         tokens = self.get_public_tokens()
-        wait_times = []
-        for token in tokens:
-            headers = {"Authorization": f"token {token}"}
-            response = requests.get(
-                "https://api.github.com/rate_limit", headers=headers
-            )
-            wait_times.append(
-                {
-                    "token": token,
-                    "time": int(response.json()["resources"]["core"]["reset"]),
-                }
-            )
-        wait_times.sort(key=lambda x: x["time"])
-        logger.debug(wait_times)
-        return wait_times[0]["token"], wait_times[0]["time"]
+        tokens.sort(key=lambda x: x[2])
+        return tokens[0]
 
     def get_token(self) -> str:
         token_list = self.get_public_tokens()
