@@ -118,6 +118,7 @@ services:
       MB_DB_USER: metabase
       MB_DB_PASS: vps228.2o22
       MB_DB_HOST: metabase-db
+      MB_SEND_EMAIL_ON_FIRST_LOGIN_FROM_NEW_DEVICE: FALSE
     depends_on:
       - metabase-db
     links:
