@@ -12,6 +12,10 @@ class EmptyQueueException(Exception):
     pass
 
 
+class UUIDNotFoundException(Exception):
+    pass
+
+
 class Client:
     def __init__(self, db: DatabaseHandler, project: Dict[str, Any]):
         self.db = db
@@ -28,6 +32,9 @@ def main():
         exit(0)
 
     db_handler = DatabaseHandler(DBConnector())
+    if project["uuid"] is None:
+        raise UUIDNotFoundException("No se ha podido obtener el uuid del proyecto")
+
     uuid = project["uuid"]
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
@@ -35,7 +42,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
-
-    sys.stdout.flush()
     main()
