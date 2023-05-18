@@ -1,6 +1,6 @@
 import requests
 from loguru import logger
-from ..utils.utils import gh_api_to_datetime
+from ..utils.utils import api_date
 from ..config import GHToken
 from typing import Optional, Dict, Any, List, Set, Iterator, Union
 import json
@@ -11,13 +11,11 @@ from datetime import datetime
 from pprint import pprint
 from ..utils.utils import format_dt
 
-
-class RateLimitExceededError(Exception):
-    pass
-
-
-class NoMoreTokensError(Exception):
-    pass
+from services.extract_service.errors import (
+    RateLimitExceededError,
+    NoMoreTokensError,
+    ProjectNotFoundError,
+)
 
 
 class GitHubAPI:
@@ -92,10 +90,10 @@ class GitHubAPI:
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
             elif e.response.status_code == 451:
                 logger.error("Proyecto eliminado")
-                exit(1)
+                ProjectNotFoundError("Proyecto eliminado")
             elif e.response.status_code == 404:
                 logger.error("Proyecto no encontrado")
-                exit(1)
+                ProjectNotFoundError("Proyecto no encontrado")
             else:
                 raise e
 
@@ -142,7 +140,7 @@ class GitHubAPI:
             return elementos
         resultados = []
         for elemento in elementos:
-            created_at = gh_api_to_datetime(elemento["created_at"])
+            created_at = api_date(elemento["created_at"])
             if since and created_at < since:
                 continue
             if until and created_at > until:

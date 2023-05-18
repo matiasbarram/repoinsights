@@ -38,7 +38,7 @@ class QueueClient:
             raise ValueError(f"Queue {queue_name} not found")
 
         # get message but dont delete it from queue
-        method_frame, header_frame, body = self.channel.basic_get(queue, auto_ack=False)
+        method_frame, _, body = self.channel.basic_get(queue, auto_ack=False)
         if method_frame:
             data = body.decode("utf-8")
             return json.loads(data)

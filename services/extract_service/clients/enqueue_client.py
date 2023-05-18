@@ -26,10 +26,21 @@ class QueueClient:
             data = body.decode("utf-8")
             return json.loads(data)
         else:
-            return None
+            logger.info("No hay proyectos en la cola")
+            exit(0)
 
-    def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado, durable=True)
+    def check_queue(self, name):
+        if name == "pendientes":
+            queue = self.queue_pendientes
+        elif name == "curado":
+            queue = self.queue_curado
+        else:
+            raise ValueError("Invalid queue name")
+        return queue
+
+    def enqueue(self, project: str, client_queue: str):
+        queue = self.check_queue(client_queue)
+        self.channel.queue_declare(queue=queue, durable=True)
         self.channel.basic_publish(
             exchange="",
             routing_key=self.queue_curado,

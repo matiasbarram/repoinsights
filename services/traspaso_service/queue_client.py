@@ -18,25 +18,7 @@ class QueueClient:
         )
         self.channel = self.connection.channel()
 
-    def get_from_queue_curado(
-        self, debug: Optional[bool] = None
-    ) -> Union[Dict[str, Any], None]:
-        if debug:
-            return {
-                "uuid": "b87d3bc7827341028a110ec3580ae523",
-                "owner": "gousiosg",
-                "repo": "github-mirror",
-                "project_id": 1,
-                "since": None,
-                "until": "2023-05-09T14:23:16Z",
-                "data_types": [
-                    "commits",
-                    "pull_requests",
-                    "issues",
-                    "labels",
-                    "milestones",
-                ],
-            }
+    def get_from_queue_curado(self) -> Union[Dict[str, Any], None]:
         self.channel.queue_declare(queue=self.queue_curado, durable=True)
         method_frame, _, body = self.channel.basic_get(self.queue_curado)
         if method_frame:

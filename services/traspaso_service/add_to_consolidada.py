@@ -130,7 +130,6 @@ class EntityHandler:
 
     def create_entity(self, entity_class, entity, filters, cache_map=None):
         # Crear la entidad en la base de datos consolidada
-        logger.debug("CREATING! \t {entity}", entity=entity.__dict__)
         entity_id = self.entity_data[entity_class].get("id") or "id"
         old_id = getattr(entity, entity_id)
         new_entity = entity_class(**filters)

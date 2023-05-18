@@ -6,10 +6,7 @@ from services.traspaso_service.utils.utils import gh_api_to_datetime
 from loguru import logger
 from typing import Dict, Any, List, Tuple, Union
 from services.traspaso_service.traspaso.traspaso import Client as TraspasoClient
-
-
-class EmptyQueueException(Exception):
-    pass
+import json
 
 
 class UUIDNotFoundException(Exception):
@@ -38,7 +35,14 @@ def main():
     uuid = project["uuid"]
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
-    traspaso_client.migrate()
+    try:
+        traspaso_client.migrate()
+    except Exception as e:
+        logger.error("Error al traspasar el proyecto {project}", project=project)
+        logger.error(e)
+        json_data = json.dumps(project)
+        queue_client.enqueue(json_data)
+        exit(1)
 
 
 if __name__ == "__main__":

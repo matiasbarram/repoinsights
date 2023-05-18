@@ -69,6 +69,7 @@ class DatabaseHandler:
             enqueue_list.append(
                 {
                     "enqueue_time": datetime.now(),
+                    "attempt": 1,
                     "owner": project.owner.login,
                     "project": project.name,
                     "last_extraction": format_dt(last_activity_date)
