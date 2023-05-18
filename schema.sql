@@ -196,6 +196,7 @@ CREATE TABLE ghtorrent_restore_2015.forks (
 --
 
 CREATE TABLE ghtorrent_restore_2015.issue_comments (
+    id integer NOT NULL,
     issue_id integer NOT NULL,
     user_id integer NOT NULL,
     comment_id text NOT NULL,
@@ -203,6 +204,15 @@ CREATE TABLE ghtorrent_restore_2015.issue_comments (
     ext_ref_id character varying(32) NOT NULL
 );
 
+CREATE SEQUENCE ghtorrent_restore_2015.issue_comments_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.issue_comments_id_seq OWNED BY ghtorrent_restore_2015.issue_comments.id;
 
 --
 -- TOC entry 225 (class 1259 OID 16426)
@@ -326,7 +336,8 @@ CREATE TABLE ghtorrent_restore_2015.projects (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     ext_ref_id character varying(32) NOT NULL,
     forked_from integer,
-    deleted boolean DEFAULT false NOT NULL
+    deleted boolean DEFAULT false NOT NULL,
+    private boolean DEFAULT false NOT NULL
     /*last_extraction timestamp with time zone DEFAULT CURRENT_TIMESTAMP*/
 );
 
@@ -379,6 +390,7 @@ ALTER SEQUENCE ghtorrent_restore_2015.extractions_id_seq OWNED BY ghtorrent_rest
 --
 
 CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
+    id integer NOT NULL,
     pull_request_id integer NOT NULL,
     user_id integer,
     comment_id text NOT NULL,
@@ -388,6 +400,16 @@ CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     ext_ref_id character varying(32) NOT NULL
 );
+
+CREATE SEQUENCE ghtorrent_restore_2015.pull_request_comments_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.pull_request_comments_id_seq OWNED BY ghtorrent_restore_2015.pull_request_comments.id;
 
 
 --
@@ -492,7 +514,7 @@ ALTER SEQUENCE ghtorrent_restore_2015.pull_requests_id_seq OWNED BY ghtorrent_re
 
 CREATE TABLE ghtorrent_restore_2015.repo_labels (
     id integer NOT NULL,
-    repo_id integer,
+    repo_id integer NOT NULL,
     name character varying(24) NOT NULL,
     ext_ref_id character varying(32) NOT NULL
 );
@@ -757,6 +779,15 @@ ALTER TABLE ONLY ghtorrent_restore_2015.metrics_log
     ADD CONSTRAINT idx_12395_primary PRIMARY KEY (id);
 
 
+-- pull_request_comments_id_seq
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.pull_request_comments_id_seq'::regclass);
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments
+    ADD CONSTRAINT idx_12396_primary PRIMARY KEY (id);
+
+
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_comments ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.issue_comments_id_seq'::regclass);
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_comments
+    ADD CONSTRAINT idx_12397_primary PRIMARY KEY (id);
 --
 -- TOC entry 3320 (class 2606 OID 16606)
 -- Name: commit_comments idx_16393_primary; Type: CONSTRAINT; Schema: ghtorrent_restore_2015; Owner: -

@@ -102,6 +102,7 @@ class Fork(Base):
 class IssueComment(Base):
     __tablename__ = "issue_comments"
 
+    id = Column(Integer, primary_key=True)
     issue_id = Column(Integer, ForeignKey("issues.id"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     comment_id = Column(Text, primary_key=True)
@@ -226,6 +227,7 @@ class Project(Base):
 class PullRequestComment(Base):
     __tablename__ = "pull_request_comments"
 
+    id = Column(Integer, primary_key=True)
     pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     comment_id = Column(Text, primary_key=True)

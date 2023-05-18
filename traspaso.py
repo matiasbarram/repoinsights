@@ -5,7 +5,7 @@ from services.traspaso_service.db_connector.models import Project, User, Commit
 from services.traspaso_service.utils.utils import gh_api_to_datetime
 from loguru import logger
 from typing import Dict, Any, List, Tuple, Union
-from services.traspaso_service.traspaso import Client as TraspasoClient
+from services.traspaso_service.traspaso.traspaso import Client as TraspasoClient
 
 
 class EmptyQueueException(Exception):
@@ -36,6 +36,7 @@ def main():
 
 if __name__ == "__main__":
     import sys
+
     sys.stdout.flush()
     while True:
         main()

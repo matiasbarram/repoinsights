@@ -33,8 +33,7 @@ class LoadDataClient:
 
     def sort_results(self, results: List[Dict[str, Any]]):
         order = {
-            "project": 0,
-            "labels": 1,
+            "project": 1,
             "owner": 2,
             "commit": 3,
             "pull_request": 4,
@@ -42,6 +41,7 @@ class LoadDataClient:
             "watchers": 6,
             "members": 7,
             "milestones": 8,
+            "labels": 9,
         }
         try:
             self.sorted_results = sorted(results, key=lambda x: order[x["name"]])
@@ -65,20 +65,19 @@ class LoadDataClient:
                 self.load_pull_requests_data(data)
             elif name == "issue":
                 self.load_issues_data(data)
-            elif name == "labels":
-                self.load_labels_data(data)
             elif name == "members":
                 self.load_members_data(data)
             elif name == "milestones":
                 self.load_milestones_data(data)
+            elif name == "labels":
+                self.load_labels_data(data)
 
     def load_main_project(self, repo_data: Dict[str, Any]):
         self.repository = InsightsRepository(repo_data)
         self.repository.set_owner_id(self.load_user(self.repository.owner))
-        self.repo_id = self.repository.set_repo_id(
-            self.load_repository(self.repository)
-        )
-        self.project_id = self.load_extraction_project(self.repository.id)
+        self.repo_id = self.load_repository(self.repository)
+        self.repository.set_repo_id(self.repo_id)
+        self.load_extraction_project(self.repository.id)
 
     def load_extraction_project(self, repo_id: int):
         logger.debug(
@@ -91,21 +90,18 @@ class LoadDataClient:
         logger.debug(
             "Loading milestones for repository {name}", name=self.repository.name
         )
-        milestone: InsightsMilestone
         for milestone in milestones:
             milestone.set_repo_id(self.repo_id)  # type: ignore
             self.temp_db.create_milestone(milestone)
 
     def load_labels_data(self, labels: List[InsightsLabel]):
         logger.debug("Loading labels for repository {name}", name=self.repository.name)
-        label: InsightsLabel
         for label in labels:
             label.set_project_id(self.repo_id)
             self.temp_db.create_label(label)
 
     def load_issue_labels(self, project_id, issue_id, labels: List[InsightsLabel]):
         logger.debug("Loading issue labels")
-        label: InsightsLabel
         for label in labels:
             label.set_project_id(project_id)
             label_id = self.temp_db.create_label(label)
@@ -192,13 +188,13 @@ class LoadDataClient:
 
     def load_issues_data(self, issues: List[InsightsIssue]):
         for issue in issues:
-            project_id = issue.set_project_id(self.repository.id)
+            issue.set_project_id(self.repo_id)
             issue.set_reporter_id(self.load_user(issue.reporter))
             if issue.assignee:
                 issue.set_assignee_id(self.load_user(issue.assignee))
             self.set_pr_id(issue)
             issue_id = self.temp_db.create_issue(issue)
-            self.load_issue_labels(project_id, issue_id, issue.labels)
+            self.load_issue_labels(self.repo_id, issue_id, issue.labels)
             comment: InsightsIssueComment
             for comment in issue.comments:
                 comment.set_issue_id(issue_id)
@@ -245,7 +241,7 @@ class LoadDataClient:
             if pr.head_repo is not None:
                 pr.set_head_repo_id(self.load_repository(pr.head_repo))
             if pr.base_repo is not None:
-                pr.set_base_repo_id(self.load_repository(pr.base_repo))
+                pr.set_base_repo_id(self.repo_id)
             pr_id = self.load_pull_request(pr)
             self.load_pull_request_comments(pr, pr_id, pr.comments)
             self.load_pull_request_history(pr, pr_id)
