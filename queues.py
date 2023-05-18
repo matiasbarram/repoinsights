@@ -46,7 +46,7 @@ class QueueClient:
             return None
 
     def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado)
+        self.channel.queue_declare(queue=self.queue_curado, durable=True)
         self.channel.basic_publish(
             exchange="",
             routing_key=self.queue_curado,

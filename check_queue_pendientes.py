@@ -17,7 +17,7 @@ class QueueClient:
             pika.ConnectionParameters(host=self.rabbit_host, credentials=credentials)
         )
         self.channel = connection.channel()
-        self.channel.queue_declare(queue="pendientes")
+        self.channel.queue_declare(queue="pendientes", durable=True)
 
     def enqueue(self, project: Dict[str, Any]):
         project_json = json.dumps(project, default=str)

@@ -37,7 +37,7 @@ class QueueClient:
                     "milestones",
                 ],
             }
-        self.channel.queue_declare(queue=self.queue_curado)
+        self.channel.queue_declare(queue=self.queue_curado, durable=True)
         method_frame, header_frame, body = self.channel.basic_get(self.queue_curado)
         if method_frame:
             self.channel.basic_ack(method_frame.delivery_tag)
@@ -47,7 +47,7 @@ class QueueClient:
             return None
 
     def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado)
+        self.channel.queue_declare(queue=self.queue_curado, durable=True)
         self.channel.basic_publish(
             exchange="",
             routing_key=self.queue_curado,
