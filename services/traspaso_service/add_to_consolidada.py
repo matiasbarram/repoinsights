@@ -31,9 +31,6 @@ from loguru import logger
 
 
 class DataHandler:
-    def __init__(self, db: DatabaseHandler) -> None:
-        pass
-
     def find_by_attributes(self, session, entity_class, **kwargs):
         return session.query(entity_class).filter_by(**kwargs).first()
 
@@ -42,7 +39,7 @@ class EntityHandler:
     def __init__(self, db: DatabaseHandler, cache: Cache, entity_data: Dict) -> None:
         self.db = db
         self.cache = cache
-        self.data_handler = DataHandler(db)
+        self.data_handler = DataHandler()
         self.entity_data = entity_data
 
     def get_value_from_consolidada(self, entity_class, entity, attr_name, attr_value):

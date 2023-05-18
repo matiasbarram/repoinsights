@@ -20,7 +20,7 @@ class QueueClient:
 
     def get_from_queue(self) -> Union[Dict[str, Any], None]:
         self.channel.queue_declare(queue=self.queue_pendientes, durable=True)
-        method_frame, header_frame, body = self.channel.basic_get(self.queue_pendientes)
+        method_frame, _, body = self.channel.basic_get(self.queue_pendientes)
         if method_frame:
             self.channel.basic_ack(method_frame.delivery_tag)
             data = body.decode("utf-8")

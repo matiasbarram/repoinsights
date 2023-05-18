@@ -32,7 +32,7 @@ def main():
         exit(0)
 
     db_handler = DatabaseHandler(DBConnector())
-    if project["uuid"] is None:
+    if project.get("uuid") is None:
         raise UUIDNotFoundException("No se ha podido obtener el uuid del proyecto")
 
     uuid = project["uuid"]
