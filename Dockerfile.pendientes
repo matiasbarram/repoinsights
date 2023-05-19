@@ -1,5 +1,9 @@
 FROM python:3.10 AS base
 
+# Create a group and user 
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
+
 WORKDIR /app
 
 # Setup env
