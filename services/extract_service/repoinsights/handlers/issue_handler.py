@@ -62,7 +62,6 @@ class InsightsIssueHandler:
             issue.set_comments(issue_comments)
 
     def get_issue_events(self, issues: List[InsightsIssue]):
-        # events = self.repo.obtener_issues_events()
         for issue in issues:
             events = self.repo.obtener_issue_events(issue.issue_id)
             issue_events = [InsightsIssueEvent(event) for event in events if event]

@@ -70,7 +70,7 @@ class DatabaseHandler:
                 self.session_temp.commit()
                 return instance
             except Exception as e:
-                logger.error(f"Error creating")
+                logger.error("Error creating")
                 raise HandleError(e)
         else:
             logger.debug("Instance does not exist and not created")

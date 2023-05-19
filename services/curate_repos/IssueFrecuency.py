@@ -70,7 +70,7 @@ class IssueFrecuency:
         current_month = self.start_date
         issues_months = []
         temp = 0
-        for i in range(0, months):
+        for _ in range(0, months):
             if current_month.month == 12:
                 current_month = current_month.replace(
                     year=current_month.year + 1, month=1

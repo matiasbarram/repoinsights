@@ -34,7 +34,3 @@ class InsightsCommitHandler:
                 if comment["commit_id"] == commit.sha
             ]
             commit.set_comments(commit_comments)
-
-    # def get_commit_parents(self, commit_sha: str):
-    #     parents = self.repo.get_commit(commit_sha).parents
-    #     return [GHCommit(parent) for parent in parents]

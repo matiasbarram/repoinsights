@@ -19,7 +19,6 @@ class Repository:
 
     def obtener_repositorio(self) -> Dict[str, Any]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}"
-        # repo = self.api.get(url).json()
         repo = self.api.invoke_with_rate_limit_handling(self.api.get, url=url).json()
         owner_name = repo["owner"]["login"]
         owner_data = User(self.api).obtener_usuario(owner_name)
@@ -29,9 +28,6 @@ class Repository:
     def obtener_contribuidores(self):
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/contributors"
         params = {"per_page": 100}
-        # contribuidores = self.api._realizar_solicitud_paginada(
-        #     "contributors", url, params
-        # )
         contribuidores = self.api.invoke_with_rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name="contributors",
@@ -104,7 +100,7 @@ class User:
 
             self.api.cache.set(usuario, user_data)
             return user_data
-        except Exception as e:
+        except Exception:
             logger.error(f"Error al obtener usuario {usuario}")
             return None
 
@@ -120,8 +116,6 @@ class User:
             if new_user:
                 users[user] = new_user
         return users
-
-        # return {user: self.obtener_usuario(user) for user in users_to_fetch}
 
 
 class Commit:

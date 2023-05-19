@@ -15,8 +15,8 @@ from pprint import pprint
 class DatabaseHandler:
     def __init__(self, connector: DBConnector):
         self.connector = connector
-        self.Session = sessionmaker(bind=connector.engine)
-        self.db_session = self.Session()
+        self.session_maker = sessionmaker(bind=connector.engine)
+        self.db_session = self.session_maker()
 
     def get_updated_projects(self) -> List[Dict[str, Any]]:
         enqueue_list = []

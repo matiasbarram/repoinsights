@@ -67,7 +67,6 @@ class PullRequest:
         sort: Optional[str] = None,
         direction: Optional[str] = None,
         since: Optional[datetime] = None,
-        until: Optional[datetime] = None,
     ) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/pulls/comments"
         params = {"per_page": 100, "since": since}
@@ -84,7 +83,6 @@ class PullRequest:
             url=url,
             params=params,
         )
-        # prs_comments = self.api._filtrar_por_fecha(pull_requests_comments, since, until)
 
         users = User(self.api)._get_users_for_keys(
             pull_requests_comments,

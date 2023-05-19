@@ -8,6 +8,10 @@ import json
 
 
 class InsightsPullRequest:
+    """
+    Pendientes: additions, deletion, changed_files
+    """
+
     def __init__(self, pull_request: Dict[str, Any]):
         self.number: int = pull_request["number"]
         self.title = pull_request["title"]
@@ -30,9 +34,6 @@ class InsightsPullRequest:
         self.head_repo_id = None
         self.intra_branch = self.set_intra_branch(pull_request)
         self.comments = []
-        # self.additions = pull_request["additions"]
-        # self.deletions = pull_request["deletions"]
-        # self.changed_files = pull_request["changed_files"]
 
     def set_repo(self, repo: Dict[str, Any]) -> Union[InsightsRepository, None]:
         return InsightsRepository(repo) if repo else None

@@ -155,17 +155,17 @@ class Cache:
         self.redis_host = os.environ["REDIS_HOST"]
         self.redis_port: int = int(os.environ["REDIS_PORT"])
         self.redis_db = int(os.environ["REDIS_DB"])
-        self.cache = redis.StrictRedis(
+        self.redis_cache = redis.StrictRedis(
             host=self.redis_host, port=self.redis_port, db=self.redis_db
         )
 
     def get(self, key):
-        value = self.cache.get(key)
+        value = self.redis_cache.get(key)
         return json.loads(value.decode("utf-8")) if value else None
 
     def set(self, key, value, expiry=None):
         serialized_value = json.dumps(value)
-        self.cache.set(key, serialized_value, ex=expiry)
+        self.redis_cache.set(key, serialized_value, ex=expiry)
 
     def has(self, key):
-        return self.cache.exists(key)
+        return self.redis_cache.exists(key)
