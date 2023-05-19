@@ -13,37 +13,53 @@ class UUIDNotFoundException(Exception):
     pass
 
 
-class Client:
-    def __init__(self, db: DatabaseHandler, project: Dict[str, Any]):
-        self.db = db
-        self.uuid = project["uuid"]
-        self.last_extraction = gh_api_to_datetime(project["until"])
-        self.owner = project["owner"]
+def handle_failed_project(
+    project: Dict, queue_client: QueueClient, failed_projects: List[Dict[str, Any]]
+):
+    json_data = json.dumps(project)
+    queue_client.enqueue(json_data)
+    failed_projects.append(project)
+
+
+def all_done(failed: List[Dict[str, Any]], saved: List[Dict[str, Any]]):
+    logger.warning(
+        "Todos los proyectos ya han sido traspasados \t fallidos {failed_projects} \t exitosos {saved_projects}",
+        failed_projects=len(failed),
+        saved_projects=len(saved),
+    )
 
 
 def main():
+    uuids = []
+    saved_projects = []
+    failed_projects = []
     queue_client = QueueClient()
     project = queue_client.get_from_queue_curado()
-    if project is None:
-        logger.warning("No hay proyectos en la cola")
-        exit(0)
 
     db_handler = DatabaseHandler(DBConnector())
     if project.get("uuid") is None:
         raise UUIDNotFoundException("No se ha podido obtener el uuid del proyecto")
 
     uuid = project["uuid"]
+    uuids.append(uuid)
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
+    if uuid in uuids:
+        all_done(
+            failed=failed_projects,
+            saved=saved_projects,
+        )
+        exit(0)
+
     try:
         traspaso_client.migrate()
+        saved_projects.append(project)
     except Exception as e:
         logger.error("Error al traspasar el proyecto {project}", project=project)
         logger.error(e)
-        json_data = json.dumps(project)
-        queue_client.enqueue(json_data)
-        exit(1)
+        handle_failed_project(project, queue_client, failed_projects)
 
 
 if __name__ == "__main__":
-    main()
+    while True:
+        main()

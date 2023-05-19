@@ -18,15 +18,20 @@ class QueueClient:
         )
         self.channel = self.connection.channel()
 
-    def get_from_queue_curado(self) -> Union[Dict[str, Any], None]:
+    def get_from_queue_curado(self) -> Dict[str, Any]:
         self.channel.queue_declare(queue=self.queue_curado, durable=True)
         method_frame, _, body = self.channel.basic_get(self.queue_curado)
-        if method_frame:
-            self.channel.basic_ack(method_frame.delivery_tag)
-            data = body.decode("utf-8")
-            return json.loads(data)
-        else:
-            return None
+        if method_frame is None:
+            logger.warning("No hay proyectos en la cola")
+            exit(0)
+
+        self.channel.basic_ack(method_frame.delivery_tag)
+        data = body.decode("utf-8")
+        project = json.loads(data)
+        if project is None:
+            logger.warning("No hay proyectos en la cola")
+            exit(0)
+        return project
 
     def enqueue(self, project: str):
         self.channel.queue_declare(queue=self.queue_curado, durable=True)

@@ -10,6 +10,9 @@ class Client:
         self.uuid = uuid
 
     def migrate(self):
+        """
+        Obtener los datos de temportal con el uuid del proyecto
+        """
         temp = TempClient(self.db, self.uuid)
         users = temp.get_users()
         projects = temp.get_projects()
