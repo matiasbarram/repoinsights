@@ -11,22 +11,19 @@ class GitHubExtractor:
         self,
         usuario: str,
         repositorio: str,
-        tokens_iter: Iterator[str],
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
     ):
         self.usuario = usuario
         self.since = since
         self.until = until
-        token = next(tokens_iter)
-        self.tokens_iter = tokens_iter
-        self.api = GitHubAPI(token)
+        self.api = GitHubAPI()
 
-        self.repositorio = Repository(self.api, repositorio, usuario, self.tokens_iter)
-        self.user_repo = User(self.api, tokens_iter)
-        self.commit_repo = Commit(self.api, usuario, repositorio, tokens_iter)
-        self.issue = Issue(token, usuario, repositorio, tokens_iter)
-        self.pull_request = PullRequest(self.api, usuario, repositorio, tokens_iter)
+        self.repositorio = Repository(self.api, repositorio, usuario)
+        self.user_repo = User(self.api)
+        self.commit_repo = Commit(self.api, usuario, repositorio)
+        self.issue = Issue(self.api, usuario, repositorio)
+        self.pull_request = PullRequest(self.api, usuario, repositorio)
 
     def obtener_repo_info(self):
         return self.repositorio.obtener_repositorio()

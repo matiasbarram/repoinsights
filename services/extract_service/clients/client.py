@@ -4,7 +4,7 @@ from .enqueue_client import QueueClient
 import json
 from typing import Dict, Any, List, Union
 from datetime import datetime
-from ..utils.utils import format_dt, gh_api_to_datetime
+from ..utils.utils import format_dt, api_date
 from loguru import logger
 import uuid
 
@@ -27,19 +27,28 @@ class InsightsClient:
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
 
+        self.queue_client = QueueClient()
+
     def get_from_pendientes(self):
-        queue_repo = QueueClient().get_from_queue()
+        queue_repo = self.queue_client.get_from_queue()
         if queue_repo:
-            self.owner = queue_repo["owner"]
-            self.repo = queue_repo["project"]
+            self.queue_repo = queue_repo
+            self.owner = self.queue_repo["owner"]
+            self.repo = self.queue_repo["project"]
             self.since: Union[datetime, None] = (
-                gh_api_to_datetime(queue_repo["last_extraction"])
-                if queue_repo["last_extraction"]
+                api_date(self.queue_repo["last_extraction"])
+                if self.queue_repo["last_extraction"]
                 else None
             )
-            logger.critical("QUEUE pendientes {project}", project=queue_repo)
+            logger.critical("QUEUE pendientes {project}", project=self.queue_repo)
         else:
             raise EmptyQueueError("No hay proyectos en la cola")
+
+    def enqueue_to_pendientes(self):
+        self.queue_repo["enqueue_time"] = datetime.now().isoformat()
+        self.queue_repo["attempt"] = self.queue_repo["attempt"] + 1
+        json_data = json.dumps(self.queue_repo)
+        self.queue_client.enqueue(json_data, "pendientes")
 
     def extract(self) -> List[Dict[str, Any]]:
         logger.critical(
@@ -66,7 +75,7 @@ class InsightsClient:
             raise ExtractError("Error extracting data from GitHub")
 
     def load(self, results) -> None:
-        logger.critical(f"Loading to TEMP DB")
+        logger.critical("Loading to TEMP DB")
         try:
             load_client = LoadDataClient(results, self.uuid)
             load_client.load_to_temp_db()
@@ -86,5 +95,5 @@ class InsightsClient:
             "data_types": self.data_types,
         }
         json_data = json.dumps(project_data)
-        QueueClient().enqueue(json_data)
-        logger.critical(f"Project ENQUEUE to CURADO published")
+        self.queue_client.enqueue(json_data, "curado")
+        logger.critical("Project ENQUEUE to CURADO published")

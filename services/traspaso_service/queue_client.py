@@ -4,16 +4,6 @@ from loguru import logger
 import json
 from typing import Dict, Any, Union, Optional
 
-"""
-{
-    "owner": "mavam", 
-    "repo": "stat-cookbook", 
-    "since": "May 18, 2013, 12:00 AM", 
-    "until": "June 17, 2013, 12:00 AM", 
-    "data_types": ["commits", "pull_requests", "issues", "labels", "milestones"]
-}
-"""
-
 
 class QueueClient:
     def __init__(self):
@@ -28,37 +18,29 @@ class QueueClient:
         )
         self.channel = self.connection.channel()
 
-    def get_from_queue_curado(
-        self, debug: Optional[bool] = None
-    ) -> Union[Dict[str, Any], None]:
-        if debug:
-            return {
-                "uuid": "b87d3bc7827341028a110ec3580ae523",
-                "owner": "gousiosg",
-                "repo": "github-mirror",
-                "project_id": 1,
-                "since": None,
-                "until": "2023-05-09T14:23:16Z",
-                "data_types": [
-                    "commits",
-                    "pull_requests",
-                    "issues",
-                    "labels",
-                    "milestones",
-                ],
-            }
-        self.channel.queue_declare(queue=self.queue_curado)
-        method_frame, header_frame, body = self.channel.basic_get(self.queue_curado)
-        if method_frame:
-            self.channel.basic_ack(method_frame.delivery_tag)
-            data = body.decode("utf-8")
-            return json.loads(data)
-        else:
-            return None
+    def get_from_queue_curado(self) -> Dict[str, Any]:
+        self.channel.queue_declare(queue=self.queue_curado, durable=True)
+        method_frame, _, body = self.channel.basic_get(self.queue_curado)
+        if method_frame is None:
+            logger.warning("No hay proyectos en la cola")
+            exit(0)
+
+        self.channel.basic_ack(method_frame.delivery_tag) if method_frame else None
+        data = body.decode("utf-8")
+        project = json.loads(data)
+        if project is None:
+            logger.warning("No hay proyectos en la cola")
+            exit(0)
+        return project
 
     def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado)
+        self.channel.queue_declare(queue=self.queue_curado, durable=True)
         self.channel.basic_publish(
-            exchange="", routing_key=self.queue_curado, body=project
+            exchange="",
+            routing_key=self.queue_curado,
+            body=project,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ),
         )
         logger.info(f"Project {project} published")

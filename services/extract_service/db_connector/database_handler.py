@@ -40,27 +40,20 @@ from typing import Union, List, Optional
 from loguru import logger
 
 
+class HandleError(Exception):
+    pass
+
+
 class DatabaseHandler:
     def __init__(self, connector: DBConnector, uuid: str):
         self.connector = connector
-        self.Session_temp = sessionmaker(bind=connector.engine)
-        self.session_temp = self.Session_temp()
+        self.session_maker = sessionmaker(bind=connector.engine)
+        self.session_temp = self.session_maker()
         self.uuid = uuid
 
     def get_or_create(
         self,
-        model: Union[
-            User,
-            Project,
-            Commit,
-            CommitParent,
-            Issue,
-            IssueComment,
-            PullRequest,
-            PullRequestComment,
-            Watcher,
-            CommitComment,
-        ],
+        model,
         create: Optional[bool] = True,
         **kwargs,
     ):
@@ -77,8 +70,8 @@ class DatabaseHandler:
                 self.session_temp.commit()
                 return instance
             except Exception as e:
-                logger.error(f"Error creating")
-                raise BaseException(e)
+                logger.error("Error creating")
+                raise HandleError(e)
         else:
             logger.debug("Instance does not exist and not created")
             return None

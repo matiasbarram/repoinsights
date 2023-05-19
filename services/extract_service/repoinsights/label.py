@@ -8,7 +8,7 @@ class InsightsLabel:
         self.color = label["color"]
         self.description = label["description"]
 
-    def set_project_id(self, repo_id: Union[int, None]):
+    def set_project_id(self, repo_id: int):
         self.repo_id = repo_id
 
     def to_dict(self):

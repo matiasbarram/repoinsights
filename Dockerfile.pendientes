@@ -1,5 +1,10 @@
 FROM python:3.10 AS base
 
+RUN addgroup -S nonroot \
+    && adduser -S nonroot -G nonroot
+
+USER nonroot
+
 WORKDIR /app
 
 # Setup env

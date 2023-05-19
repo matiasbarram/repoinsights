@@ -16,14 +16,18 @@ from sqlalchemy.orm import sessionmaker, Session
 from loguru import logger
 
 
+class CreateError(Exception):
+    pass
+
+
 class DatabaseHandler:
     def __init__(self, connector: DBConnector):
         self.connector = connector
-        self.Session_consolidada = sessionmaker(bind=connector.consolidada_engine)
-        self.session_consolidada = self.Session_consolidada()
+        self.session_maker_consolidada = sessionmaker(bind=connector.consolidada_engine)
+        self.session_consolidada = self.session_maker_consolidada()
 
-        self.Session_temp = sessionmaker(bind=connector.temp_engine)
-        self.session_temp = self.Session_temp()
+        self.session_maker_temp = sessionmaker(bind=connector.temp_engine)
+        self.session_temp = self.session_maker_temp()
 
     def get_or_create(
         self,
@@ -60,7 +64,7 @@ class DatabaseHandler:
                 return instance
             except Exception as e:
                 logger.error(f"Error creating: {e}")
-                raise BaseException(e)
+                raise CreateError(e)
         else:
             logger.debug("Instance does not exist and not created")
             return None

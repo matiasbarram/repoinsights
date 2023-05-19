@@ -26,10 +26,13 @@ class IssueFrecuency:
         )
         print(
             {
-                "Start date": datetime.strftime(self.start_date, "%Y-%m-%d"),
-                "End date": datetime.strftime(self.end_date, "%Y-%m-%d"),
+                "Start date": self.dt_to_str(self.start_date),
+                "End date": self.dt_to_str(self.end_date),
             }
         )
+
+    def dt_to_str(self, dt):
+        return datetime.strftime(dt, "%Y-%m-%d")
 
     def __get_issues_between_dates(
         self,
@@ -51,22 +54,14 @@ class IssueFrecuency:
             if issue.pull_request:
                 print(
                     {
-                        "date": datetime.strftime(issue.created_at, "%Y-%m-%d"),
+                        "date": self.dt_to_str(issue.created_at),
                         "issue": f"{issue.number} is pull request",
                     }
                 )
                 continue
 
-            updated_at = (
-                datetime.strftime(issue.updated_at, "%Y-%m-%d")
-                if issue.closed_at
-                else None
-            )
-            closed_at = (
-                datetime.strftime(issue.closed_at, "%Y-%m-%d")
-                if issue.closed_at
-                else None
-            )
+            self.dt_to_str(issue.updated_at) if issue.closed_at else None
+            self.dt_to_str(issue.closed_at) if issue.closed_at else None
 
             month_issues.append(issue)
         return month_issues
@@ -75,7 +70,7 @@ class IssueFrecuency:
         current_month = self.start_date
         issues_months = []
         temp = 0
-        for i in range(0, months):
+        for _ in range(0, months):
             if current_month.month == 12:
                 current_month = current_month.replace(
                     year=current_month.year + 1, month=1
@@ -106,7 +101,7 @@ class IssueFrecuency:
         for si in issues_per_month:
             print(
                 {
-                    "date": datetime.strftime(si["date"], "%Y-%m"),
+                    "date": self.dt_to_str(si["date"]),
                     "issues": si["issues"],
                 }
             )

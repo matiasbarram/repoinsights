@@ -7,22 +7,8 @@ class DBConnector:
         if db_name == "temp":
             self.engine = self.__init_temp()
             self.test_connection(self.engine)
-        elif db_name == "tokens":
-            self.engine = self.__init_tokens()
-            self.test_connection(self.engine)
 
     def __init_temp(self):
-        temp_user = os.environ["TEMP_USER"]
-        temp_pass = os.environ["TEMP_PASS"]
-        temp_db = os.environ["TEMP_DB"]
-        temp_ip = os.environ["TEMP_IP"]
-        temp_port = os.environ["TEMP_PORT"]
-        engine = create_engine(
-            f"postgresql+psycopg2://{temp_user}:{temp_pass}@{temp_ip}:{temp_port}/{temp_db}"
-        )
-        return engine
-
-    def __init_tokens(self):
         temp_user = os.environ["TEMP_USER"]
         temp_pass = os.environ["TEMP_PASS"]
         temp_db = os.environ["TEMP_DB"]

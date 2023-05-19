@@ -3,12 +3,16 @@ from typing import Union, List, Dict, Set, Any
 from loguru import logger
 
 
+date_format = "%Y-%m-%d"
+queue_format = "%Y-%m-%dT%H:%M:%SZ"
+
+
 def format_dt(dt: datetime) -> str:
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return dt.strftime(queue_format)
 
 
-def gh_api_to_datetime(date_str: str) -> datetime:
-    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+def api_date(date_str: str) -> datetime:
+    return datetime.strptime(date_str, queue_format)
 
 
 def get_user_type(type) -> Union[str, None]:
@@ -45,17 +49,25 @@ def get_n_months(start_date: datetime, end_date: datetime):
     return months
 
 
+def format_date(date: datetime) -> str:
+    return date.strftime(date_format)
+
+
 def is_valid_date(date_str):
     try:
-        datetime.strptime(date_str, "%Y-%m-%d")
+        format_date(datetime.strptime(date_str, date_format))
         return True
     except ValueError:
         return False
 
 
-def compare_dates(date1, date2):
-    date1 = datetime.strptime(date1, "%Y-%m-%d")
-    date2 = datetime.strptime(date2, "%Y-%m-%d")
+def get_date_from_str(date_str: str) -> datetime:
+    return datetime.strptime(date_str, date_format)
+
+
+def compare_dates(d1: str, d2: str):
+    date1 = get_date_from_str(d1)
+    date2 = get_date_from_str(d2)
     return (date1 > date2) - (date1 < date2)
 
 

@@ -4,7 +4,7 @@ from ..comment import InsightsPullRequestComment
 from ..commit import InsightsCommit
 from datetime import datetime
 from ...github_api.extractor import GitHubExtractor
-from ...utils.utils import gh_api_to_datetime, get_int_from_dict
+from ...utils.utils import api_date, get_int_from_dict
 from pprint import pprint
 
 
@@ -20,11 +20,6 @@ class InsightsPullRequestHandler:
         )
 
         return [self._process_pull_request(pr) for pr in pull_requests]
-
-    # def get_pull_request_comments(
-    #     self, pull_request: GHPullRequest
-    # ) -> List[GHPullRequestComment]:
-    #     return pull_request.get_comments()
 
     def _process_pull_request(self, pr: Dict[str, Any]):
         gh_pr = InsightsPullRequest(pr)
@@ -50,7 +45,3 @@ class InsightsPullRequestHandler:
                 if get_int_from_dict(comment, "pull_request_url") == pull_request.number
             ]
             pull_request.set_comments(pull_request_comments)
-
-    def __get_comment_pull_request_number(self, comment: Dict[str, Any]) -> int:
-        pr_url: str = comment["pull_request_url"]
-        return int(pr_url.split("/")[-1])

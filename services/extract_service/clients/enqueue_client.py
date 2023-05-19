@@ -19,18 +19,34 @@ class QueueClient:
         self.channel = self.connection.channel()
 
     def get_from_queue(self) -> Union[Dict[str, Any], None]:
-        self.channel.queue_declare(queue=self.queue_pendientes)
-        method_frame, header_frame, body = self.channel.basic_get(self.queue_pendientes)
+        self.channel.queue_declare(queue=self.queue_pendientes, durable=True)
+        method_frame, _, body = self.channel.basic_get(self.queue_pendientes)
         if method_frame:
             self.channel.basic_ack(method_frame.delivery_tag)
             data = body.decode("utf-8")
             return json.loads(data)
         else:
-            return None
+            logger.info("No hay proyectos en la cola")
+            exit(0)
 
-    def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado)
+    def check_queue(self, name):
+        if name == "pendientes":
+            queue = self.queue_pendientes
+        elif name == "curado":
+            queue = self.queue_curado
+        else:
+            raise ValueError("Invalid queue name")
+        return queue
+
+    def enqueue(self, project: str, client_queue: str):
+        queue = self.check_queue(client_queue)
+        self.channel.queue_declare(queue=queue, durable=True)
         self.channel.basic_publish(
-            exchange="", routing_key=self.queue_curado, body=project
+            exchange="",
+            routing_key=self.queue_curado,
+            body=project,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ),
         )
         logger.info(f"Project {project} published")

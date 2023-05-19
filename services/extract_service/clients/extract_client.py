@@ -1,11 +1,17 @@
 from ..config import GHToken
 from services.extract_service.repoinsights.repository import InsightsRepository
-from services.extract_service.repoinsights.handlers.commit_handler import InsightsCommitHandler
+from services.extract_service.repoinsights.handlers.commit_handler import (
+    InsightsCommitHandler,
+)
 from services.extract_service.repoinsights.handlers.project_user_handler import (
     InsightsProjectUserHandler,
 )
-from services.extract_service.repoinsights.handlers.label_handler import InsightsLabelHandler
-from services.extract_service.repoinsights.handlers.issue_handler import InsightsIssueHandler
+from services.extract_service.repoinsights.handlers.label_handler import (
+    InsightsLabelHandler,
+)
+from services.extract_service.repoinsights.handlers.issue_handler import (
+    InsightsIssueHandler,
+)
 from services.extract_service.repoinsights.handlers.pull_request_handler import (
     InsightsPullRequestHandler,
 )
@@ -22,6 +28,10 @@ import json
 from pprint import pprint
 
 
+class RepoNotFound(Exception):
+    pass
+
+
 class ExtractDataClient:
     def __init__(
         self,
@@ -35,12 +45,9 @@ class ExtractDataClient:
         self.since = since
         self.until = until
 
-        tokens = GHToken().get_public_tokens()
-        tokens_iter = iter(tokens)
-
-        self.repo = GitHubExtractor(owner, repo, tokens_iter)
+        self.repo = GitHubExtractor(owner, repo)
         if self.repo.repositorio is None:
-            raise Exception("Repository not found")
+            raise RepoNotFound("Repository not found")
 
         self.commit_handler = InsightsCommitHandler(self.repo)
         self.project_handler = InsightsProjectUserHandler(self.repo)
