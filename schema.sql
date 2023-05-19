@@ -338,7 +338,6 @@ CREATE TABLE ghtorrent_restore_2015.projects (
     forked_from integer,
     deleted boolean DEFAULT false NOT NULL,
     private boolean DEFAULT false NOT NULL
-    /*last_extraction timestamp with time zone DEFAULT CURRENT_TIMESTAMP*/
 );
 
 

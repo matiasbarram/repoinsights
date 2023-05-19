@@ -25,7 +25,7 @@ class QueueClient:
             logger.warning("No hay proyectos en la cola")
             exit(0)
 
-        self.channel.basic_ack(method_frame.delivery_tag)
+        self.channel.basic_ack(method_frame.delivery_tag) if method_frame else None
         data = body.decode("utf-8")
         project = json.loads(data)
         if project is None:

@@ -1,7 +1,6 @@
 from github import Github
 from github.Repository import Repository
-from github.License import License as GHLicense
-from github.ContentFile import ContentFile
+from loguru import logger
 
 
 class License:
@@ -20,4 +19,5 @@ class License:
             }
 
         except Exception as e:
+            logger.error(e)
             return {"exist": False, "data": {}}

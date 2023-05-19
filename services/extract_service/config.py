@@ -36,8 +36,3 @@ class GHToken:
         tokens = self.get_public_tokens()
         tokens.sort(key=lambda x: x[2])
         return tokens[0]
-
-    def get_token(self) -> str:
-        token_list = self.get_public_tokens()
-        random_token = random.choice(token_list)  # iterate to get a valid token
-        return random_token

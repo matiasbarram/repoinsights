@@ -146,12 +146,10 @@ class LoadDataClient:
         self.temp_db.create_watchers(watchers, self.repository.id)
 
     def load_pull_request_comments(
-        self, pr, pr_id, comments: List[InsightsPullRequestComment]
+        self, _, pr_id, comments: List[InsightsPullRequestComment]
     ):
         for comment in comments:
             comment.set_pull_request_id(pr_id)
-            # TODO - this is a hack, we need to fix this in the future
-            # se debe cambiar en el schema.sql que el user_id sea nullable
             if comment.author is not None:
                 comment.set_user_id(self.load_user(comment.author))
                 commit_id = self.find_commit_sha(comment.commit_sha)

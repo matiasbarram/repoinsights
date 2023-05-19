@@ -28,6 +28,10 @@ import json
 from pprint import pprint
 
 
+class RepoNotFound(Exception):
+    pass
+
+
 class ExtractDataClient:
     def __init__(
         self,
@@ -43,7 +47,7 @@ class ExtractDataClient:
 
         self.repo = GitHubExtractor(owner, repo)
         if self.repo.repositorio is None:
-            raise Exception("Repository not found")
+            raise RepoNotFound("Repository not found")
 
         self.commit_handler = InsightsCommitHandler(self.repo)
         self.project_handler = InsightsProjectUserHandler(self.repo)

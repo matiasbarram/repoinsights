@@ -17,5 +17,5 @@ class GHToken:
 
     def get_token(self) -> str:
         token_list = self.get_public_tokens(token=None)
-        random_token = random.choice(token_list)  # iterate to get a valid token
+        random_token = token_list[0]  # iterate to get a valid token
         return random_token

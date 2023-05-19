@@ -18,13 +18,21 @@ def logs(debug):
 
 def main(debug=None):
     logs(debug)
+    """
+    valid data_types:
+    -   "commits"
+    -   "pull_requests"
+    -   "issues"
+    -   "labels"
+    -   "stargazers"
+    -   "members"
+    -   "milestones
+    """
     data_types = [
         "commits",
         "pull_requests",
         "issues",
         "labels",
-        # "stargazers",
-        # "members",
         "milestones",
     ]
 

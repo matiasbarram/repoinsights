@@ -16,33 +16,33 @@ class DatabaseHandler:
     def __init__(self, connector: DBConnector):
         self.connector = connector
         self.Session = sessionmaker(bind=connector.engine)
-        self.session = self.Session()
+        self.db_session = self.Session()
 
     def get_updated_projects(self) -> List[Dict[str, Any]]:
         enqueue_list = []
-        ExtractionAlias = aliased(Extraction)
-        CommitAlias = aliased(Commit)
+        extraction_alias = aliased(Extraction)
+        commit_alias = aliased(Commit)
 
         last_extractions = (
-            self.session.query(
-                ExtractionAlias.project_id.label("project_id"),
-                func.max(ExtractionAlias.date).label("max_extraction_date"),
+            self.db_session.query(
+                extraction_alias.project_id.label("project_id"),
+                func.max(extraction_alias.date).label("max_extraction_date"),
             )
-            .group_by(ExtractionAlias.project_id)
+            .group_by(extraction_alias.project_id)
             .subquery()
         )
 
         last_commits = (
-            self.session.query(
-                CommitAlias.project_id.label("project_id"),
-                func.max(CommitAlias.created_at).label("max_commit_date"),
+            self.db_session.query(
+                commit_alias.project_id.label("project_id"),
+                func.max(commit_alias.created_at).label("max_commit_date"),
             )
-            .group_by(CommitAlias.project_id)
+            .group_by(commit_alias.project_id)
             .subquery()
         )
 
         projects_with_dates = (
-            self.session.query(
+            self.db_session.query(
                 Project,
                 coalesce(
                     last_extractions.c.max_extraction_date,

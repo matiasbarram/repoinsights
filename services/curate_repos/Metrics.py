@@ -20,6 +20,10 @@ from .IssueFrecuency import IssueFrecuency
 """
 
 
+class FailGetRepo(Exception):
+    pass
+
+
 class CurateMetrics:
     def __init__(self, project) -> None:
         self.core_contributors_min = 2
@@ -34,7 +38,7 @@ class CurateMetrics:
             return repo
         except Exception as e:
             print(e)
-            raise Exception("No se pudo obtener el repositorio")
+            raise FailGetRepo("No se pudo obtener el repositorio")
 
     """
     Core contributors: is the cardinality of the smallest set of contributors whose total number of commits 

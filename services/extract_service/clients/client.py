@@ -75,7 +75,7 @@ class InsightsClient:
             raise ExtractError("Error extracting data from GitHub")
 
     def load(self, results) -> None:
-        logger.critical(f"Loading to TEMP DB")
+        logger.critical("Loading to TEMP DB")
         try:
             load_client = LoadDataClient(results, self.uuid)
             load_client.load_to_temp_db()
@@ -96,4 +96,4 @@ class InsightsClient:
         }
         json_data = json.dumps(project_data)
         self.queue_client.enqueue(json_data, "curado")
-        logger.critical(f"Project ENQUEUE to CURADO published")
+        logger.critical("Project ENQUEUE to CURADO published")

@@ -16,6 +16,10 @@ from sqlalchemy.orm import sessionmaker, Session
 from loguru import logger
 
 
+class CreateError(Exception):
+    pass
+
+
 class DatabaseHandler:
     def __init__(self, connector: DBConnector):
         self.connector = connector
@@ -60,7 +64,7 @@ class DatabaseHandler:
                 return instance
             except Exception as e:
                 logger.error(f"Error creating: {e}")
-                raise BaseException(e)
+                raise CreateError(e)
         else:
             logger.debug("Instance does not exist and not created")
             return None
