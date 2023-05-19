@@ -41,7 +41,6 @@ def main():
         raise UUIDNotFoundException("No se ha podido obtener el uuid del proyecto")
 
     uuid = project["uuid"]
-    uuids.append(uuid)
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
     if uuid in uuids:
@@ -54,6 +53,8 @@ def main():
     try:
         traspaso_client.migrate()
         saved_projects.append(project)
+        uuids.append(uuid)
+
     except Exception as e:
         logger.error("Error al traspasar el proyecto {project}", project=project)
         logger.error(e)
