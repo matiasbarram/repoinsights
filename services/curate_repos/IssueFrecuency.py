@@ -32,7 +32,7 @@ class IssueFrecuency:
         )
 
     def dt_to_str(self, dt):
-        return datetime.strftime(self.start_date, "%Y-%m-%d")
+        return datetime.strftime(dt, "%Y-%m-%d")
 
     def __get_issues_between_dates(
         self,

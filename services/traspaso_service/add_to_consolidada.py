@@ -46,7 +46,7 @@ class EntityHandler:
         # get consolidada id
         sks = self.entity_data[entity_class]["search_keys"]
         filters = self.create_filters(entity, sks)
-        exist_entity = self.search_entity(entity_class, entity, filters)
+        exist_entity = self.search_entity(entity_class, filters)
         if exist_entity is None:
             logger.error(
                 "No se encontro el {attr_name}/{attr_value} en la base de datos consolidada",
@@ -121,7 +121,7 @@ class EntityHandler:
                 search_filters[key] = getattr(entity, key)
         return search_filters
 
-    def search_entity(self, entity_class, entity, filters):
+    def search_entity(self, entity_class, filters):
         # Verificar si la entidad ya existe en la base de datos consolidada
         exist_entity = self.data_handler.find_by_attributes(
             session=self.db.session_consolidada, entity_class=entity_class, **filters
@@ -144,10 +144,8 @@ class EntityHandler:
         self, entity_class, entities, search_keys, add_keys, cache_map=None
     ):
         for entity in entities:
-            # TODO Obtener desde la base de datos el valor de los
-            # atributos que son llaves foraneas si es que no estan en el cache
             filters = self.create_filters(entity, search_keys)
-            exist = self.search_entity(entity_class, entity, filters)
+            exist = self.search_entity(entity_class, filters)
             if exist is None:
                 filters = self.create_filters(entity, add_keys)
                 if filters is not None:
