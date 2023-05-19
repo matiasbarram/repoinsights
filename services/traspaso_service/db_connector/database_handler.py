@@ -23,11 +23,11 @@ class CreateError(Exception):
 class DatabaseHandler:
     def __init__(self, connector: DBConnector):
         self.connector = connector
-        self.Session_consolidada = sessionmaker(bind=connector.consolidada_engine)
-        self.session_consolidada = self.Session_consolidada()
+        self.session_maker_consolidada = sessionmaker(bind=connector.consolidada_engine)
+        self.session_consolidada = self.session_maker_consolidada()
 
-        self.Session_temp = sessionmaker(bind=connector.temp_engine)
-        self.session_temp = self.Session_temp()
+        self.session_maker_temp = sessionmaker(bind=connector.temp_engine)
+        self.session_temp = self.session_maker_temp()
 
     def get_or_create(
         self,
