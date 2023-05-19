@@ -30,9 +30,7 @@ def all_done(failed: List[Dict[str, Any]], saved: List[Dict[str, Any]]):
     )
 
 
-def main(uuids):
-    saved_projects = []
-    failed_projects = []
+def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
     queue_client = QueueClient()
     project = queue_client.get_from_queue_curado()
 
@@ -62,5 +60,7 @@ def main(uuids):
 
 if __name__ == "__main__":
     uuids = []
+    saved_projects = []
+    failed_projects = []
     while True:
-        main(uuids)
+        main(uuids, saved_projects, failed_projects)
