@@ -14,12 +14,18 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+pk_projects = "projects.id"
+pk_users = "users.id"
+pk_commits = "commits.id"
+pk_issues = "issues.id"
+pk_pull_requests = "pull_requests.id"
+
 
 class Extraction(Base):
     __tablename__ = "extractions"
 
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey(pk_projects), nullable=False)
     date = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -30,8 +36,8 @@ class CommitComment(Base):
     __tablename__ = "commit_comments"
 
     id = Column(Integer, primary_key=True)
-    commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    commit_id = Column(Integer, ForeignKey(pk_commits), nullable=False)
+    user_id = Column(Integer, ForeignKey(pk_users), nullable=False)
     body = Column(String(256))
     line = Column(Integer)
     position = Column(Integer)
@@ -46,8 +52,8 @@ class CommitComment(Base):
 class CommitParent(Base):
     __tablename__ = "commit_parents"
 
-    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
-    parent_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    commit_id = Column(Integer, ForeignKey(pk_commits), primary_key=True)
+    parent_id = Column(Integer, ForeignKey(pk_commits), primary_key=True)
     ext_ref_id = Column(String(32), nullable=False)
 
     __table_args__ = (Index("idx_16399_parent_id", parent_id),)
@@ -58,9 +64,9 @@ class Commit(Base):
 
     id = Column(Integer, primary_key=True)
     sha = Column(String(40))
-    author_id = Column(Integer, ForeignKey("users.id"))
-    committer_id = Column(Integer, ForeignKey("users.id"))
-    project_id = Column(Integer, ForeignKey("projects.id"))
+    author_id = Column(Integer, ForeignKey(pk_users))
+    committer_id = Column(Integer, ForeignKey(pk_users))
+    project_id = Column(Integer, ForeignKey(pk_projects))
     created_at = Column(TIMESTAMP, nullable=False)
     message = Column(String(256))
     ext_ref_id = Column(String(32), nullable=False)
@@ -73,8 +79,8 @@ class Commit(Base):
 class Follower(Base):
     __tablename__ = "followers"
 
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    follower_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
+    follower_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -87,8 +93,8 @@ class Follower(Base):
 class Fork(Base):
     __tablename__ = "forks"
 
-    forked_project_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
-    forked_from_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
+    forked_project_id = Column(Integer, ForeignKey(pk_projects), primary_key=True)
+    forked_from_id = Column(Integer, ForeignKey(pk_projects), primary_key=True)
     fork_id = Column(Integer, primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
@@ -102,8 +108,8 @@ class Fork(Base):
 class IssueComment(Base):
     __tablename__ = "issue_comments"
 
-    issue_id = Column(Integer, ForeignKey("issues.id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    issue_id = Column(Integer, ForeignKey(pk_issues), primary_key=True)
+    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
     comment_id = Column(Text, primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
@@ -115,8 +121,8 @@ class IssueEvent(Base):
     __tablename__ = "issue_events"
 
     event_id = Column(Text, primary_key=True)
-    issue_id = Column(Integer, ForeignKey("issues.id"), nullable=False)
-    actor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    issue_id = Column(Integer, ForeignKey(pk_issues), nullable=False)
+    actor_id = Column(Integer, ForeignKey(pk_users), nullable=False)
     action = Column(String(255), nullable=False)
     action_specific = Column(String(50))
     created_at = Column(TIMESTAMP, nullable=False)
@@ -130,7 +136,7 @@ class IssueLabel(Base):
     __tablename__ = "issue_labels"
 
     label_id = Column(Integer, default=0, primary_key=True)
-    issue_id = Column(Integer, ForeignKey("issues.id"), default=0, primary_key=True)
+    issue_id = Column(Integer, ForeignKey(pk_issues), default=0, primary_key=True)
     ext_ref_id = Column(String(32), nullable=False)
 
 
@@ -138,9 +144,9 @@ class Issue(Base):
     __tablename__ = "issues"
 
     id = Column(Integer, primary_key=True)
-    repo_id = Column(Integer, ForeignKey("projects.id"))
-    reporter_id = Column(Integer, ForeignKey("users.id"))
-    assignee_id = Column(Integer, ForeignKey("users.id"))
+    repo_id = Column(Integer, ForeignKey(pk_projects))
+    reporter_id = Column(Integer, ForeignKey(pk_users))
+    assignee_id = Column(Integer, ForeignKey(pk_users))
     issue_id = Column(Text, nullable=False)
     pull_request = Column(Boolean, nullable=False)
     pull_request_id = Column(Integer)
@@ -160,8 +166,8 @@ class Issue(Base):
 class OrganizationMember(Base):
     __tablename__ = "organization_members"
 
-    org_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    org_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
+    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -169,8 +175,8 @@ class OrganizationMember(Base):
 class ProjectCommit(Base):
     __tablename__ = "project_commits"
 
-    project_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
-    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    project_id = Column(Integer, ForeignKey(pk_projects), primary_key=True)
+    commit_id = Column(Integer, ForeignKey(pk_commits), primary_key=True)
     ext_ref_id = Column(String(32), nullable=False)
 
     project = relationship("Project", back_populates="project_commits")
@@ -180,8 +186,8 @@ class ProjectCommit(Base):
 class ProjectMember(Base):
     __tablename__ = "project_members"
 
-    repo_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    repo_id = Column(Integer, ForeignKey(pk_projects), primary_key=True)
+    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -194,7 +200,7 @@ class Project(Base):
 
     id = Column(Integer, primary_key=True)
     url = Column(String(255))
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_id = Column(Integer, ForeignKey(pk_users))
     name = Column(String(255), nullable=False)
     description = Column(String(255))
     language = Column(String(255))
@@ -225,12 +231,12 @@ class Project(Base):
 class PullRequestComment(Base):
     __tablename__ = "pull_request_comments"
 
-    pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests), primary_key=True)
+    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
     comment_id = Column(Text, primary_key=True)
     position = Column(Integer)
     body = Column(String(256))
-    commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
+    commit_id = Column(Integer, ForeignKey(pk_commits), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -240,19 +246,19 @@ class PullRequestComment(Base):
 class PullRequestCommit(Base):
     __tablename__ = "pull_request_commits"
 
-    pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), primary_key=True)
-    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests), primary_key=True)
+    commit_id = Column(Integer, ForeignKey(pk_commits), primary_key=True)
 
 
 class PullRequestHistory(Base):
     __tablename__ = "pull_request_history"
 
     id = Column(Integer, primary_key=True)
-    pull_request_id = Column(Integer, ForeignKey("pull_requests.id"), nullable=False)
+    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
     action = Column(String(255), nullable=False)
-    actor_id = Column(Integer, ForeignKey("users.id"))
+    actor_id = Column(Integer, ForeignKey(pk_users))
 
     user = relationship("User", back_populates="pull_request_history")
 
@@ -261,11 +267,11 @@ class PullRequest(Base):
     __tablename__ = "pull_requests"
 
     id = Column(Integer, primary_key=True)
-    head_repo_id = Column(Integer, ForeignKey("projects.id"))
-    base_repo_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    head_commit_id = Column(Integer, ForeignKey("commits.id"))
-    base_commit_id = Column(Integer, ForeignKey("commits.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    head_repo_id = Column(Integer, ForeignKey(pk_projects))
+    base_repo_id = Column(Integer, ForeignKey(pk_projects), nullable=False)
+    head_commit_id = Column(Integer, ForeignKey(pk_commits))
+    base_commit_id = Column(Integer, ForeignKey(pk_commits), nullable=False)
+    user_id = Column(Integer, ForeignKey(pk_users), nullable=False)
     pullreq_id = Column(Integer, nullable=False)
     intra_branch = Column(Boolean, nullable=False)
     merged = Column(Boolean, default=False, nullable=False)
@@ -282,7 +288,7 @@ class RepoLabel(Base):
     __tablename__ = "repo_labels"
 
     id = Column(Integer, primary_key=True)
-    repo_id = Column(Integer, ForeignKey("projects.id"))
+    repo_id = Column(Integer, ForeignKey(pk_projects))
     name = Column(String(24), nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -293,7 +299,7 @@ class RepoMilestone(Base):
     __tablename__ = "repo_milestones"
 
     id = Column(Integer, primary_key=True)
-    repo_id = Column(Integer, ForeignKey("projects.id"))
+    repo_id = Column(Integer, ForeignKey(pk_projects))
     name = Column(String(24), nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -339,8 +345,8 @@ class User(Base):
 class Watcher(Base):
     __tablename__ = "watchers"
 
-    repo_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    repo_id = Column(Integer, ForeignKey(pk_projects), primary_key=True)
+    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(24), nullable=False, default="0")
 
