@@ -1,5 +1,5 @@
-from services.check_update_service.connector import DBConnector
-from services.check_update_service.models import Project, Commit, Extraction
+from services.pendientes_service.connector import DBConnector
+from services.pendientes_service.models import Project, Commit, Extraction
 from sqlalchemy.orm import sessionmaker, aliased
 from loguru import logger
 from datetime import datetime
