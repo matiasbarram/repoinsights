@@ -16,6 +16,7 @@ class UUIDNotFoundException(Exception):
 def handle_failed_project(
     project: Dict, queue_client: QueueClient, failed_projects: List[Dict[str, Any]]
 ):
+    logger.error("Error al traspasar el proyecto {project}", project=project)
     json_data = json.dumps(project)
     queue_client.enqueue(json_data)
     failed_projects.append(project)
@@ -49,14 +50,13 @@ def main():
             saved=saved_projects,
         )
         exit(0)
-
+    # flag the first uuid in the queue.
+    uuids.append(uuid)
     try:
         traspaso_client.migrate()
         saved_projects.append(project)
-        uuids.append(uuid)
 
     except Exception as e:
-        logger.error("Error al traspasar el proyecto {project}", project=project)
         logger.error(e)
         handle_failed_project(project, queue_client, failed_projects)
 
