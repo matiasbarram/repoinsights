@@ -1,9 +1,7 @@
 FROM python:3.10 AS base
 
-RUN addgroup -S nonroot \
-    && adduser -S nonroot -G nonroot
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
-USER nonroot
 
 WORKDIR /app
 
