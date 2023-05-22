@@ -1,4 +1,5 @@
-nod = """
+name: nod
+metric: >
     SELECT
         c.project_id,
         COUNT(DISTINCT c.author_id) AS number_of_developers
@@ -14,4 +15,3 @@ nod = """
         pr.name, c.project_id
     ORDER BY 
         number_of_developers DESC;
-    """

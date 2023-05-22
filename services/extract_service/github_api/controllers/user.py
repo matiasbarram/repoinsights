@@ -2,8 +2,8 @@ from services.extract_service.github_api.github_api import GitHubAPI
 from typing import Optional, Dict, Any, List, Set, Iterator, Union
 from loguru import logger
 from datetime import datetime
-from ..utils.utils import get_unique_users, add_users_to_dict_keys
-from .github_api import Cache
+from ...utils.utils import get_unique_users, add_users_to_dict_keys
+from ..github_api import Cache
 from pprint import pprint
 
 

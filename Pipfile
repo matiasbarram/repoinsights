@@ -18,6 +18,8 @@ loguru = "*"
 httpx = "*"
 redis = "*"
 pandas = "*"
+pylint = "*"
+pyyaml = "*"
 
 [dev-packages]
 black = "*"

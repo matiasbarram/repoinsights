@@ -1,7 +1,11 @@
 from typing import Optional, Dict, Any, List, Set, Iterator
-from services.extract_service.github_api.user import Repository, Commit, User
-from services.extract_service.github_api.issue import Issue
-from services.extract_service.github_api.pull_request import PullRequest
+from services.extract_service.github_api.controllers.user import (
+    Repository,
+    Commit,
+    User,
+)
+from services.extract_service.github_api.controllers.issue import Issue
+from services.extract_service.github_api.controllers.pull_request import PullRequest
 from services.extract_service.github_api.github_api import GitHubAPI
 from datetime import datetime
 

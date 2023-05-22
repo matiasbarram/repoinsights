@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from .github_api import GitHubAPI
+from ..github_api import GitHubAPI
 from .user import User
 from loguru import logger
-from ..utils.utils import add_users_to_dict_keys
+from ...utils.utils import add_users_to_dict_keys
 
 
 class PullRequest:

@@ -1,0 +1,25 @@
+name: avg_time_commits_per_dev
+metric: >
+    WITH dev_commits AS (
+    SELECT
+    c.author_id,
+    u.name AS author_name,
+    COUNT(*) AS commit_count
+    FROM
+    commits c
+    INNER JOIN users u ON c.author_id = u.id
+    WHERE
+    c.project_id = %s
+    GROUP BY
+    c.author_id,
+    u.name
+    )
+
+    SELECT
+    author_id,
+    author_name,
+    commit_count::numeric / NULLIF(SUM(commit_count) OVER (), 0) AS avg_commits
+    FROM
+    dev_commits
+    ORDER BY
+    commit_count DESC

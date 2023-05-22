@@ -1,5 +1,6 @@
-from sqlalchemy import create_engine, select, Select, Engine, URL
+""""""
 import os
+from sqlalchemy import create_engine, Engine
 
 CONSOLIDADA_USER = os.environ["CONSOLIDADA_USER"]
 CONSOLIDADA_PASSWORD = os.environ["CONSOLIDADA_PASS"]
@@ -9,6 +10,10 @@ CONSOLIDADA_PORT = os.environ["CONSOLIDADA_PORT"]
 
 
 class DBConnector:
+    """
+    Clase que se conecta con consolidada
+    """
+
     def __init__(
         self,
     ) -> None:
@@ -22,8 +27,11 @@ class DBConnector:
         return engine
 
     def test_connection(self, engine: Engine) -> None:
+        """
+        test db connection
+        """
         try:
             engine.connect()
             print("Conexión exitosa!")
-        except Exception as e:
-            print("Error de conexión: ", str(e))
+        except Exception as excepcion:
+            print("Error de conexión: ", str(excepcion))

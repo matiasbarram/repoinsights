@@ -1,0 +1,24 @@
+name: age
+metric: >
+    WITH open_close_dates AS (
+        SELECT
+            pr.id AS pull_request_id,
+            MAX(CASE WHEN prh.action = 'opened' THEN prh.created_at END) AS opened_at,
+            MAX(CASE WHEN prh.action = 'closed' THEN prh.created_at END) AS closed_at
+        FROM
+            pull_requests pr
+            JOIN pull_request_history prh ON pr.id = prh.pull_request_id
+        WHERE
+            pr.base_repo_id = %s
+        GROUP BY
+            pr.id
+    )
+    SELECT
+        pull_request_id,
+        opened_at,
+        closed_at,
+        EXTRACT(EPOCH FROM (closed_at - opened_at)) / 3600 AS age_hours
+    FROM
+        open_close_dates
+    WHERE
+        opened_at IS NOT NULL AND closed_at IS NOT NULL;

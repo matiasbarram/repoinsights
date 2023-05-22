@@ -1,4 +1,4 @@
-from services.generate_metrics.calculate_metrics import InsightsMetrics
+from services.metrics_service.calculate import InsightsMetrics
 from pprint import pprint
 
 
@@ -10,4 +10,3 @@ def main(project_id):
 
 if __name__ == "__main__":
     main(10380)
-    main(1)

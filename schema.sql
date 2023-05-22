@@ -667,7 +667,7 @@ CREATE TABLE ghtorrent_restore_2015.metrics_log (
     id integer NOT NULL,
     repo_id integer,
     metric_id integer NOT NULL,
-    value integer NOT NULL,
+    value jsonb NOT NULL,
     date timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
