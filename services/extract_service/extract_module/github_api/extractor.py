@@ -1,13 +1,18 @@
-from typing import Optional, Dict, Any, List, Set, Iterator
-from services.extract_service.github_api.controllers.user import (
-    Repository,
-    Commit,
-    User,
-)
-from services.extract_service.github_api.controllers.issue import Issue
-from services.extract_service.github_api.controllers.pull_request import PullRequest
-from services.extract_service.github_api.github_api import GitHubAPI
+from typing import Optional, Dict, Any, List
 from datetime import datetime
+from services.extract_service.extract_module.github_api.controllers.repository import (
+    Repository,
+)
+from services.extract_service.extract_module.github_api.controllers.commit import (
+    Commit,
+)
+from services.extract_service.extract_module.github_api.controllers.user import User
+from services.extract_service.extract_module.github_api.controllers.issue import Issue
+from services.extract_service.extract_module.github_api.controllers.pull_request import (
+    PullRequest,
+)
+
+from services.extract_service.extract_module.github_api.github_api import GitHubAPI
 
 
 class GitHubExtractor:
@@ -23,11 +28,11 @@ class GitHubExtractor:
         self.until = until
         self.api = GitHubAPI()
 
-        self.repositorio = Repository(self.api, repositorio, usuario)
-        self.user_repo = User(self.api)
-        self.commit_repo = Commit(self.api, usuario, repositorio)
+        self.user = User(self.api)
+        self.repositorio = Repository(self.api, repositorio, usuario, self.user)
+        self.commit = Commit(self.api, usuario, repositorio, self.user)
         self.issue = Issue(self.api, usuario, repositorio)
-        self.pull_request = PullRequest(self.api, usuario, repositorio)
+        self.pull_request = PullRequest(self.api, usuario, repositorio, self.user)
 
     def obtener_repo_info(self):
         return self.repositorio.obtener_repositorio()
@@ -36,19 +41,19 @@ class GitHubExtractor:
         return self.repositorio.obtener_contribuidores()
 
     def obtener_usuario(self, usuario):
-        return self.user_repo.obtener_usuario(usuario)
+        return self.user.obtener_usuario(usuario)
 
     def obtener_commits(self, since: Optional[datetime] = None, until=None):
-        return self.commit_repo.obtener_commits(since=since, until=until)
+        return self.commit.obtener_commits(since=since, until=until)
 
     def obtener_commit(self, commit_sha):
-        return self.commit_repo.obtener_commit(commit_sha)
+        return self.commit.obtener_commit(commit_sha)
 
     def obtener_commit_comments(self, commit_sha):
-        return self.commit_repo.obtener_commit_comments(commit_sha)
+        return self.commit.obtener_commit_comments(commit_sha)
 
     def obtener_comments(self):
-        return self.commit_repo.obtener_comments()
+        return self.commit.obtener_comments()
 
     def obtener_issues(self, since=None, until=None, state=None):
         return self.issue.obtener_issues(since=since, until=until, state=state)

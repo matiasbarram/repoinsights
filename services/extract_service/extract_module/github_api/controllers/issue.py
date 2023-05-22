@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from ..github_api import GitHubAPI
 from .user import User
-from ...utils.utils import add_users_to_dict_keys
+from services.extract_service.utils.utils import add_users_to_dict_keys
 from .user import User
-from ...utils.utils import add_users_to_dict_keys
+from services.extract_service.utils.utils import add_users_to_dict_keys
 
 
 class Issue:
@@ -27,7 +27,7 @@ class Issue:
         if since:
             params["since"] = since  # type: ignore
 
-        issues = self.api.invoke_with_rate_limit_handling(
+        issues = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name="issues",
             url=url,
@@ -44,7 +44,7 @@ class Issue:
     def obtener_issues_comments(self) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/issues/comments"
         params = {"per_page": 100}
-        issues_comments = self.api.invoke_with_rate_limit_handling(
+        issues_comments = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name="issues_comments",
             url=url,
@@ -57,7 +57,7 @@ class Issue:
     def obtener_issue_events(self, issue_id) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/issues/{issue_id}/events"
         params = {"per_page": 100}
-        issues_events = self.api.invoke_with_rate_limit_handling(
+        issues_events = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name=f"issues_events de {issue_id}",
             url=url,
@@ -70,7 +70,7 @@ class Issue:
     def obtener_issues_events(self) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/issues/events"
         params = {"per_page": 100}
-        issues_events = self.api.invoke_with_rate_limit_handling(
+        issues_events = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name="issues_events",
             url=url,

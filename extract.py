@@ -1,11 +1,12 @@
-from services.extract_service.clients.client import InsightsClient
-
-
 from datetime import datetime
-from pprint import pprint
-import json
 from loguru import logger
 import argparse
+
+from services.extract_service.client import InsightsClient
+from services.extract_service.excepctions.exceptions import (
+    GitHubUserException,
+    ProjectNotFoundError,
+)
 
 
 def logs(debug):
@@ -17,17 +18,10 @@ def logs(debug):
 
 
 def main(debug=None):
+    """
+    "commits", "pull_requests", "issues", "labels", "stargazers", "members", "milestones
+    """
     logs(debug)
-    """
-    valid data_types:
-    -   "commits"
-    -   "pull_requests"
-    -   "issues"
-    -   "labels"
-    -   "stargazers"
-    -   "members"
-    -   "milestones
-    """
     data_types = [
         "commits",
         "pull_requests",
@@ -37,11 +31,22 @@ def main(debug=None):
     ]
 
     client = InsightsClient(data_types)
-    client.get_from_pendientes()
     try:
         results = client.extract()
         client.load(results)
         client.enqueue_to_curado()
+
+    except GitHubUserException as e:
+        logger.error("Repositorio migrado, encolando para eliminar")
+        # todo encolar para eliminar
+
+    except ProjectNotFoundError as e:
+        logger.error("Proyecto no encontrado, marcar como eliminado")
+        # todo encolar para marcar como eliminado
+
+    except KeyboardInterrupt:
+        logger.error("Proceso interrumpido por el usuario")
+        client.enqueue_to_pendientes()
 
     except Exception as e:
         logger.error(f"Fallo en la extracción. volviendo a encolar: {e}")

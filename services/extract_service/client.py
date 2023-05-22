@@ -1,24 +1,14 @@
-from .extract_client import ExtractDataClient
-from .load_client import LoadDataClient
-from .enqueue_client import QueueClient
 import json
 from typing import Dict, Any, List, Union
 from datetime import datetime
-from ..utils.utils import format_dt, api_date
 from loguru import logger
 import uuid
 
-
-class EmptyQueueError(Exception):
-    pass
-
-
-class ExtractError(Exception):
-    pass
-
-
-class LoadError(Exception):
-    pass
+from .utils.utils import format_dt, api_date
+from services.extract_service.extract_module.extract_client import ExtractDataClient
+from .queue_module.enqueue_client import QueueClient
+from .load_module.load_client import LoadDataClient
+from .excepctions.exceptions import ExtractError, LoadError
 
 
 class InsightsClient:
@@ -26,28 +16,48 @@ class InsightsClient:
         self.data_types = data_types
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
-
+        self.project_id = None
         self.queue_client = QueueClient()
 
+        (
+            self.pending_repo,
+            self.owner,
+            self.repo,
+            self.since,
+        ) = self.get_from_pendientes()
+
+        self.extract_data = ExtractDataClient(
+            owner=self.owner,
+            repo=self.repo,
+            since=self.since,
+            until=self.until,
+            data_types=self.data_types,
+        )
+
     def get_from_pendientes(self):
-        queue_repo = self.queue_client.get_from_queue()
-        if queue_repo:
-            self.queue_repo = queue_repo
-            self.owner = self.queue_repo["owner"]
-            self.repo = self.queue_repo["project"]
-            self.since: Union[datetime, None] = (
-                api_date(self.queue_repo["last_extraction"])
-                if self.queue_repo["last_extraction"]
+        pending_project = self.queue_client.get_from_queue()
+        if pending_project:
+            pending_repo = pending_project
+            owner = pending_repo["owner"]
+            repo = pending_repo["project"]
+            since: Union[datetime, None] = (
+                api_date(pending_repo["last_extraction"])
+                if pending_repo["last_extraction"]
                 else None
             )
-            logger.critical("QUEUE pendientes {project}", project=self.queue_repo)
+            logger.critical("QUEUE pendientes {project}", project=pending_repo)
+            return pending_repo, owner, repo, since
         else:
-            raise EmptyQueueError("No hay proyectos en la cola")
+            logger.critical("No hay proyectos pendientes")
+            exit(0)
 
     def enqueue_to_pendientes(self):
-        self.queue_repo["enqueue_time"] = datetime.now().isoformat()
-        self.queue_repo["attempt"] = self.queue_repo["attempt"] + 1
-        json_data = json.dumps(self.queue_repo)
+        if self.pending_repo is None:
+            raise LoadError("No hay proyecto pendiente")
+
+        self.pending_repo["enqueue_time"] = datetime.now().isoformat()
+        self.pending_repo["attempt"] = self.pending_repo["attempt"] + 1
+        json_data = json.dumps(self.pending_repo)
         self.queue_client.enqueue(json_data, "pendientes")
 
     def extract(self) -> List[Dict[str, Any]]:
@@ -59,25 +69,13 @@ class InsightsClient:
             until=self.until,
             data_types=self.data_types,
         )
-
-        extract_data = ExtractDataClient(
-            owner=self.owner,
-            repo=self.repo,
-            since=self.since,
-            until=self.until,
-            data_types=self.data_types,
-        )
-        try:
-            data = extract_data.extract()
-            return data
-        except Exception as e:
-            logger.critical(f"Error extracting data from GitHub: {e}")
-            raise ExtractError("Error extracting data from GitHub")
+        data = self.extract_data.extract()
+        return data
 
     def load(self, results) -> None:
         logger.critical("Loading to TEMP DB")
         try:
-            load_client = LoadDataClient(results, self.uuid)
+            load_client = LoadDataClient(results, self.uuid, self.owner, self.repo)
             load_client.load_to_temp_db()
             self.project_id = load_client.get_project_id()
         except Exception as e:

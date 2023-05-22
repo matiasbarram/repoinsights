@@ -1,17 +1,15 @@
 import requests
 from loguru import logger
-from ..utils.utils import api_date
-from ..config import GHToken
-from typing import Optional, Dict, Any, List, Set, Iterator, Union
+from typing import Optional, Dict, Union
 import json
 import redis
 import time
 import os
 from datetime import datetime
-from pprint import pprint
-from ..utils.utils import format_dt
 
-from services.extract_service.errors import (
+from services.extract_service.utils.utils import api_date, format_dt
+from services.extract_service.config import GHToken
+from services.extract_service.excepctions.exceptions import (
     RateLimitExceededError,
     NoMoreTokensError,
     ProjectNotFoundError,
@@ -24,21 +22,20 @@ class GitHubAPI:
         self.tokens_handler = GHToken()
         tokens = self.tokens_handler.get_public_tokens()
         self.token = tokens[0]
-        logger.critical(f"Using token {self.token[-10:]}")
         self.headers = {"Authorization": f"token {self.token}"}
 
-    def invoke_with_rate_limit_handling(self, func, *args, **kwargs):
+    def rate_limit_handling(self, func, *args, **kwargs):
         while True:
             try:
                 return func(*args, **kwargs)
             except RateLimitExceededError:
                 try:
                     self._handle_no_more_calls()
-                    self.invoke_with_rate_limit_handling(func, *args, **kwargs)
+                    self.rate_limit_handling(func, *args, **kwargs)
                 except NoMoreTokensError:
                     logger.critical("No more tokens")
                     self._handle_wait_time()
-                    self.invoke_with_rate_limit_handling(func, *args, **kwargs)
+                    self.rate_limit_handling(func, *args, **kwargs)
 
     def update_token(self, new_token: str):
         self.token = new_token
@@ -126,6 +123,9 @@ class GitHubAPI:
 
         while url:
             response = self.get(url, params=params, headers=headers, name=name)
+            if response is None:
+                break
+
             elementos.extend(response.json())
             logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
             pag += 1

@@ -1,5 +1,9 @@
-from ..config import GHToken
-from services.extract_service.repoinsights.repository import InsightsRepository
+from services.extract_service.extract_module.github_api.extractor import GitHubExtractor
+from datetime import datetime
+from loguru import logger
+from typing import Union, List
+from services.extract_service.utils.paralell import run_in_parallel
+
 from services.extract_service.repoinsights.handlers.commit_handler import (
     InsightsCommitHandler,
 )
@@ -18,14 +22,6 @@ from services.extract_service.repoinsights.handlers.pull_request_handler import 
 from services.extract_service.repoinsights.handlers.repository_handler import (
     InsightsRepositoryHandler,
 )
-from services.extract_service.github_api.extractor import GitHubExtractor
-
-from datetime import datetime
-from loguru import logger
-from typing import Union, List
-from services.extract_service.utils.paralell import run_in_parallel
-import json
-from pprint import pprint
 
 
 class RepoNotFound(Exception):
@@ -46,9 +42,6 @@ class ExtractDataClient:
         self.until = until
 
         self.repo = GitHubExtractor(owner, repo)
-        if self.repo.repositorio is None:
-            raise RepoNotFound("Repository not found")
-
         self.commit_handler = InsightsCommitHandler(self.repo)
         self.project_handler = InsightsProjectUserHandler(self.repo)
         self.pull_request_handler = InsightsPullRequestHandler(self.repo)
@@ -58,7 +51,8 @@ class ExtractDataClient:
 
     def extract(self):
         args_list = [(data_type,) for data_type in self.data_types]
-        args_list.append(("project",))
+        # args_list.append(("project",))
+        results = self.extract_data("project")
         results = run_in_parallel(self.extract_data, args_list)
         return results
 
@@ -73,7 +67,7 @@ class ExtractDataClient:
             return {"name": "commit", "data": commits}
 
         elif data_type == "project":
-            projects = self.repo_handler.get_repo_info()
+            projects = self.repo_handler.get_main_repo()
             logger.info("Project owner: {owner}", owner=projects["owner"]["login"])
             return {"name": "project", "data": projects}
 

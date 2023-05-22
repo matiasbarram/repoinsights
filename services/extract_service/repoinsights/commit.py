@@ -1,13 +1,7 @@
 from pprint import pprint
-from github.Commit import Commit
-from github.GitAuthor import GitAuthor
-from github.NamedUser import NamedUser
-from github.PullRequestPart import PullRequestPart
 from .user import InsightsUser
-from datetime import datetime
 from .comment import InsightsCommitComment
 from typing import List, Union, Any, Dict
-import json
 
 
 class InsightsCommit:

@@ -11,8 +11,10 @@ from services.extract_service.repoinsights.label import InsightsLabel
 from services.extract_service.repoinsights.user import InsightsUser
 from services.extract_service.repoinsights.isssue import InsightsIssue
 from services.extract_service.repoinsights.issue_event import InsightsIssueEvent
-from services.extract_service.db_connector.connector import DBConnector
-from services.extract_service.db_connector.database_handler import DatabaseHandler
+from services.extract_service.load_module.db_connector.connector import DBConnector
+from services.extract_service.load_module.db_connector.database_handler import (
+    DatabaseHandler,
+)
 
 from typing import List, Union, Dict, Any
 from loguru import logger
@@ -27,9 +29,13 @@ class ExtractDataResulstsError(Exception):
 
 
 class LoadDataClient:
-    def __init__(self, results: List[Dict[str, Any]], uuid: str) -> None:
+    def __init__(
+        self, results: List[Dict[str, Any]], uuid: str, owner: str, project
+    ) -> None:
         self.temp_db = DatabaseHandler(DBConnector("temp"), uuid)
         self.sorted_results = self.sort_results(results)
+        self.owner = owner
+        self.project = project
 
     def sort_results(self, results: List[Dict[str, Any]]):
         order = {

@@ -3,14 +3,15 @@ from typing import Any, Dict, List, Optional
 from ..github_api import GitHubAPI
 from .user import User
 from loguru import logger
-from ...utils.utils import add_users_to_dict_keys
+from services.extract_service.utils.utils import add_users_to_dict_keys
 
 
 class PullRequest:
-    def __init__(self, api: GitHubAPI, usuario, repositorio) -> None:
+    def __init__(self, api: GitHubAPI, usuario, repositorio, user: User) -> None:
         self.api = api
         self.usuario = usuario
         self.repositorio = repositorio
+        self.user_controller = user
 
     def obtener_pull_requests(
         self,
@@ -29,7 +30,7 @@ class PullRequest:
         if direction:
             params["direction"] = direction
 
-        pull_requests = self.api.invoke_with_rate_limit_handling(
+        pull_requests = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name="pull_requests",
             url=url,
@@ -37,7 +38,7 @@ class PullRequest:
         )
         prs_filtradas = self.api._filtrar_por_fecha(pull_requests, since, until)
 
-        users = User(self.api)._get_users_for_keys(
+        users = self.user_controller._get_users_for_keys(
             prs_filtradas,
             [
                 "user",
@@ -77,14 +78,14 @@ class PullRequest:
         if direction:
             params["direction"] = direction
 
-        pull_requests_comments = self.api.invoke_with_rate_limit_handling(
+        pull_requests_comments = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
             name="pull_requests_comments",
             url=url,
             params=params,
         )
 
-        users = User(self.api)._get_users_for_keys(
+        users = self.user_controller._get_users_for_keys(
             pull_requests_comments,
             ["user"],
         )
