@@ -47,7 +47,6 @@ class DatabaseHandler:
                 coalesce(
                     last_extractions.c.max_extraction_date,
                     last_commits.c.max_commit_date,
-                    datetime.min,
                 ).label("last_activity_date"),
             )
             .outerjoin(last_extractions, Project.id == last_extractions.c.project_id)
@@ -57,14 +56,12 @@ class DatabaseHandler:
                 coalesce(
                     last_extractions.c.max_extraction_date,
                     last_commits.c.max_commit_date,
-                    datetime.min,
                 )
                 < datetime.utcnow().date()
             )
             .order_by(asc("last_activity_date"))
             .all()
         )
-
         for project, last_activity_date in projects_with_dates:
             enqueue_list.append(
                 {

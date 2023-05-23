@@ -51,7 +51,6 @@ class ExtractDataClient:
 
     def extract(self):
         args_list = [(data_type,) for data_type in self.data_types]
-        # args_list.append(("project",))
         main_project = self.extract_data("project")
         results = run_in_parallel(self.extract_data, args_list)
         results.append(main_project)
