@@ -8,7 +8,7 @@ from .utils.utils import format_dt, api_date
 from services.extract_service.extract_module.extract_client import ExtractDataClient
 from .queue_module.enqueue_client import QueueClient
 from .load_module.load_client import LoadDataClient
-from .excepctions.exceptions import ExtractError, LoadError
+from .excepctions.exceptions import LoadError
 
 
 class InsightsClient:
