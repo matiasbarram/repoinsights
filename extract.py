@@ -57,4 +57,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="InsightsClient script")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()
-    main(args.debug)
+    while True:
+        main(args.debug)

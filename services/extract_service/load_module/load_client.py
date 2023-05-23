@@ -83,7 +83,7 @@ class LoadDataClient:
         self.repository.set_owner_id(self.load_user(self.repository.owner))
         self.repo_id = self.load_repository(self.repository)
         self.repository.set_repo_id(self.repo_id)
-        self.load_extraction_project(self.repository.id)
+        self.load_extraction_project(self.repo_id)
 
     def load_extraction_project(self, repo_id: int):
         logger.debug(
@@ -119,7 +119,7 @@ class LoadDataClient:
             user_id = self.load_user(member)
             member_data = {
                 "user_id": user_id,
-                "project_id": self.repository.id,
+                "project_id": self.repo_id,
             }
             return self.temp_db.create_members(member_data)
 
@@ -149,7 +149,7 @@ class LoadDataClient:
         logger.debug(
             "Loading watchers for repository {name}", name=self.repository.name
         )
-        self.temp_db.create_watchers(watchers, self.repository.id)
+        self.temp_db.create_watchers(watchers, self.repo_id)
 
     def load_pull_request_comments(
         self, _, pr_id, comments: List[InsightsPullRequestComment]
@@ -217,7 +217,7 @@ class LoadDataClient:
     def load_commits_data(self, commits: List[InsightsCommit]):
         commit: InsightsCommit
         for commit in commits:
-            commit.set_project_id(self.repository.id)
+            commit.set_project_id(self.repo_id)
             commit.set_author_id(
                 self.load_user(commit.author) if commit.author else None
             )
@@ -254,12 +254,12 @@ class LoadDataClient:
         if pr_repo is None:
             return
         if pr_repo.forked_from is True:
-            pr_repo.set_forked_from_id(self.repository.id)
+            pr_repo.set_forked_from_id(self.repo_id)
         if pr_repo.raw_repo["owner"] is not None:
             pr_repo.set_owner_id(self.load_user(pr_repo.owner))
 
     def update_commit_data(self, pr_commit: InsightsCommit):
-        pr_commit.set_project_id(self.repository.id)
+        pr_commit.set_project_id(self.repo_id)
         if pr_commit.author is None:
             pr_commit.set_author_id(None)
         else:
