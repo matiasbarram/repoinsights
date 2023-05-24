@@ -24,14 +24,12 @@ from services.traspaso_service.db_connector.models import (
     Extraction,
 )
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
-import pandas as pd
-from sqlalchemy.orm import Session
-from pandas import Series, DataFrame
 from pprint import pprint
 from loguru import logger
-import csv
-from typing import List
-import copy
+
+from typing import List, TypeVar, Type
+
+T = TypeVar("T")
 
 
 class TempClient:
@@ -39,122 +37,62 @@ class TempClient:
         self.db = db
         self.uuid = uuid
 
+    def _get_items(self, item_class: Type[T]) -> List[T]:
+        items = (
+            self.db.session_temp.query(item_class).filter_by(ext_ref_id=self.uuid).all()
+        )
+        return items
+
     def get_users(self) -> List[User]:
-        users = self.db.session_temp.query(User).filter_by(ext_ref_id=self.uuid).all()
-        return users
+        return self._get_items(User)
 
     def get_projects(self) -> List[Project]:
-        projects = (
-            self.db.session_temp.query(Project).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return projects
+        return self._get_items(Project)
 
     def get_extractions(self) -> List[Extraction]:
-        extractions = (
-            self.db.session_temp.query(Extraction).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return extractions
+        return self._get_items(Extraction)
 
     def get_project_members(self) -> List[ProjectMember]:
-        project_members = (
-            self.db.session_temp.query(ProjectMember)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return project_members
+        return self._get_items(ProjectMember)
 
     def get_commits(self) -> List[Commit]:
-        commits = (
-            self.db.session_temp.query(Commit).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return commits
+        return self._get_items(Commit)
 
     def get_issues(self) -> List[Issue]:
-        issues = self.db.session_temp.query(Issue).filter_by(ext_ref_id=self.uuid).all()
-        return issues
+        return self._get_items(Issue)
 
     def get_prs(self) -> List[PullRequest]:
-        prs = (
-            self.db.session_temp.query(PullRequest)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return prs
+        return self._get_items(PullRequest)
 
     def get_commit_comments(self) -> List[CommitComment]:
-        commit_comments = (
-            self.db.session_temp.query(CommitComment)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return commit_comments
+        return self._get_items(CommitComment)
 
     def get_commit_parents(self) -> List[CommitParent]:
-        commit_parents = (
-            self.db.session_temp.query(CommitParent)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return commit_parents
+        return self._get_items(CommitParent)
 
     def get_issue_comments(self) -> List[IssueComment]:
-        issue_comments = (
-            self.db.session_temp.query(IssueComment)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return issue_comments
+        return self._get_items(IssueComment)
 
     def get_issue_events(self) -> List[IssueEvent]:
-        issue_events = (
-            self.db.session_temp.query(IssueEvent).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return issue_events
+        return self._get_items(IssueEvent)
 
     def get_issue_labels(self) -> List[IssueLabel]:
-        issue_labels = (
-            self.db.session_temp.query(IssueLabel).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return issue_labels
+        return self._get_items(IssueLabel)
 
     def get_pr_comments(self) -> List[PullRequestComment]:
-        pr_comments = (
-            self.db.session_temp.query(PullRequestComment)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return pr_comments
+        return self._get_items(PullRequestComment)
 
     def get_pr_history(self) -> List[PullRequestHistory]:
-        pr_history = (
-            self.db.session_temp.query(PullRequestHistory)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return pr_history
+        return self._get_items(PullRequestHistory)
 
     def get_labels(self) -> List[RepoLabel]:
-        labels = (
-            self.db.session_temp.query(RepoLabel).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return labels
+        return self._get_items(RepoLabel)
 
     def get_milestones(self) -> List[RepoMilestone]:
-        milestones = (
-            self.db.session_temp.query(RepoMilestone)
-            .filter_by(ext_ref_id=self.uuid)
-            .all()
-        )
-        return milestones
+        return self._get_items(RepoMilestone)
 
     def get_watchers(self) -> List[Watcher]:
-        watchers = (
-            self.db.session_temp.query(Watcher).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return watchers
+        return self._get_items(Watcher)
 
     def get_followers(self) -> List[Follower]:
-        followers = (
-            self.db.session_temp.query(Follower).filter_by(ext_ref_id=self.uuid).all()
-        )
-        return followers
+        return self._get_items(Follower)

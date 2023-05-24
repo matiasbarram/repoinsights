@@ -80,7 +80,7 @@ class InsightsClient:
             self.project_id = load_client.get_project_id()
         except Exception as e:
             logger.critical(f"Error loading data to TEMP DB: {e}")
-            raise LoadError("Error loading data to TEMP DB")
+            raise LoadError("Error loading data to TEMP DB", e)
 
     def enqueue_to_curado(self) -> None:
         project_data = {
