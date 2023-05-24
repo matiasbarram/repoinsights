@@ -1,4 +1,7 @@
 name: nod
+description: This metric calculate the number of devs that have contributed to a project
+measurement: integer
+
 metric: >
     SELECT
         c.project_id,

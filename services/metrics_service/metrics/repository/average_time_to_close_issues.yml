@@ -1,11 +1,13 @@
 name: avg_time_to_close_issues
+description: Average time to close issues.
+measurement: hours
 metric: >
   WITH closed_issues AS (
   SELECT
       i.id AS issue_id,
       i.repo_id AS project_id,
       i.created_at AS created_at,
-      MIN(ie.created_at) AS closed_at
+      MAX(ie.created_at) AS closed_at
   FROM issues i
   JOIN issue_events ie ON i.id = ie.issue_id
   WHERE i.repo_id = %s AND ie.action = 'closed'

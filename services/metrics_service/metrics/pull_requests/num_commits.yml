@@ -1,8 +1,10 @@
 name: num_commits
+description: Number of commits in pull requests.
+measurement: count
 metric: >
     SELECT
         base_repo_id AS repo_id, 
-        pr.pullreq_id AS pull_request_id,
+        pr.id AS pull_request_id,
         COUNT(prc.commit_id) AS num_commits
     FROM
         pull_requests pr

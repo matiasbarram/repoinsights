@@ -1,4 +1,6 @@
 name: irt
+description: Average time to resolve issues.
+measurement: hours
 metric: >
     SELECT 
         p.id AS project_id,
@@ -19,5 +21,4 @@ metric: >
         ) ie ON i.id = ie.issue_id
     WHERE
         p.id = %s
-    GROUP BY p.id
-    ;
+    GROUP BY p.id;

@@ -1,4 +1,6 @@
 name: maintenance_type
+description: The issue labels in the repository.
+measurement: percentage
 metric: >
     WITH issue_label_mapping AS (
         SELECT

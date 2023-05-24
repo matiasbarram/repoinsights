@@ -3,6 +3,7 @@ from loguru import logger
 from services.extract_service.extract_module.github_api.github_api import GitHubAPI
 from services.extract_service.extract_module.github_api.controllers.user import User
 from services.extract_service.utils.utils import add_users_to_dict_keys
+from services.extract_service.repoinsights.repository import InsightsRepository
 from services.extract_service.excepctions.exceptions import (
     ProjectNotFoundError,
     GitHubUserException,
@@ -45,6 +46,7 @@ class Repository:
         self.validate_repo_name(full_name)
         owner_data = self.user_controller.obtener_usuario(self.usuario)
         repo["owner"] = owner_data
+
         return repo
 
     def obtener_contribuidores(self):

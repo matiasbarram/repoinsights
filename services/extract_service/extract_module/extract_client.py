@@ -67,9 +67,9 @@ class ExtractDataClient:
             return {"name": "commit", "data": commits}
 
         elif data_type == "project":
-            projects = self.repo_handler.get_main_repo()
-            logger.info("Project owner: {owner}", owner=projects["owner"]["login"])
-            return {"name": "project", "data": projects}
+            project = self.repo_handler.get_main_repo()
+            logger.info("Project owner: {owner}", owner=project.owner.login)
+            return {"name": "project", "data": project}
 
         elif data_type == "pull_requests":
             prs = self.pull_request_handler.get_all_pull_requests(

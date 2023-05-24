@@ -1,38 +1,35 @@
 name: commits_per_week_last_90_days
-description: "Commits per week for the last 90 days"
-variables: [project_id, project_id]
+description: Commits per week for the last 90 days
+measurement: int
 metric: >
     WITH commits_90_days AS (
-    SELECT 
-        project_id,
-        author_id,
-        COUNT(*) AS num_commits
-    FROM 
-        commits
-    WHERE 
-        created_at BETWEEN '2012-10-04' AND '2013-01-01' AND
-        project_id = %s
-    GROUP BY 
-        project_id, author_id
+        SELECT 
+            project_id,
+            COUNT(*) AS num_commits
+        FROM 
+            commits
+        WHERE 
+            created_at BETWEEN current_date - interval '90 days' AND current_date
+        GROUP BY 
+            project_id
     ), 
     active_weeks AS (
         SELECT 
             project_id, 
-            author_id, 
             COUNT(DISTINCT date_trunc('week', created_at)) AS num_weeks
         FROM 
             commits
         WHERE 
-            created_at BETWEEN '2012-10-04' AND '2013-01-01' AND
-            project_id = %s
+            created_at BETWEEN current_date - interval '90 days' AND current_date
         GROUP BY 
-            project_id, author_id
+            project_id
     )
     SELECT 
-        a.id AS author_id,
-        a.name AS author_name,
-        COALESCE(c.num_commits, 0) / COALESCE(w.num_weeks, 1) AS avg_commits_per_week
+        p.id AS project_id,
+        COALESCE(c.num_commits, 0) / GREATEST(COALESCE(w.num_weeks, 1), 1) AS avg_commits_per_week
     FROM 
-        active_weeks w
-        INNER JOIN users a ON w.author_id = a.id
-        LEFT JOIN commits_90_days c ON w.author_id = c.author_id AND w.project_id = c.project_id;
+        projects p 
+        LEFT JOIN active_weeks w ON p.id = w.project_id
+        LEFT JOIN commits_90_days c ON p.id = c.project_id
+    WHERE 
+        p.id = %s

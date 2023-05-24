@@ -1,4 +1,8 @@
-name: hero_project_query
+name: hero_project
+description: Concentration of contributions from a small number of contributors.
+measurement: boolean
+variables: [project_id]
+
 metric: >
     WITH total_contributions AS (
         SELECT

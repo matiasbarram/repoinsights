@@ -1,65 +1,106 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Any, Tuple
 import json
 from pprint import pprint
-from psycopg2.extensions import connection
-from .helper import yaml_to_dict, files_in_dir, create_metrics
-import os
 from loguru import logger
-from .helper import check_types
+from psycopg2.extensions import connection
+from .commons import TABLE_NAME_MAP
+
+
+class Metric:
+    def __init__(self, metric: Dict[str, Any], conn: connection):
+        self.conn = conn
+        self.name = metric["name"]
+        self.description = metric.get("description")
+        self.measurement_type = metric.get("measurement")
+        self.id = self._get_or_create_id()
+
+    def _get_or_create_id(self):
+        with self.conn.cursor() as curs:
+            curs.execute(
+                """
+                INSERT INTO metrics (name, description, measurement_type) VALUES (%s, %s, %s) 
+                ON CONFLICT (name) DO UPDATE
+                SET description = EXCLUDED.description, measurement_type = EXCLUDED.measurement_type 
+                RETURNING id
+                """,
+                (self.name, self.description, self.measurement_type),
+            )
+            result = curs.fetchone()
+
+            if result is None:
+                curs.execute("SELECT id FROM metrics WHERE name = %s", (self.name,))
+                result = curs.fetchone()
+                if result:
+                    result = result[0]
+            self.conn.commit()
+        return result[0] if result else None
+
+    def load(
+        self,
+        group_name: str,
+        metric_id: int,
+        result: Tuple[Any],
+    ):
+        logger.warning(result)
+        table_info = TABLE_NAME_MAP.get(group_name)
+        if table_info is None:
+            raise ValueError(f"Unknown group_name: {group_name}")
+
+        table_name = table_info["table"]
+        params = table_info["params"]
+        results = [metric_id] + list(result)
+        placeholders = ", ".join(["%s"] * len(results))
+        params_query = ", ".join(params)
+
+        query = f"INSERT INTO {table_name} ({params_query}) VALUES ({placeholders})"
+        logger.debug("{query}, {results}", query=query, results=results)
+        with self.conn.cursor() as curs:
+            curs.execute(query, results)
+            self.conn.commit()
+
+
+class MetricGroup:
+    def __init__(self, group: Dict[str, Any], conn: connection):
+        self.name = group["group"]
+        self.metrics = [Metric(metric, conn) for metric in group["metrics"]]
+
+    def get_metrics_ids(self):
+        return [{"name": metric.name, "id": metric.id} for metric in self.metrics]
 
 
 class MetricsLoader:
     def __init__(self, conn: connection, project_id):
         self.conn = conn
         self.project_id = project_id
-        self.metrics = self.get_metrics_map()
-        # create_metrics(self.conn)
+        self.metric_groups: List[MetricGroup] = []
 
-    def get_metrics_map(self) -> Dict[str, int]:
-        with self.conn.cursor() as curs:
-            curs.execute("SELECT id, name FROM metrics")
-            metrics = curs.fetchall()
-            return {metric_name: metric_id for metric_id, metric_name in metrics}
+    def add_metric_group(self, group: Dict[str, Any]):
+        self.metric_groups.append(MetricGroup(group, self.conn))
 
-    def format_to_jsonb(self, results, cols) -> List:
-        jsonb = []
-        for i in range(1, len(cols)):
-            result, col_name = check_types(results[i]), cols[i]
-            result_type = type(result).__name__
-            jsonb.append({"name": col_name, "value": result, "type": result_type})
-        pprint(jsonb)
-        return jsonb
+    def load_metrics(self, results: Dict):
+        for group in self.metric_groups:
+            self._load_metrics_for_group(group, results)
 
-    def get_metric_result(self, result: Tuple, cols: List):
-        repo_id = result[0]
-        return repo_id, self.format_to_jsonb(result, cols)
+    def _load_metrics_for_group(self, group: MetricGroup, results: Dict):
+        metrics_ids = group.get_metrics_ids()
+        for metric in metrics_ids:
+            self._load_metric_results(metric, results)
 
-    def insert_metric_value(
-        self, repo_id: int, metric_id: int, value: Dict | None
-    ) -> None:
-        json_value = json.dumps(value)
-        pprint({"repo_id": repo_id, "metric_id": metric_id, "value": json_value})
-        # with self.conn.cursor() as curs:
-        #     curs.execute(
-        #         "INSERT INTO metrics_log (repo_id, metric_id, value) VALUES (%s, %s, %s)",
-        #         (repo_id, metric_id, json_value),
-        #     )
+    def _load_metric_results(self, metric: Dict[str, Any], results: Dict):
+        metric_results = results.get(metric["name"])
+        if metric_results is None:
+            return
+        for metric_result in metric_results:
+            self._log_and_load_metric_result(metric_result, metric)
 
-    def load_metrics(self, results: Dict[str, List[Tuple]]) -> None:
-        metrics_id = self.get_metrics_map()
-        for metric_name, metric_data in results.items():
-            metric_id = metrics_id[metric_name]
-            metric_values = metric_data["results"]  # type: ignore
-            metric_cols = metric_data["col_names"]  # type: ignore
-            pprint({"name": metric_name, "results": metric_values, "cols": metric_cols})
+    def _log_and_load_metric_result(
+        self, metric_result: List[Any], metric: Dict[str, Any]
+    ):
+        self._load_metric_result_to_database(metric["id"], metric_result)
 
-            if not metric_values:
-                value = self.format_to_jsonb(None, metric_cols)
-                self.insert_metric_value(self.project_id, metric_id, value)
-            else:
-                for value_list in metric_values:
-                    repo_id, value = self.get_metric_result(value_list, metric_cols)
-                    pprint({"repo_id": repo_id, "metric_id": metric_id, "value": value})
-                    self.insert_metric_value(repo_id, metric_id, value)
-
-        self.conn.commit()
+    def _load_metric_result_to_database(self, metric_id: int, result):
+        for group in self.metric_groups:
+            for m in group.metrics:
+                if m.id == metric_id:
+                    m.load(group.name, metric_id, result)
+                    return

@@ -1,3 +1,7 @@
+from pprint import pprint
+from typing import List, Union, Dict, Any
+from loguru import logger
+
 from services.extract_service.repoinsights.commit import InsightsCommit
 from services.extract_service.repoinsights.repository import InsightsRepository
 from services.extract_service.repoinsights.pull_request import InsightsPullRequest
@@ -15,17 +19,7 @@ from services.extract_service.load_module.db_connector.connector import DBConnec
 from services.extract_service.load_module.db_connector.database_handler import (
     DatabaseHandler,
 )
-
-from typing import List, Union, Dict, Any
-from loguru import logger
-
-
-class MainProjectError(Exception):
-    pass
-
-
-class ExtractDataResulstsError(Exception):
-    pass
+from services.extract_service.excepctions.exceptions import ExtractDataResulstsError
 
 
 class LoadDataClient:
@@ -78,8 +72,8 @@ class LoadDataClient:
             elif name == "labels":
                 self.load_labels_data(data)
 
-    def load_main_project(self, repo_data: Dict[str, Any]):
-        self.repository = InsightsRepository(repo_data)
+    def load_main_project(self, repo_data: InsightsRepository):
+        self.repository = repo_data
         self.repository.set_owner_id(self.load_user(self.repository.owner))
         self.repo_id = self.load_repository(self.repository)
         self.repository.set_repo_id(self.repo_id)
@@ -97,7 +91,7 @@ class LoadDataClient:
             "Loading milestones for repository {name}", name=self.repository.name
         )
         for milestone in milestones:
-            milestone.set_repo_id(self.repo_id)  # type: ignore
+            milestone.set_repo_id(self.repo_id)
             self.temp_db.create_milestone(milestone)
 
     def load_labels_data(self, labels: List[InsightsLabel]):
@@ -138,7 +132,8 @@ class LoadDataClient:
     def load_commit(self, commit: InsightsCommit) -> int:
         logger.debug("Loading commit {sha}", sha=commit.sha)
         commit_id = self.temp_db.create_commit(commit)
-        self.temp_db.create_project_commit(commit.project_id, commit_id)
+        if commit.project_id is not None:
+            self.temp_db.create_project_commit(commit.project_id, commit_id)
         return commit_id
 
     def load_pull_request(self, pr: InsightsPullRequest):
@@ -236,30 +231,35 @@ class LoadDataClient:
             pr.set_user_id(self.load_user(pr.author))
             self.update_repo_data(pr.head_repo)
             self.update_repo_data(pr.base_repo)
-            self.update_commit_data(pr.head_commit)
-            self.update_commit_data(pr.base_commit)
+            head_repo_id = None
+            if pr.head_repo is not None:
+                head_repo_id = self.load_repository(pr.head_repo)
+                pr.set_head_repo_id(head_repo_id)
+            pr.set_base_repo_id(self.repo_id)
+
+            self.update_commit_data(pr.head_commit, head_repo_id)
+            self.update_commit_data(pr.base_commit, self.repo_id)
+
             head_commit_id = self.load_commit(pr.head_commit)
             base_commit_id = self.load_commit(pr.base_commit)
             pr.set_head_commit_id(head_commit_id)
             pr.set_base_commit_id(base_commit_id)
-            if pr.head_repo is not None:
-                pr.set_head_repo_id(self.load_repository(pr.head_repo))
-            if pr.base_repo is not None:
-                pr.set_base_repo_id(self.repo_id)
+
             pr_id = self.load_pull_request(pr)
             self.load_pull_request_comments(pr, pr_id, pr.comments)
             self.load_pull_request_history(pr, pr_id)
 
-    def update_repo_data(self, pr_repo: Union[InsightsRepository, None]):
+    def update_repo_data(self, pr_repo: InsightsRepository | None):
         if pr_repo is None:
             return
+
         if pr_repo.forked_from is True:
             pr_repo.set_forked_from_id(self.repo_id)
-        if pr_repo.raw_repo["owner"] is not None:
+        if pr_repo.owner is not None:
             pr_repo.set_owner_id(self.load_user(pr_repo.owner))
 
-    def update_commit_data(self, pr_commit: InsightsCommit):
-        pr_commit.set_project_id(self.repo_id)
+    def update_commit_data(self, pr_commit: InsightsCommit, repo_id: int | None):
+        pr_commit.set_project_id(repo_id)
         if pr_commit.author is None:
             pr_commit.set_author_id(None)
         else:

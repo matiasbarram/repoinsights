@@ -1,71 +1,74 @@
-from services.metrics_service.conn import ConsolidadaConnection
-from services.metrics_service.load import MetricsLoader
 import os
 from pprint import pprint
-from typing import Dict, List, Tuple, Any
+from typing import Dict, Any, List, Tuple
 import glob
 from loguru import logger
-from .helper import yaml_to_dict, files_in_dir
+from psycopg2.extensions import connection, cursor
+from decimal import Decimal
 
-CONSOLIDADA_USER = os.environ["CONSOLIDADA_USER"]
-CONSOLIDADA_PASSWORD = os.environ["CONSOLIDADA_PASS"]
-CONSOLIDADA_DATABASE = os.environ["CONSOLIDADA_DB"]
-CONSOLIDADA_IP = os.environ["CONSOLIDADA_IP"]
-CONSOLIDADA_PORT = os.environ["CONSOLIDADA_PORT"]
+from .helper import yaml_to_dict
+from .commons import METRICS_DIR, METRICS_GROUPS
 
 
-class InsightsMetrics:
-    def __init__(self, project_id: int) -> None:
-        self.conn = self.connect_to_consolidada()
+class CalculateMetrics:
+    def __init__(self, conn: connection, project_id: int) -> None:
         self.project_id = project_id
+        self.conn = conn
 
-    def get_metrics(self, metrics_files):
-        metrics = [yaml_to_dict(file) for file in metrics_files]
-        return metrics
-
-    def connect_to_consolidada(self):
-        conn = ConsolidadaConnection(
-            host=CONSOLIDADA_IP,
-            port=CONSOLIDADA_PORT,
-            database=CONSOLIDADA_DATABASE,
-            user=CONSOLIDADA_USER,
-            password=CONSOLIDADA_PASSWORD,
-        )
-
-        return conn.get_connection()
-
-    def get_metrics_files(self):
-        path = os.path.dirname(os.path.abspath(__file__)) + "/metrics/"
-        metrics = files_in_dir(path, "yml")
+    def get_metrics(self) -> List[Dict[str, Any]]:
+        metrics = []
+        for metrics_group in METRICS_GROUPS:
+            group = {"group": metrics_group, "metrics": []}
+            dirs = glob.glob(METRICS_DIR + metrics_group + "/*.yml")
+            group["metrics"] = [yaml_to_dict(dir) for dir in dirs]
+            metrics.append(group)
         return metrics
 
     def generate_params(self, metric: Dict, project_id: int):
-        params = []
         if metric.get("variables"):
-            for variable in metric["variables"]:
-                if variable == "project_id":
+            params = []
+            variables = metric["variables"]
+            for var in variables:
+                if var == "project_id":
                     params.append(project_id)
-                else:
-                    logger.error(f"Variable {variable} not supported")
-                    raise Exception("Variable not supported")
-        else:
-            params.append(project_id)
-        return params
+            return params
+        return [project_id]
 
-    def calculate_metrics(self):
-        metrics_files = self.get_metrics_files()
-        metrics = self.get_metrics(metrics_files)
+    def convert_if_decimal(self, item: Tuple[Any]):
+        data = list(item)
+        for i in range(len(data)):
+            if isinstance(data[i], Decimal):
+                data[i] = float(data[i])
+        return data
+
+    def calc_metrics_group(self, metrics: List[Dict], curs: cursor):
+        def get_result(data):
+            if data is None:
+                raise ValueError("Metric not found")
+            elif len(data) == 0:
+                return None
+            else:
+                result = [self.convert_if_decimal(item) for item in data]
+            return result
+
         results = {}
-        with self.conn.cursor() as curs:
-            metric: Dict[str, Any]
-            for metric in metrics:  # type: ignore
-                params = self.generate_params(metric, self.project_id)
-                curs.execute(metric["metric"], params)
-                data = curs.fetchall()
-                field_names = [desc[0] for desc in curs.description]
-                results[metric["name"]] = {"results": data, "col_names": field_names}
+        for metric in metrics:
+            params = self.generate_params(metric, self.project_id)
+            curs.execute(metric["metric"], params)
+            data = curs.fetchall()
+            result = get_result(data)
+            if result is None:
+                continue
+            results[metric["name"]] = result
+
         return results
 
-    def load_metrics(self, results: Dict[str, List[Tuple]]):
-        metrics_loader = MetricsLoader(self.conn, self.project_id)
-        metrics_loader.load_metrics(results)
+    def calculate_metrics(self):
+        metrics = self.get_metrics()
+        results = {}
+        with self.conn.cursor() as curs:
+            for metric in metrics:
+                _, metrics = metric["group"], metric["metrics"]
+                group_metrics = self.calc_metrics_group(metrics, curs)
+                results.update(group_metrics)
+        return results

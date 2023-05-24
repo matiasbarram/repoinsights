@@ -1,8 +1,15 @@
 import psycopg2
+import os
+
+user = os.environ["CONSOLIDADA_USER"]
+host = os.environ["CONSOLIDADA_IP"]
+port = os.environ["CONSOLIDADA_PORT"]
+database = os.environ["CONSOLIDADA_DB"]
+password = os.environ["CONSOLIDADA_PASS"]
 
 
 class ConsolidadaConnection:
-    def __init__(self, host, port, database, user, password):
+    def __init__(self):
         self.host = host
         self.port = port
         self.database = database

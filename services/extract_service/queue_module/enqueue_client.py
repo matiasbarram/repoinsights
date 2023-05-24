@@ -43,7 +43,7 @@ class QueueClient:
         self.channel.queue_declare(queue=queue, durable=True)
         self.channel.basic_publish(
             exchange="",
-            routing_key=self.queue_curado,
+            routing_key=queue,
             body=project,
             properties=pika.BasicProperties(
                 delivery_mode=2,

@@ -24,3 +24,11 @@ class ExtractError(Exception):
 
 class LoadError(Exception):
     pass
+
+
+class MainProjectError(Exception):
+    pass
+
+
+class ExtractDataResulstsError(Exception):
+    pass
