@@ -51,6 +51,26 @@ class InsightsClient:
             logger.critical("No hay proyectos pendientes")
             exit(0)
 
+    def enqueue_to_modificacion(self, type, **kwargs):
+        project_data = {}
+        if type == "rename":
+            project_data = {
+                "action": "delete",
+                "project": {"owner": self.owner, "repo": self.repo},
+            }
+        elif type == "delete":
+            if "new" not in kwargs:
+                raise LoadError("No se especificó el nuevo nombre del proyecto")
+            new = kwargs["new"]
+            project_data = {
+                "action": "delete",
+                "current": {"owner": self.owner, "repo": self.repo},
+                "new": {"owner": new["owner"], "repo": new["repo"]},
+            }
+
+        json_data = json.dumps(project_data)
+        self.queue_client.enqueue(json_data, "modificacion")
+
     def enqueue_to_pendientes(self):
         if self.pending_repo is None:
             raise LoadError("No hay proyecto pendiente")

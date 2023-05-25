@@ -50,7 +50,7 @@ def main(debug=None):
 
     except ProjectNotFoundError as e:
         logger.error("Proyecto no encontrado, marcar como eliminado")
-        # todo encolar para marcar como eliminado
+        client.enqueue_to_modificacion(type="rename")
 
     except KeyboardInterrupt:
         logger.error("Proceso interrumpido por el usuario")
