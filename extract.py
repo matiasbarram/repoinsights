@@ -39,30 +39,34 @@ def main(debug=None):
     ]
 
     client = InsightsClient(data_types)
+    results = None
     try:
         results = client.extract()
-        client.load(results)
-        client.enqueue_to_curado()
-
     except GitHubUserException as e:
-        logger.error("Repositorio migrado, encolando para eliminar")
         # todo encolar para eliminar
-
+        logger.error("Repositorio encontrado con otro nombre, encolando para eliminar")
+        client.enqueue_to_modificacion(type="rename")
     except ProjectNotFoundError as e:
         logger.error("Proyecto no encontrado, marcar como eliminado")
-        client.enqueue_to_modificacion(type="rename")
-
     except KeyboardInterrupt:
         logger.error("Proceso interrumpido por el usuario")
         client.enqueue_to_pendientes()
-
     except Exception as e:
         logger.error(f"Fallo en la extracción. volviendo a encolar: {e}")
         client.enqueue_to_pendientes()
+
+    try:
+        client.load(results)
+    except Exception as e:
+        logger.error(f"Fallo en la carga. volviendo a encolar: {e}")
+        client.enqueue_to_pendientes("load")
+
+    client.enqueue_to_curado()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="InsightsClient script")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()
-    main(args.debug)
+    while True:
+        main(args.debug)

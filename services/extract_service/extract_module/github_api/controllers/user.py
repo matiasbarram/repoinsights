@@ -1,4 +1,4 @@
-from services.extract_service.extract_module.github_api.github_api import GitHubAPI
+from pprint import pprint
 from typing import Optional, Dict, Any, List, Union
 from loguru import logger
 from datetime import datetime
@@ -6,11 +6,7 @@ from services.extract_service.utils.utils import (
     get_unique_users,
     add_users_to_dict_keys,
 )
-from pprint import pprint
-
-
-class GitHubUserException(Exception):
-    pass
+from services.extract_service.extract_module.github_api.github_api import GitHubAPI
 
 
 class User:

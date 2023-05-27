@@ -18,13 +18,18 @@ class LoadCommitController:
         self.user_controller = user_controller
 
     def load_fork_commit(self, commit: InsightsCommit) -> int:
-        logger.debug("Loading fork commit {sha}", sha=commit.sha)
+        logger.warning("Loading fork commit {sha}", sha=commit.sha)
         commit_id = self.temp_db.find_commit_id(sha=commit.sha)
         if commit_id is None:
-            logger.debug("Fork commit {sha} does not exist", sha=commit.sha)
+            logger.warning("Fork commit {sha} does not exist", sha=commit.sha)
             commit_id = self.load_commit(commit)
         else:
-            logger.debug("Fork commit {sha} already exists", sha=commit.sha)
+            logger.warning(
+                "Fork commit {sha} already exists {id}",
+                sha=commit.sha,
+                id=commit_id,
+            )
+
         return commit_id
 
     def load_commit(self, commit: InsightsCommit) -> int:

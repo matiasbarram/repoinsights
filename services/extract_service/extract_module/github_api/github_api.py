@@ -56,7 +56,8 @@ class GitHubAPI:
         tokens.sort(key=lambda x: x[2])
         wait_time = tokens[0][2] - time.time()
         logger.warning(f"Waiting {wait_time} seconds")
-        time.sleep(wait_time)
+        if wait_time > 0:
+            time.sleep(wait_time)
         self.update_token(tokens[0][0])
 
     def get(

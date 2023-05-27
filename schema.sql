@@ -1,12 +1,3 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 15.2 (Debian 15.2-1.pgdg110+1)
--- Dumped by pg_dump version 15.2
-
--- Started on 2023-04-12 17:20:53
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -17,11 +8,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- TOC entry 3584 (class 1262 OID 16390)
--- Name: ghtorrent_restore_2015; Type: DATABASE; Schema: -; Owner: -
---
 
 CREATE DATABASE ghtorrent_restore_2015 WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
 
@@ -1824,3 +1810,16 @@ ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics
 
 ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics
     ADD CONSTRAINT user_metrics_ibfk_2 FOREIGN KEY (metric_id) REFERENCES ghtorrent_restore_2015.metrics(id);
+
+
+
+-- Creación del usuario de solo lectura
+CREATE ROLE readonly_user WITH LOGIN PASSWORD 'readonly_user_password';
+
+-- Otorgar permisos en el esquema ghtorrent_restore_2015
+GRANT USAGE ON SCHEMA ghtorrent_restore_2015 TO readonly_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA ghtorrent_restore_2015 TO readonly_user;
+
+-- Otorgar permisos en el esquema public
+GRANT USAGE ON SCHEMA public TO readonly_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user;

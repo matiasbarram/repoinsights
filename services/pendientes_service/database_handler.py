@@ -10,6 +10,7 @@ from sqlalchemy.sql.functions import coalesce
 from typing import List, Union, Dict, Any
 from .utils import format_dt
 from pprint import pprint
+import json
 
 
 class DatabaseHandler:
@@ -75,3 +76,9 @@ class DatabaseHandler:
                 }
             )
         return enqueue_list
+
+    def get_json_projects(self) -> List[Dict[str, Any]]:
+        logger.info("Getting test projects")
+        with open("test_projects.json") as f:
+            projects = json.load(f)
+        return projects

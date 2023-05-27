@@ -3,6 +3,7 @@ import os
 from typing import Dict, Any
 from loguru import logger
 import pika
+import argparse
 from services.pendientes_service.connector import DBConnector
 from services.pendientes_service.database_handler import DatabaseHandler
 
@@ -55,21 +56,24 @@ class QueueConnector:
         logger.info("Enqueued project {project}", project=project_json)
 
 
-def main():
+def main(debug: bool):
     """
     Almacena en cola todos los proyectos que no han sido actualizados.
     """
+    logger.info("Starting pendientes service DEBUG={debug}", debug=debug)
     connector = DBConnector()
     db_handler = DatabaseHandler(connector)
     queue_client = QueueConnector()
     queue_client.connect()
-    projects = db_handler.get_updated_projects()
+    projects = (
+        db_handler.get_json_projects() if debug else db_handler.get_updated_projects()
+    )
     for project in projects:
         queue_client.enqueue(project)
 
 
 if __name__ == "__main__":
-    import sys
-
-    sys.stdout.flush()
-    main()
+    parser = argparse.ArgumentParser(description="InsightsClient script")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
+    main(args.debug)

@@ -196,7 +196,7 @@ class DatabaseHandler:
         pr = self.get_or_create(PullRequest, create=False, **kwargs)
         return int(pr.id)  # type: ignore
 
-    def find_commit_id(self, **kwargs) -> int:
+    def find_commit_id(self, **kwargs) -> int | None:
         commit = self.get_or_create(Commit, **kwargs, create=False)
         return int(commit.id) if commit else None  # type: ignore
 

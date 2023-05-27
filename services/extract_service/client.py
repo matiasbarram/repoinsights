@@ -40,11 +40,14 @@ class InsightsClient:
             pending_repo = pending_project
             owner = pending_repo["owner"]
             repo = pending_repo["project"]
-            since: Union[datetime, None] = (
+            since = (
                 api_date(pending_repo["last_extraction"])
                 if pending_repo["last_extraction"]
                 else None
             )
+            if pending_project.get("status"):
+                self.uuid = pending_repo["status"]["uuid"]
+
             logger.critical("QUEUE pendientes {project}", project=pending_repo)
             return pending_repo, owner, repo, since
         else:
@@ -69,9 +72,13 @@ class InsightsClient:
             }
 
         json_data = json.dumps(project_data)
-        self.queue_client.enqueue(json_data, "modificacion")
+        self.queue_client.enqueue(json_data, "modificaciones")
 
-    def enqueue_to_pendientes(self):
+    def enqueue_to_pendientes(self, status=None):
+        if status:
+            self.pending_repo["last_extraction"] = datetime.now().isoformat()
+            self.pending_repo["status"] = {"type": status, "uuid": self.uuid}
+
         if self.pending_repo is None:
             raise LoadError("No hay proyecto pendiente")
 
