@@ -1,0 +1,26 @@
+name: age
+description: Age of pull requests.
+measurement: hours
+metric: >
+    WITH open_close_dates AS (
+        SELECT
+            pr.base_repo_id as project_id,
+            pr.id AS pull_request_id,
+            MAX(CASE WHEN prh.action = 'opened' THEN prh.created_at END) AS opened_at,
+            MAX(CASE WHEN prh.action = 'closed' THEN prh.created_at END) AS closed_at
+        FROM
+            pull_requests pr
+            JOIN pull_request_history prh ON pr.id = prh.pull_request_id
+        WHERE
+            pr.base_repo_id = %s
+        GROUP BY
+            pr.id
+    )
+    SELECT
+        project_id,
+        pull_request_id,
+        EXTRACT(EPOCH FROM (closed_at - opened_at)) / 3600 AS age_hours
+    FROM
+        open_close_dates
+    WHERE
+        opened_at IS NOT NULL AND closed_at IS NOT NULL;

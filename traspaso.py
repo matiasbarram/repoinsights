@@ -13,12 +13,17 @@ class UUIDNotFoundException(Exception):
     pass
 
 
-def handle_failed_project(
-    project: Dict, queue_client: QueueClient, failed_projects: List[Dict[str, Any]]
+def add_to_queue(
+    project: Dict,
+    queue_client: QueueClient,
+    project_list: List[Dict[str, Any]] | None = None,
 ):
+    logger.error("Error al traspasar el proyecto {project}", project=project)
     json_data = json.dumps(project)
     queue_client.enqueue(json_data)
-    failed_projects.append(project)
+    if project_list is None:
+        return
+    project_list.append(project)
 
 
 def all_done(failed: List[Dict[str, Any]], saved: List[Dict[str, Any]]):
@@ -29,10 +34,7 @@ def all_done(failed: List[Dict[str, Any]], saved: List[Dict[str, Any]]):
     )
 
 
-def main():
-    uuids = []
-    saved_projects = []
-    failed_projects = []
+def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
     queue_client = QueueClient()
     project = queue_client.get_from_queue_curado()
 
@@ -41,7 +43,6 @@ def main():
         raise UUIDNotFoundException("No se ha podido obtener el uuid del proyecto")
 
     uuid = project["uuid"]
-    uuids.append(uuid)
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
     if uuid in uuids:
@@ -49,17 +50,27 @@ def main():
             failed=failed_projects,
             saved=saved_projects,
         )
-        exit(0)
+        add_to_queue(
+            project=project,
+            project_list=failed_projects,
+            queue_client=queue_client,
+        )
 
+        exit(0)
+    # flag the first uuid in the queue.
+    uuids.append(uuid)
     try:
         traspaso_client.migrate()
         saved_projects.append(project)
+
     except Exception as e:
-        logger.error("Error al traspasar el proyecto {project}", project=project)
         logger.error(e)
-        handle_failed_project(project, queue_client, failed_projects)
+        add_to_queue(project, queue_client, failed_projects)
 
 
 if __name__ == "__main__":
+    uuids = []
+    saved_projects = []
+    failed_projects = []
     while True:
-        main()
+        main(uuids, saved_projects, failed_projects)

@@ -28,12 +28,14 @@ class InsightsPullRequest:
         self.head_commit_sha = pull_request["head"]["sha"]
         self.body = pull_request["body"]
         self.author = InsightsUser(pull_request["user"])
+
         self.base_repo = self.set_repo(pull_request["base"]["repo"])
-        self.base_repo_id = None
         self.head_repo = self.set_repo(pull_request["head"]["repo"])
-        self.head_repo_id = None
+
         self.intra_branch = self.set_intra_branch(pull_request)
         self.comments = []
+        self.base_repo_id = None
+        self.head_repo_id = None
 
     def set_repo(self, repo: Dict[str, Any]) -> Union[InsightsRepository, None]:
         return InsightsRepository(repo) if repo else None

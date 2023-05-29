@@ -3,7 +3,7 @@ from ..pull_request import InsightsPullRequest
 from ..comment import InsightsPullRequestComment
 from ..commit import InsightsCommit
 from datetime import datetime
-from ...github_api.extractor import GitHubExtractor
+from services.extract_service.extract_module.extract_client import GitHubExtractor
 from ...utils.utils import api_date, get_int_from_dict
 from pprint import pprint
 

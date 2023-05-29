@@ -33,6 +33,6 @@ class GHToken:
         return tokens_with_calls
 
     def get_token_lowest_wait_time(self) -> Tuple:
-        tokens = self.get_public_tokens()
+        tokens = self.get_public_tokens(only_token=False)
         tokens.sort(key=lambda x: x[2])
         return tokens[0]

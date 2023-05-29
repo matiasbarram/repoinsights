@@ -1,13 +1,7 @@
 from pprint import pprint
-from github.Commit import Commit
-from github.GitAuthor import GitAuthor
-from github.NamedUser import NamedUser
-from github.PullRequestPart import PullRequestPart
 from .user import InsightsUser
-from datetime import datetime
 from .comment import InsightsCommitComment
 from typing import List, Union, Any, Dict
-import json
 
 
 class InsightsCommit:
@@ -36,7 +30,7 @@ class InsightsCommit:
     def set_committer_id(self, committer_id: Union[None, int]):
         self.committer_id = committer_id
 
-    def set_project_id(self, project_id: int):
+    def set_project_id(self, project_id: int | None):
         self.project_id = project_id
 
     def get_comments(self) -> list[InsightsCommitComment]:

@@ -1,0 +1,14 @@
+name: issues_per_dev
+description: The number of issues closed to each developer in the repository.
+measurement: count
+metric: >
+  SELECT i.repo_id,
+  u.id     AS developer_id,
+  Count(*) AS assigned_issues_count
+  FROM   users u
+  JOIN issues i
+  ON u.id = i.assignee_id
+  WHERE  i.repo_id = %s
+  GROUP  BY u.id,
+  u.NAME,
+  i.repo_id;

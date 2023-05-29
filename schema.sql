@@ -1,12 +1,3 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 15.2 (Debian 15.2-1.pgdg110+1)
--- Dumped by pg_dump version 15.2
-
--- Started on 2023-04-12 17:20:53
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -17,11 +8,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- TOC entry 3584 (class 1262 OID 16390)
--- Name: ghtorrent_restore_2015; Type: DATABASE; Schema: -; Owner: -
---
 
 CREATE DATABASE ghtorrent_restore_2015 WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
 
@@ -646,8 +632,9 @@ CREATE TABLE ghtorrent_restore_2015.watchers (
 
 CREATE TABLE ghtorrent_restore_2015.metrics (
     id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    description character varying(255) NOT NULL,
+    name character varying(255) NOT NULL UNIQUE,
+    description character varying(255),
+    measurement_type character varying(255) NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -667,7 +654,7 @@ CREATE TABLE ghtorrent_restore_2015.metrics_log (
     id integer NOT NULL,
     repo_id integer,
     metric_id integer NOT NULL,
-    value integer NOT NULL,
+    value jsonb NOT NULL,
     date timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -682,6 +669,82 @@ CREATE SEQUENCE ghtorrent_restore_2015.metrics_log_id_seq
     CACHE 1;
 
 ALTER SEQUENCE ghtorrent_restore_2015.metrics_log_id_seq OWNED BY ghtorrent_restore_2015.metrics_log.id;
+
+CREATE TABLE ghtorrent_restore_2015.project_metrics (
+    id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    metric_id INTEGER NOT NULL,
+    value VARCHAR(255), -- Store all values as strings, convert as needed
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE SEQUENCE ghtorrent_restore_2015.project_metrics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.project_metrics_id_seq OWNED BY ghtorrent_restore_2015.project_metrics.id;
+
+CREATE TABLE ghtorrent_restore_2015.pull_request_metrics (
+    id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    pull_request_id INTEGER NOT NULL,
+    metric_id INTEGER NOT NULL,
+    value VARCHAR(255), -- Store all values as strings, convert as needed
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+CREATE SEQUENCE ghtorrent_restore_2015.pull_request_metrics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.pull_request_metrics_id_seq OWNED BY ghtorrent_restore_2015.pull_request_metrics.id;
+
+
+CREATE TABLE ghtorrent_restore_2015.issue_metrics (
+    id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    issue_id INTEGER NOT NULL,
+    metric_id INTEGER NOT NULL,
+    value VARCHAR(255), -- Store all values as strings, convert as needed
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE SEQUENCE ghtorrent_restore_2015.issue_metrics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.issue_metrics_id_seq OWNED BY ghtorrent_restore_2015.issue_metrics.id;
+
+CREATE TABLE ghtorrent_restore_2015.user_metrics (
+    id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    metric_id INTEGER NOT NULL,
+    value VARCHAR(255), -- Store all values as strings, convert as needed
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+CREATE SEQUENCE ghtorrent_restore_2015.user_metrics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.user_metrics_id_seq OWNED BY ghtorrent_restore_2015.user_metrics.id;
 
 
 
@@ -787,6 +850,26 @@ ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_comments
 ALTER TABLE ONLY ghtorrent_restore_2015.issue_comments ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.issue_comments_id_seq'::regclass);
 ALTER TABLE ONLY ghtorrent_restore_2015.issue_comments
     ADD CONSTRAINT idx_12397_primary PRIMARY KEY (id);
+
+
+ALTER TABLE ONLY ghtorrent_restore_2015.project_metrics ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.project_metrics_id_seq'::regclass);
+ALTER TABLE ONLY ghtorrent_restore_2015.project_metrics
+    ADD CONSTRAINT idx_12398_primary PRIMARY KEY (id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_metrics ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.pull_request_metrics_id_seq'::regclass);
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_metrics
+    ADD CONSTRAINT idx_12399_primary PRIMARY KEY (id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_metrics ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.issue_metrics_id_seq'::regclass);
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_metrics
+    ADD CONSTRAINT idx_12400_primary PRIMARY KEY (id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.user_metrics_id_seq'::regclass);
+ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics
+    ADD CONSTRAINT idx_12401_primary PRIMARY KEY (id);
+
+
+
 --
 -- TOC entry 3320 (class 2606 OID 16606)
 -- Name: commit_comments idx_16393_primary; Type: CONSTRAINT; Schema: ghtorrent_restore_2015; Owner: -
@@ -1686,3 +1769,57 @@ ALTER TABLE ONLY ghtorrent_restore_2015.metrics_log
 -- PostgreSQL database dump complete
 --
 
+-- CUSTOM METRICS TABLES
+
+
+ALTER TABLE ONLY ghtorrent_restore_2015.project_metrics
+    ADD CONSTRAINT project_metrics_ibfk_1 FOREIGN KEY (project_id) REFERENCES ghtorrent_restore_2015.projects(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.project_metrics
+    ADD CONSTRAINT project_metrics_ibfk_2 FOREIGN KEY (metric_id) REFERENCES ghtorrent_restore_2015.metrics(id);
+
+
+
+
+
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_metrics    
+    ADD CONSTRAINT pull_request_metrics_ibfk_1 FOREIGN KEY (project_id) REFERENCES ghtorrent_restore_2015.projects(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_metrics    
+    ADD CONSTRAINT pull_request_metrics_ibfk_2 FOREIGN KEY (pull_request_id) REFERENCES ghtorrent_restore_2015.pull_requests(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_metrics    
+    ADD CONSTRAINT pull_request_metrics_ibfk_3 FOREIGN KEY (metric_id) REFERENCES ghtorrent_restore_2015.metrics(id);
+
+
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_metrics    
+    ADD CONSTRAINT issue_metrics_ibfk_1 FOREIGN KEY (project_id) REFERENCES ghtorrent_restore_2015.projects(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_metrics
+    ADD CONSTRAINT issue_metrics_ibfk_2 FOREIGN KEY (issue_id) REFERENCES ghtorrent_restore_2015.issues(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.issue_metrics
+    ADD CONSTRAINT issue_metrics_ibfk_3 FOREIGN KEY (metric_id) REFERENCES ghtorrent_restore_2015.metrics(id);
+
+
+ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics
+    ADD CONSTRAINT user_metrics_ibfk_3 FOREIGN KEY (project_id) REFERENCES ghtorrent_restore_2015.projects(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics
+    ADD CONSTRAINT user_metrics_ibfk_1 FOREIGN KEY (user_id) REFERENCES ghtorrent_restore_2015.users(id);
+
+ALTER TABLE ONLY ghtorrent_restore_2015.user_metrics
+    ADD CONSTRAINT user_metrics_ibfk_2 FOREIGN KEY (metric_id) REFERENCES ghtorrent_restore_2015.metrics(id);
+
+
+
+-- Creación del usuario de solo lectura
+CREATE ROLE readonly_user WITH LOGIN PASSWORD 'readonly_user_password';
+
+-- Otorgar permisos en el esquema ghtorrent_restore_2015
+GRANT USAGE ON SCHEMA ghtorrent_restore_2015 TO readonly_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA ghtorrent_restore_2015 TO readonly_user;
+
+-- Otorgar permisos en el esquema public
+GRANT USAGE ON SCHEMA public TO readonly_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user;

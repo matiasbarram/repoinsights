@@ -1,0 +1,26 @@
+name: issue_closed_per_day
+description: The number of issues closed per day in the repository.
+measurement: count
+metric: >
+  WITH closed_issues AS (
+    SELECT
+      i.id AS issue_id,
+      i.repo_id AS project_id,
+      i.created_at AS created_at,
+      MIN(ie.created_at) AS closed_at
+    FROM issues i
+    JOIN issue_events ie ON i.id = ie.issue_id
+    WHERE i.repo_id = %s AND ie.action = 'closed'
+    GROUP BY i.id
+  )
+  SELECT
+    DATE(closed_at) AS date_closed,
+    COUNT(issue_id) AS issues_closed_per_day
+  FROM closed_issues
+  GROUP BY date_closed
+  ORDER BY date_closed;
+
+
+comment: COMO LO GUARDO??
+project_id,issue_closed_per_day, date
+4,1,June 10, 2013

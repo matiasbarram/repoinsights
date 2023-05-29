@@ -1,4 +1,4 @@
-from services.extract_service.github_api.extractor import GitHubExtractor
+from services.extract_service.extract_module.github_api.extractor import GitHubExtractor
 from services.extract_service.repoinsights.label import InsightsLabel
 
 
