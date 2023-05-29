@@ -1,3 +1,4 @@
+from pprint import pprint
 import requests
 from loguru import logger
 from typing import Optional, Dict, Union
@@ -5,7 +6,7 @@ import json
 import redis
 import time
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from services.extract_service.utils.utils import api_date, format_dt
 from services.extract_service.config import GHToken
@@ -45,7 +46,7 @@ class GitHubAPI:
 
     def _handle_no_more_calls(self):
         tokens = self.tokens_handler.get_public_tokens(only_token=False)
-        for token, calls, reset_time in tokens:
+        for token, calls, _ in tokens:
             if calls > REMAINING:
                 logger.warning(f"Token changed {token[-10:]}")
                 self.update_token(token)
@@ -54,13 +55,20 @@ class GitHubAPI:
         raise NoMoreTokensError("No more tokens available")
 
     def _handle_wait_time(self):
-        tokens = self.tokens_handler.get_public_tokens(only_token=False)
-        tokens.sort(key=lambda x: x[2])
-        wait_time = tokens[0][2] - time.time()
-        logger.warning(f"Waiting {wait_time} seconds")
-        if wait_time > 0:
+        token, calls, reset_time = self.tokens_handler.get_token_lowest_wait_time()
+        now = datetime.now()
+        wait_time = reset_time - now.timestamp()
+        pprint({
+            "token": token[-10:],
+            "calls": calls,
+            "reset_time": reset_time,
+            "now": now.timestamp(),
+            "wait_time": wait_time
+        })
+        if wait_time > 0 and calls <= REMAINING:
+            logger.warning(f"Waiting {wait_time} seconds  {now + timedelta(seconds=wait_time)}")
             time.sleep(wait_time)
-        self.update_token(tokens[0][0])
+        self.update_token(token)
 
     def get(
         self,
