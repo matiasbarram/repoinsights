@@ -67,7 +67,8 @@ class GitHubAPI:
         })
         if wait_time > 0 and calls <= REMAINING:
             logger.warning(f"Waiting {wait_time} seconds  {now + timedelta(seconds=wait_time)}")
-            time.sleep(wait_time)
+            #time.sleep(wait_time)
+            time.sleep(10)
         self.update_token(token)
 
     def get(
