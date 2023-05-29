@@ -1,9 +1,6 @@
 from datetime import datetime
-from loguru import logger
 import argparse
-from pprint import pprint
-import json
-import os
+from loguru import logger
 
 from services.extract_service.client import InsightsClient
 from services.extract_service.excepctions.exceptions import (
@@ -16,7 +13,7 @@ class Logger:
     def __init__(self, debug):
         self.debug = debug
 
-    def logs(self):
+    def setup(self):
         if not self.debug:
             logger.remove()
             dt = datetime.now()
@@ -24,12 +21,32 @@ class Logger:
             logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
 
 
+def handle_extract_exceptions(client, e):
+    if isinstance(e, GitHubUserException):
+        logger.error("Repositorio encontrado con otro nombre, encolando para eliminar")
+        client.enqueue_to_modificacion(type="rename")
+    elif isinstance(e, ProjectNotFoundError):
+        logger.error("Proyecto no encontrado, marcar como eliminado")
+    elif isinstance(e, KeyboardInterrupt):
+        logger.error("Proceso interrumpido por el usuario")
+        client.enqueue_to_pendientes()
+    else:
+        logger.error(f"Fallo en la extracción. volviendo a encolar: {e}")
+        client.enqueue_to_pendientes()
+
+
+def handle_load_exceptions(client, e):
+    logger.error(f"Fallo en la carga. volviendo a encolar: {e}")
+    client.enqueue_to_pendientes("load")
+
+
 def main(debug=None):
     """
     "commits", "pull_requests", "issues", "labels", "stargazers", "members", "milestones
     """
-    logs = Logger(debug)
-    logs.logs()
+    logger = Logger(debug)
+    logger.setup()
+
     data_types = [
         "commits",
         "pull_requests",
@@ -39,27 +56,17 @@ def main(debug=None):
     ]
 
     client = InsightsClient(data_types)
-    results = None
     try:
         results = client.extract()
-    except GitHubUserException as e:
-        # todo encolar para eliminar
-        logger.error("Repositorio encontrado con otro nombre, encolando para eliminar")
-        client.enqueue_to_modificacion(type="rename")
-    except ProjectNotFoundError as e:
-        logger.error("Proyecto no encontrado, marcar como eliminado")
-    except KeyboardInterrupt:
-        logger.error("Proceso interrumpido por el usuario")
-        client.enqueue_to_pendientes()
     except Exception as e:
-        logger.error(f"Fallo en la extracción. volviendo a encolar: {e}")
-        client.enqueue_to_pendientes()
+        handle_extract_exceptions(client, e)
+        return
 
     try:
         client.load(results)
     except Exception as e:
-        logger.error(f"Fallo en la carga. volviendo a encolar: {e}")
-        client.enqueue_to_pendientes("load")
+        handle_load_exceptions(client, e)
+        return
 
     client.enqueue_to_curado()
 

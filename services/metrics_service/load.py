@@ -103,4 +103,3 @@ class MetricsLoader:
             for m in group.metrics:
                 if m.id == metric_id:
                     m.load(group.name, metric_id, result)
-                    return

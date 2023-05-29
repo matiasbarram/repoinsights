@@ -15,6 +15,8 @@ from services.extract_service.excepctions.exceptions import (
     ProjectNotFoundError,
 )
 
+REMAINING = 200
+
 
 class GitHubAPI:
     def __init__(self):
@@ -44,7 +46,7 @@ class GitHubAPI:
     def _handle_no_more_calls(self):
         tokens = self.tokens_handler.get_public_tokens(only_token=False)
         for token, calls, reset_time in tokens:
-            if calls > 200:
+            if calls > REMAINING:
                 logger.warning(f"Token changed {token[-10:]}")
                 self.update_token(token)
                 return
@@ -71,12 +73,17 @@ class GitHubAPI:
             if headers is not None:
                 self.headers.update(headers)
             response = requests.get(url, headers=self.headers, params=params)
+
             logger.debug(
                 "{name} \t {current}/{limit}",
                 current=response.headers["X-RateLimit-Remaining"],
                 limit=response.headers["X-RateLimit-Limit"],
                 name=name,
             )
+            remaining_limit = int(response.headers["X-RateLimit-Remaining"])
+            if remaining_limit < REMAINING:
+                raise RateLimitExceededError("GitHub API rate limit is low.")
+            
             response.raise_for_status()
             return response
         except requests.exceptions.HTTPError as e:

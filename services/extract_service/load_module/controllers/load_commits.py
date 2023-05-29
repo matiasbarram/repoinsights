@@ -34,10 +34,13 @@ class LoadCommitController:
 
     def load_commit(self, commit: InsightsCommit) -> int:
         logger.debug("Loading commit {sha}", sha=commit.sha)
-        commit_id = self.temp_db.create_commit(commit)
-        if commit.project_id is not None:
-            self.temp_db.create_project_commit(commit.project_id, commit_id)
+        commit_id = self.find_commit_sha(commit.sha)
+        if commit_id is None:
+            commit_id = self.temp_db.create_commit(commit)
+            if commit.project_id is not None:
+                self.temp_db.create_project_commit(commit.project_id, commit_id)
         return commit_id
+
 
     def load_commits_data(self, commits: List[InsightsCommit]):
         commit: InsightsCommit
