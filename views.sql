@@ -1,3 +1,6 @@
+\connect ghtorrent_restore_2015
+
+
 CREATE VIEW public_projects AS
 SELECT *
 FROM ghtorrent_restore_2015.projects
@@ -26,7 +29,8 @@ JOIN public_projects ON extractions.project_id = public_projects.id;
 CREATE VIEW public_project_metrics AS
 SELECT project_metrics.*
 FROM ghtorrent_restore_2015.project_metrics
-JOIN public_projects ON project_metrics.project_id = public_projects.id;
+JOIN ghtorrent_restore_2015.extractions ON project_metrics.extraction_id = extractions.id
+JOIN public_projects ON extractions.project_id = public_projects.id;
 
 
 CREATE VIEW public_commit_comments AS
@@ -100,20 +104,21 @@ SELECT pull_request_metrics.*
 FROM ghtorrent_restore_2015.pull_request_metrics
 JOIN public_pull_requests ON pull_request_metrics.pull_request_id = public_pull_requests.id;
 
-CREATE VIEW public_followers AS
-SELECT followers.*
-FROM ghtorrent_restore_2015.followers
-JOIN ghtorrent_restore_2015.users ON followers.public_id = users.id;
+-- CREATE VIEW public_followers AS
+-- SELECT followers.*
+-- FROM ghtorrent_restore_2015.followers
+-- JOIN ghtorrent_restore_2015.users ON followers.public_id = users.id;
 
-CREATE VIEW public_organization_members AS
-SELECT organization_members.*
-FROM ghtorrent_restore_2015.organization_members
-JOIN ghtorrent_restore_2015.users ON organization_members.public_id = users.id;
+-- CREATE VIEW public_organization_members AS
+-- SELECT organization_members.*
+-- FROM ghtorrent_restore_2015.organization_members
+-- JOIN ghtorrent_restore_2015.users ON organization_members.public_id = users.id;
 
-CREATE VIEW public_metrics AS
-SELECT public_metrics.*
-FROM ghtorrent_restore_2015.public_metrics
-JOIN ghtorrent_restore_2015.users ON public_metrics.public_id = users.id;
+-- CREATE VIEW public_metrics AS
+-- SELECT public_metrics.*
+-- FROM ghtorrent_restore_2015.public_metrics
+-- JOIN ghtorrent_restore_2015.extractions ON public_metrics.extraction_id = extractions.id
+-- JOIN ghtorrent_restore_2015.users ON extractions.user_id = users.id;
 
 CREATE VIEW public_repo_labels AS
 SELECT repo_labels.*
@@ -124,8 +129,3 @@ CREATE VIEW public_repo_milestones AS
 SELECT repo_milestones.*
 FROM ghtorrent_restore_2015.repo_milestones
 JOIN public_projects ON repo_milestones.repo_id = public_projects.id;
-
-CREATE VIEW public_metrics_log AS
-SELECT metrics_log.*
-FROM ghtorrent_restore_2015.metrics_log
-JOIN public_projects ON metrics_log.repo_id = public_projects.id;

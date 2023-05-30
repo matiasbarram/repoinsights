@@ -54,25 +54,22 @@ class InsightsClient:
             logger.critical("No hay proyectos pendientes")
             exit(0)
 
-    def enqueue_to_modificacion(self, type, **kwargs):
+    def enqueue_to_modificacion(self, action_type, **kwargs):
         project_data = {}
-        if type == "rename":
-            project_data = {
-                "action": "delete",
-                "project": {"owner": self.owner, "repo": self.repo},
-            }
-        elif type == "delete":
-            if "new" not in kwargs:
-                raise LoadError("No se especificó el nuevo nombre del proyecto")
-            new = kwargs["new"]
-            project_data = {
-                "action": "delete",
-                "current": {"owner": self.owner, "repo": self.repo},
-                "new": {"owner": new["owner"], "repo": new["repo"]},
-            }
+        if action_type not in ['rename', 'delete']:
+            raise ValueError('Invalid action_type. Must be either "rename" or "delete"')
+
+        project_data['action'] = action_type
+        project_data['project'] = {'owner': self.owner, 'repo': self.repo}
+
+        if action_type == 'delete':
+            new = kwargs.get('new')
+            if not new:
+                raise LoadError('No se especificó el nuevo nombre del proyecto')
+            project_data['new'] = {'owner': new['owner'], 'repo': new['repo']}
 
         json_data = json.dumps(project_data)
-        self.queue_client.enqueue(json_data, "modificaciones")
+        self.queue_client.enqueue(json_data, 'modificaciones')
 
     def enqueue_to_pendientes(self, status=None):
         if status:

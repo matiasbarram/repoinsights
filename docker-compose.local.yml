@@ -13,16 +13,17 @@ services:
       POSTGRES_USER: '${CONSOLIDADA_USER}'
       POSTGRES_DB: 'ghtorrent'
       POSTGRES_PASSWORD: '${CONSOLIDADA_PASS}'
-      SCHEMA: '${SCHEMA_CONSOLIDADA}'
     ports:
       - '${CONSOLIDADA_PORT}:${CONSOLIDADA_PORT}'
     expose:
       - '${CONSOLIDADA_PORT}'
     command: -p ${CONSOLIDADA_PORT}
     volumes:
-      - ./docker/postgres:/var/lib/postgresql/data
-      - ./docker/data:/app
-      - ./${SCHEMA_CONSOLIDADA}:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/postgres-consolidada:/var/lib/postgresql/data
+      - ./${DB_SCHEMA}:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./${DB_DATA}:/docker-entrypoint-initdb.d/02-data.sql
+      - ./constraints.sql:/docker-entrypoint-initdb.d/03-constraints.sql
+      - ./views.sql:/docker-entrypoint-initdb.d/04-views.sql
 
   temporal:
     image: postgres
@@ -38,8 +39,8 @@ services:
     command: -p ${TEMP_PORT}
     volumes:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
-      - ./docker/data:/app
-      - ./${SCHEMA_TEMP}:/docker-entrypoint-initdb.d/init.sql
+      - ./${DB_SCHEMA}:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./constraints.sql:/docker-entrypoint-initdb.d/02-constraints.sql
 
   rabbitmq:
     image: rabbitmq:3.9-management-alpine

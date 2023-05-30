@@ -34,11 +34,11 @@ class GitHubAPI:
             except RateLimitExceededError:
                 try:
                     self._handle_no_more_calls()
-                    self.rate_limit_handling(func, *args, **kwargs)
                 except NoMoreTokensError:
                     logger.critical("No more tokens")
                     self._handle_wait_time()
-                    self.rate_limit_handling(func, *args, **kwargs)
+                    continue
+                self.rate_limit_handling(func, *args, **kwargs)
 
     def update_token(self, new_token: str):
         self.token = new_token
@@ -67,8 +67,7 @@ class GitHubAPI:
         })
         if wait_time > 0 and calls <= REMAINING:
             logger.warning(f"Waiting {wait_time} seconds  {now + timedelta(seconds=wait_time)}")
-            #time.sleep(wait_time)
-            time.sleep(10)
+            time.sleep(wait_time)
         self.update_token(token)
 
     def get(
