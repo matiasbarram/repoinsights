@@ -1,4 +1,5 @@
-name: avg_time_commits_per_dev
+name: avg_commits_per_dev
+description: Average number of commits per developer.
 measurement: percentage
 metric: >
     WITH dev_commits AS (

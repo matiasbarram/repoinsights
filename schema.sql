@@ -651,7 +651,7 @@ ALTER SEQUENCE ghtorrent_restore_2015.metrics_seq OWNED BY ghtorrent_restore_201
 
 CREATE TABLE ghtorrent_restore_2015.project_metrics (
     id INTEGER NOT NULL,
-    extraction_id INTEGER NOT NULL,
+    extraction_id INTEGER NOT NULL DEFAULT 0,
     metric_id INTEGER NOT NULL,
     value VARCHAR(255), -- Store all values as strings, convert as needed
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
