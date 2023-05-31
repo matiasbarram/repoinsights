@@ -198,11 +198,11 @@ class EntityData:
                 ],
                 "add_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
-                    "user_id",
+                    ("user_id", self.cache.user_id_map, User),
                     "comment_id",
                     "position",
                     "body",
-                    "commit_id",
+                    ("commit_id", self.cache.commit_id_map, Commit),
                     "created_at",
                     "ext_ref_id",
                 ],

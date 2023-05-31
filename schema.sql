@@ -376,7 +376,7 @@ CREATE TABLE ghtorrent_restore_2015.pull_request_comments (
     id integer NOT NULL,
     pull_request_id integer NOT NULL,
     user_id integer,
-    comment_id text NOT NULL,
+    comment_id integer NOT NULL,
     "position" integer,
     body character varying(256),
     commit_id integer NOT NULL,

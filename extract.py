@@ -21,10 +21,10 @@ class Logger:
         logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
 
 
-def handle_extract_exceptions(client, e):
+def handle_extract_exceptions(client: InsightsClient, e):
     if isinstance(e, GitHubUserException):
         logger.error("Repositorio encontrado con otro nombre, encolando para eliminar")
-        client.enqueue_to_modificacion(type="rename")
+        client.enqueue_to_modificacion(action_type="rename")
     elif isinstance(e, ProjectNotFoundError):
         logger.error("Proyecto no encontrado, marcar como eliminado")
     elif isinstance(e, KeyboardInterrupt):
