@@ -28,7 +28,7 @@ class User:
             self.api.cache.set(usuario, user_data)
             return user_data
         except Exception:
-            logger.error(f"Error al obtener usuario {usuario}")
+            logger.exception(f"Error al obtener usuario {usuario}", traceback=True)
             return None
 
     def _get_users_for_keys(

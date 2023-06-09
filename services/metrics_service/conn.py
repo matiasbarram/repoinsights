@@ -24,3 +24,12 @@ class ConsolidadaConnection:
             user=self.user,
             password=self.password,
         )
+
+    def get_all_projects(self):
+        conn = self.get_connection()
+        cur = conn.cursor()
+        query = """
+            SELECT id, project_id FROM extractions
+        """
+        cur.execute(query)
+        return cur.fetchall()

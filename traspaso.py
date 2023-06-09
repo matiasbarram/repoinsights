@@ -63,7 +63,7 @@ def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
         saved_projects.append(project)
 
     except Exception as e:
-        logger.error(e)
+        logger.exception("Error", traceback=True)
         add_to_queue(project, queue_client, failed_projects)
         raise e
 

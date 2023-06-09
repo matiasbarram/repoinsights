@@ -210,8 +210,7 @@ class EntityData:
             PullRequestHistory: {
                 "search_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
-                    "created_at",
-                    ("actor_id", self.cache.user_id_map, User),
+                    "action",
                 ],
                 "add_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
@@ -255,8 +254,7 @@ class EntityData:
             IssueEvent: {
                 "search_keys": [
                     ("issue_id", self.cache.issue_id_map, Issue),
-                    ("actor_id", self.cache.user_id_map, User),
-                    "created_at",
+                    "action",
                 ],
                 "add_keys": [
                     "event_id",

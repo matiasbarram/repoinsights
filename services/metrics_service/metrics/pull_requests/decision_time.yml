@@ -2,8 +2,6 @@ name: decision_time
 
 description: >
     The time it takes for a pull request to be merged after it is opened.
-    This metric is calculated by subtracting the time the pull request was
-    opened from the time it was merged.
 measurement: hours
 metric: >
     WITH open_pr AS (
@@ -26,13 +24,12 @@ metric: >
     )
 
     SELECT
-        pr.base_repo_id,
-        pr.id AS pull_request_id,
-        EXTRACT(EPOCH FROM (merged_pr.merged_at - open_pr.opened_at)) / 3600 AS time_to_merge_hours
+        pr.pullreq_id AS pull_request_id,
+        EXTRACT(EPOCH FROM (COALESCE(merged_pr.merged_at, NOW()) - open_pr.opened_at)) / 3600 AS time_to_merge_hours
     FROM
         pull_requests pr
         JOIN open_pr ON pr.id = open_pr.pull_request_id
-        JOIN merged_pr ON pr.id = merged_pr.pull_request_id
+        LEFT JOIN merged_pr ON pr.id = merged_pr.pull_request_id
         JOIN users usr ON pr.user_id = usr.id
     WHERE
         pr.base_repo_id = %s;

@@ -1,0 +1,17 @@
+name: issues_per_dev
+description: The number of issues closed to each developer in the repository.
+measurement: count
+metric: >
+  SELECT
+      i.repo_id,
+      i.reporter_id,
+      COUNT(*) AS issue_count
+  FROM
+      issues i
+  WHERE
+      i.repo_id = %s
+  GROUP BY
+      i.repo_id,
+      i.reporter_id
+  ORDER BY
+      issue_count DESC;

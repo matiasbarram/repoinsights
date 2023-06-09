@@ -23,20 +23,29 @@ class Logger:
 
 def handle_extract_exceptions(client: InsightsClient, e):
     if isinstance(e, GitHubUserException):
-        logger.error("Repositorio encontrado con otro nombre, encolando para eliminar")
         client.enqueue_to_modificacion(action_type="rename")
+        logger.exception(
+            "Repositorio encontrado con otro nombre, encolando para eliminar",
+            traceback=True,
+        )
     elif isinstance(e, ProjectNotFoundError):
-        logger.error("Proyecto no encontrado, marcar como eliminado")
+        client.enqueue_to_modificacion(action_type="delete")
+        logger.exception(
+            "Proyecto no encontrado, marcar como eliminado", traceback=True
+        )
+
     elif isinstance(e, KeyboardInterrupt):
-        logger.error("Proceso interrumpido por el usuario")
+        logger.exception("Proceso interrumpido por el usuario", traceback=True)
         client.enqueue_to_pendientes()
     else:
-        logger.error(f"Fallo en la extracción. volviendo a encolar: {e}")
+        logger.exception(
+            f"Fallo en la extracción. volviendo a encolar: {e}", traceback=True
+        )
         client.enqueue_to_pendientes()
 
 
 def handle_load_exceptions(client, e):
-    logger.error(f"Fallo en la carga. volviendo a encolar: {e}")
+    logger.exception(f"Fallo en la carga. volviendo a encolar: {e}", traceback=True)
     client.enqueue_to_pendientes("load")
 
 

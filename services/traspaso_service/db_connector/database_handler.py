@@ -63,7 +63,7 @@ class DatabaseHandler:
                 session.commit()
                 return instance
             except Exception as e:
-                logger.error(f"Error creating: {e}")
+                logger.exception(f"Error creating: {e}", traceback=True)
                 raise CreateError(e)
         else:
             logger.debug("Instance does not exist and not created")

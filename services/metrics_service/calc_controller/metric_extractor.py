@@ -4,7 +4,7 @@ from psycopg2.extensions import connection, cursor
 from decimal import Decimal
 from typing import List, Dict, Any, Tuple
 from ..helper import yaml_to_dict
-from ..commons import METRICS_DIR, METRICS_GROUPS
+from ..commons import METRICS_DIR, METRICS_GROUPS, REPO_METRICS
 from .metric_validator import MetricValidator
 
 
@@ -14,8 +14,10 @@ class MetricExtractor:
         metrics = []
         for metrics_group in METRICS_GROUPS:
             group = {"group": metrics_group, "metrics": []}
-            dirs = glob.glob(METRICS_DIR + metrics_group + "/*.yml")
-            group_metrics = [yaml_to_dict(dir) for dir in dirs]
+            metrics_group_dirs = glob.glob(METRICS_DIR + metrics_group + "/*.yml")
+            group_metrics = [
+                yaml_to_dict(metric_dir) for metric_dir in metrics_group_dirs
+            ]
             MetricValidator.validate_metric_names(group_metrics)
             group["metrics"] = group_metrics
             metrics.append(group)

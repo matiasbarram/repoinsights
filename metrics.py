@@ -13,7 +13,9 @@ def save_results_to_file(results):
 def main(project_id, extraction_id):
     consolidada_conn = ConsolidadaConnection()
     conn = consolidada_conn.get_connection()
-
+    # projects = consolidada_conn.get_all_projects()
+    # for project in projects:
+    #     extraction_id, project_id = project
     calc_metrics = CalculateMetrics(conn, project_id, extraction_id)
     load_metrics = MetricsLoader(conn, project_id, extraction_id)
     results = calc_metrics.calculate_metrics()
@@ -26,4 +28,4 @@ def main(project_id, extraction_id):
 
 
 if __name__ == "__main__":
-    main(78852, 72)
+    main(109077, 96)

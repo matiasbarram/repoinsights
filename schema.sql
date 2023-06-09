@@ -183,7 +183,7 @@ CREATE TABLE ghtorrent_restore_2015.issue_comments (
     id integer NOT NULL,
     issue_id integer NOT NULL,
     user_id integer NOT NULL,
-    comment_id text NOT NULL,
+    comment_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     ext_ref_id character varying(32) DEFAULT '0' NOT NULL
 );

@@ -1,5 +1,6 @@
 from pprint import pprint
 from psycopg2.extensions import connection
+from ..commons import METRICS_TABLE_NAME_MAP
 
 
 class MetricDB:
@@ -20,18 +21,13 @@ class MetricDB:
             result = curs.fetchone()
         return result[0] if result else None
 
-    def check_if_exists(self, extraction_id: int, metric_group) -> bool:
-        table_mapping = {
-            "developers": "user_metrics",
-            "issues": "issue_metrics",
-            "pull_requests": "pull_request_metrics",
-            "repository": "project_metrics",
-        }
+    def check_if_exists_metric_in_group(self, extraction_id: int, metric_group) -> bool:
+        metric_info = METRICS_TABLE_NAME_MAP.get(metric_group)
 
-        table_name = table_mapping.get(metric_group)
-
-        if not table_name:
+        if not metric_info:
             raise ValueError(f"Unknown metric_group: {metric_group}")
+
+        table_name = metric_info["table"]
 
         with self.conn.cursor() as curs:
             curs.execute(

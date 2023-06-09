@@ -1,6 +1,6 @@
 name: commits_in_pr
-description: Percentage of commits that are linked to a pull request
-measurement: Percentage
+description: N° of commits that are linked to a pull request
+measurement: Count
 
 variables: [project_id]
 metric: >

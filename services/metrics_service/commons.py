@@ -19,7 +19,7 @@ PULL_REQUESTS_TABLE = "pull_request_metrics"
 DEVELOPERS_TABLE = "user_metrics"
 
 
-TABLE_NAME_MAP = {
+METRICS_TABLE_NAME_MAP = {
     REPO_METRICS: {
         "table": REPO_TABLE,
         "params": ["metric_id", "extraction_id", "value"],
