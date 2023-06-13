@@ -24,7 +24,8 @@ metric: >
     )
 
     SELECT
-        pr.pullreq_id AS pull_request_id,
+        pr.base_repo_id,
+        pr.id AS pull_request_id,
         EXTRACT(EPOCH FROM (COALESCE(merged_pr.merged_at, NOW()) - open_pr.opened_at)) / 3600 AS time_to_merge_hours
     FROM
         pull_requests pr

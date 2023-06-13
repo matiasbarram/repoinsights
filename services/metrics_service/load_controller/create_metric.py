@@ -1,7 +1,8 @@
 from typing import Any, Dict, Tuple
-from psycopg2.extensions import connection
+from psycopg2.extensions import connection, cursor
 from loguru import logger
 from pprint import pprint
+
 from ..commons import METRICS_TABLE_NAME_MAP, REPO_METRICS
 
 
@@ -59,9 +60,6 @@ class Metric:
         with self.conn.cursor() as curs:
             curs.execute(query, results)
             self.conn.commit()
-            if group_name != REPO_METRICS:
-                self._create_agg_metric()
-                self._calc_agg_metric(group_name, metric_id, extraction_id, curs)
 
     def _create_agg_metric(self):
         central_tendency_measures = ["avg", "median", "iqr"]
@@ -81,7 +79,7 @@ class Metric:
                 self.conn.commit()
 
     def _calc_agg_metric(
-        self, group_name: str, metric_id: int, extraction_id: int, curs
+        self, group_name: str, metric_id: int, extraction_id: int, curs: cursor
     ):
         table_info = METRICS_TABLE_NAME_MAP.get(group_name)
         if table_info is None:
@@ -96,7 +94,10 @@ class Metric:
         for measure, agg_function in central_tendency_measures.items():
             metric_name = f"{self.name}_{measure}"
             curs.execute(f"SELECT id FROM metrics WHERE name = %s", (metric_name,))
-            agg_metric_id = curs.fetchone()[0]
+            agg_metric_id = curs.fetchone()
+            if agg_metric_id is None:
+                raise ValueError(f"Unknown metric: {metric_name}")
+            agg_metric_id = agg_metric_id[0]
             curs.execute(
                 f"""
                 SELECT {agg_function} AS result
@@ -105,7 +106,10 @@ class Metric:
                 """,
                 (metric_id, extraction_id),
             )
-            agg_result = curs.fetchone()[0]
+            agg_result = curs.fetchone()
+            if agg_result is None:
+                raise ValueError(f"Unknown metric: {metric_name}")
+            agg_result = agg_result[0]
             logger.debug(
                 "{metric_name} ({agg_function}): {agg_result}",
                 metric_name=metric_name,

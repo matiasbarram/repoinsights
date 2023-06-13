@@ -28,4 +28,4 @@ def main(project_id, extraction_id):
 
 
 if __name__ == "__main__":
-    main(109077, 96)
+    main(1, 1)

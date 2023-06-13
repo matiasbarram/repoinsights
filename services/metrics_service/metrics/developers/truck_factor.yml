@@ -1,53 +1,48 @@
 name: truck_factor
 description: Top developers that contribute to 80% of the commits.
-variables: [project_id, project_id, project_id]
+variables: [project_id, project_id]
 measurement: count
 metric: >
-  WITH commits_count AS (
-      SELECT
-          project_id,
-          committer_id,
-          COUNT(DISTINCT sha) AS commit_count
-      FROM
-          commits
-      WHERE
-          project_id = %s -- Filtro por el proyecto específico
-      GROUP BY
-          project_id,
-          committer_id
-  ),
-  total_commits AS (
-      SELECT
-          project_id,
-          SUM(commit_count) AS total_count
-      FROM
-          commits_count
-      WHERE
-          project_id = %s -- Filtro por el proyecto específico
-      GROUP BY
-          project_id
-  ),
-  contributors AS (
-      SELECT
-          cc.project_id,
-          cc.committer_id,
-          cc.commit_count,
-          (cc.commit_count * 100.0 / tc.total_count) AS commit_percentage,
-          SUM(cc.commit_count * 100.0 / tc.total_count) OVER (ORDER BY cc.commit_count DESC) AS cumulative_percentage
-      FROM
-          commits_count cc
-          JOIN total_commits tc ON cc.project_id = tc.project_id
-      WHERE
-          cc.project_id = %s -- Filtro por el proyecto específico
-  )
-  SELECT
-      project_id,
-      committer_id,
-      commit_count,
-      commit_percentage
-  FROM
-      contributors
-  WHERE
-      cumulative_percentage <= 80.0
-  ORDER BY
-      commit_percentage DESC;
+    WITH total_contributions AS (
+        SELECT 
+            project_id, 
+            committer_id, 
+            COUNT(committer_id) AS contributions_per_dev,
+            SUM(COUNT(committer_id)) OVER (PARTITION BY project_id) AS total_contributions
+        FROM 
+            commits 
+        WHERE 
+            project_id = %s
+        GROUP BY 
+            committer_id, 
+            project_id
+    ),
+    cumulative_contributions AS (
+        SELECT 
+            project_id,
+            committer_id,
+            contributions_per_dev,
+            (contributions_per_dev * 1.0) / total_contributions * 100 AS percent_contributions,
+            SUM((contributions_per_dev * 1.0) / total_contributions * 100) OVER (
+                PARTITION BY project_id 
+                ORDER BY (contributions_per_dev * 1.0) / total_contributions DESC
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            ) AS cumulative_percent,
+            ROW_NUMBER() OVER (
+                PARTITION BY project_id
+                ORDER BY (contributions_per_dev * 1.0) / total_contributions DESC
+            ) AS rank
+        FROM 
+            total_contributions
+    )
+    SELECT 
+        project_id, 
+        committer_id, 
+        percent_contributions 
+    FROM 
+        cumulative_contributions 
+    WHERE 
+        cumulative_percent <= 80
+        OR rank = %s
+    ORDER BY 
+        percent_contributions DESC;

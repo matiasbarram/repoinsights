@@ -31,6 +31,7 @@ class Client:
         prs = temp.get_prs()
         pr_comments = temp.get_pr_comments()
         pr_history = temp.get_pr_history()
+        pr_commits = temp.get_pr_commits()
         watchers = temp.get_watchers()
         followers = temp.get_followers()
 
@@ -55,6 +56,7 @@ class Client:
         print(f"Pull Requests: {len(prs)}")
         print(f"Pull Request Comments: {len(pr_comments)}")
         print(f"Pull Request History: {len(pr_history)}")
+        print(f"Pull Request Commits: {len(pr_commits)}")
 
         # if all are 0
         if (
@@ -100,8 +102,31 @@ class Client:
         consolidada.add_pull_requests(prs)
         consolidada.add_pull_request_comments(pr_comments)
         consolidada.add_pull_request_history(pr_history)
+        consolidada.add_pull_request_commits(pr_commits)
 
         consolidada.add_issues(issues)
         consolidada.add_issue_comments(issue_comments)
         consolidada.add_issue_events(issue_events)
         consolidada.add_issue_labels(issue_labels)
+
+        # DELETE FROM TEMPORAL IN REVERSE ORDER USING ext_ref_id
+        # temp.delete_issue_labels()
+        # temp.delete_issue_events()
+        # temp.delete_issue_comments()
+        # temp.delete_issues()
+        # temp.delete_pr_commits()
+        # temp.delete_pr_history()
+        # temp.delete_pr_comments()
+        # temp.delete_prs()
+        # temp.delete_commit_parents()
+        # temp.delete_commit_comments()
+        # temp.delete_commits()
+        # temp.delete_milestones()
+        # temp.delete_labels()
+        # temp.delete_project_members()
+        # temp.delete_extractions()
+        # temp.delete_projects()
+        # temp.delete_followers()
+        # temp.delete_watchers()
+        # temp.delete_users()
+        # logger.info("Data migrada {uuid}", uuid=self.uuid)

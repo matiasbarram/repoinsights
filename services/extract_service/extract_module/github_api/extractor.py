@@ -77,6 +77,9 @@ class GitHubExtractor:
     def obtener_pull_requests_comments(self):
         return self.pull_request.obtener_pull_requests_comments()
 
+    def obtener_pull_requests_commits(self, pull_request_number: int):
+        return self.pull_request.obtener_pull_requests_commits(pull_request_number)
+
     def obtener_labels(self):
         return self.repositorio.obtener_labels()
 

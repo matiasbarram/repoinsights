@@ -6,6 +6,7 @@ from services.extract_service.utils.utils import (
     get_unique_users,
     add_users_to_dict_keys,
 )
+from services.extract_service.extract_module.github_api.controllers.user import User
 
 
 class Commit:
@@ -13,7 +14,7 @@ class Commit:
         self.api = api
         self.usuario = usuario
         self.repositorio = repositorio
-        self.user_controller = user
+        self.user_controller: User = user
 
     def obtener_commit(self, commit_sha: str) -> Dict[str, Any]:
         if self.api.cache.has(commit_sha):

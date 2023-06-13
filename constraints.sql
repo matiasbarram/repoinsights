@@ -319,6 +319,9 @@ ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_commits
 ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_commits
     ADD CONSTRAINT pull_request_commits_ibfk_2 FOREIGN KEY (commit_id) REFERENCES ghtorrent_restore_2015.commits(id);
 
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_commits
+    ADD CONSTRAINT pull_request_commit_unique UNIQUE (pull_request_id, commit_id);
+
 
   
 ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_history
@@ -460,3 +463,6 @@ SELECT setval('ghtorrent_restore_2015.pull_request_metrics_id_seq', (SELECT MAX(
 SELECT setval('ghtorrent_restore_2015.issue_metrics_id_seq', (SELECT MAX(id) FROM ghtorrent_restore_2015.issue_metrics));
 
 SELECT setval('ghtorrent_restore_2015.user_metrics_id_seq', (SELECT MAX(id) FROM ghtorrent_restore_2015.user_metrics));
+
+-- pull_request_commits
+SELECT setval('ghtorrent_restore_2015.pull_request_commits_id_seq', (SELECT MAX(id) FROM ghtorrent_restore_2015.pull_request_commits));

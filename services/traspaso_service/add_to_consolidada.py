@@ -297,6 +297,14 @@ class ConsolidatedClient:
             add_keys=self.entity_data[PullRequestHistory]["add_keys"],
         )
 
+    def add_pull_request_commits(self, pull_request_commits: List[PullRequestCommit]):
+        self.entity_handler.add_entities(
+            entity_class=PullRequestCommit,
+            entities=pull_request_commits,
+            search_keys=self.entity_data[PullRequestCommit]["search_keys"],
+            add_keys=self.entity_data[PullRequestCommit]["add_keys"],
+        )
+
     def add_issues(self, issues: List[Issue]):
         self.entity_handler.add_entities(
             entity_class=Issue,

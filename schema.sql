@@ -401,11 +401,21 @@ ALTER SEQUENCE ghtorrent_restore_2015.pull_request_comments_id_seq OWNED BY ghto
 --
 
 CREATE TABLE ghtorrent_restore_2015.pull_request_commits (
+    id integer NOT NULL,
     pull_request_id integer NOT NULL,
     commit_id integer NOT NULL,
     ext_ref_id character varying(32) DEFAULT '0' NOT NULL
 );
 
+CREATE SEQUENCE ghtorrent_restore_2015.pull_request_commits_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ghtorrent_restore_2015.pull_request_commits_id_seq OWNED BY ghtorrent_restore_2015.pull_request_commits.id;
 
 --
 -- TOC entry 237 (class 1259 OID 16482)
@@ -933,10 +943,11 @@ ALTER TABLE ONLY ghtorrent_restore_2015.projects
 -- TOC entry 3370 (class 2606 OID 16596)
 -- Name: pull_request_commits idx_16478_primary; Type: CONSTRAINT; Schema: ghtorrent_restore_2015; Owner: -
 --
-
+ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_commits ALTER COLUMN id SET DEFAULT nextval('ghtorrent_restore_2015.pull_request_commits_id_seq'::regclass);
 ALTER TABLE ONLY ghtorrent_restore_2015.pull_request_commits
-    ADD CONSTRAINT idx_16478_primary PRIMARY KEY (pull_request_id, commit_id);
+    ADD CONSTRAINT idx_16478_primary PRIMARY KEY (id);
 
+    
 
 --
 -- TOC entry 3373 (class 2606 OID 16598)

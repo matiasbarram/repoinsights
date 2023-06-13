@@ -5,6 +5,7 @@ from loguru import logger
 from psycopg2.extensions import connection
 from .create_metric import Metric
 from .create_metric_group import MetricGroup
+from ..commons import METRICS_TABLE_NAME_MAP, REPO_METRICS
 
 
 class MetricsLoader:
@@ -24,14 +25,17 @@ class MetricsLoader:
     def _load_metrics_for_group(self, group: MetricGroup, results: Dict):
         metrics_ids = group.get_metrics_ids()
         for metric in metrics_ids:
-            self._load_metric_results(metric, results)
+            self._load_metric_results(metric, results, group.name)
 
-    def _load_metric_results(self, metric: Dict[str, Any], results: Dict):
+    def _load_metric_results(
+        self, metric: Dict[str, Any], results: Dict, group_name: str
+    ):
         metric_results = results.get(metric["name"])
         if metric_results is None:
             return
         for metric_result in metric_results:
             self._log_and_load_metric_result(metric_result, metric)
+        self.load_resume_metrics(metric)
 
     def _log_and_load_metric_result(
         self, metric_result: List[Any], metric: Dict[str, Any]
@@ -43,3 +47,17 @@ class MetricsLoader:
             for m in group.metrics:
                 if m.id == metric_id:
                     m.load(group.name, metric_id, result, self.extraction_id)
+
+    def load_resume_metrics(self, metric: Dict[str, Any]):
+        for group in self.metric_groups:
+            if group.name == REPO_METRICS:
+                continue
+            for m in group.metrics:
+                if m.name == metric["name"]:
+                    m._create_agg_metric()
+                    m._calc_agg_metric(
+                        group_name=group.name,
+                        metric_id=metric["id"],
+                        curs=self.conn.cursor(),
+                        extraction_id=self.extraction_id,
+                    )

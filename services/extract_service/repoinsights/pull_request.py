@@ -34,6 +34,7 @@ class InsightsPullRequest:
 
         self.intra_branch = self.set_intra_branch(pull_request)
         self.comments = []
+        self.commits = []
         self.base_repo_id = None
         self.head_repo_id = None
 
@@ -78,6 +79,9 @@ class InsightsPullRequest:
 
     def set_project_id(self, project_id: int):
         self.project_id = project_id
+
+    def set_commits(self, commits: List[InsightsCommit]):
+        self.commits = commits
 
     def to_dict(self):
         return {

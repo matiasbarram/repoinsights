@@ -45,3 +45,9 @@ class InsightsPullRequestHandler:
                 if get_int_from_dict(comment, "pull_request_url") == pull_request.number
             ]
             pull_request.set_comments(pull_request_comments)
+
+    def get_pull_request_commits(self, pull_requests: List[InsightsPullRequest]):
+        for pull_request in pull_requests:
+            commits = self.repo.obtener_pull_requests_commits(pull_request.number)
+            insight_commits = [InsightsCommit(commit) for commit in commits]
+            pull_request.set_commits(insight_commits)

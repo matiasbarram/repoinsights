@@ -19,6 +19,7 @@ from .models import (
     IssueLabel,
     RepoMilestone,
     Extraction,
+    PullRequestCommit,
 )
 from services.extract_service.repoinsights.commit import InsightsCommit
 from services.extract_service.repoinsights.user import InsightsUser
@@ -177,6 +178,11 @@ class DatabaseHandler:
 
     def create_pull_request_comment(self, comment: InsightsPullRequestComment):
         self.get_or_create(PullRequestComment, **comment.to_dict())
+
+    def create_pull_request_commit(self, pr_id: int, commit_id: int):
+        self.get_or_create(
+            PullRequestCommit, pull_request_id=pr_id, commit_id=commit_id
+        )
 
     def create_pull_request_history(self, pr: Dict[str, Any]):
         existing_pr = self.get_or_create(PullRequestHistory, **pr)

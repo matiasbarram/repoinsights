@@ -207,6 +207,17 @@ class EntityData:
                     "ext_ref_id",
                 ],
             },
+            PullRequestCommit: {
+                "search_keys": [
+                    ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
+                    ("commit_id", self.cache.commit_id_map, Commit),
+                ],
+                "add_keys": [
+                    ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
+                    ("commit_id", self.cache.commit_id_map, Commit),
+                    "ext_ref_id",
+                ],
+            },
             PullRequestHistory: {
                 "search_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),

@@ -41,6 +41,21 @@ class LoadCommitController:
                 self.temp_db.create_project_commit(commit.project_id, commit_id)
         return commit_id
 
+    def create_commit(self, commit: InsightsCommit) -> int:
+        logger.debug("Creating commit {sha}", sha=commit.sha)
+        commit.set_project_id(self.repo_id)
+        commit.set_author_id(
+            self.user_controller.load_user(commit.author) if commit.author else None
+        )
+        commit.set_committer_id(
+            self.user_controller.load_user(commit.committer)
+            if commit.committer
+            else None
+        )
+        commit_id = self.temp_db.create_commit(commit)
+        if commit.project_id is not None:
+            self.temp_db.create_project_commit(commit.project_id, commit_id)
+        return commit_id
 
     def load_commits_data(self, commits: List[InsightsCommit]):
         commit: InsightsCommit

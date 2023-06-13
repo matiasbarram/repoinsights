@@ -4,6 +4,7 @@ measurement: hours
 metric: >
     WITH open_close_dates AS (
         SELECT
+            pr.base_repo_id as repo_id,
             pr.id AS pull_request_id,
             MAX(CASE WHEN prh.action = 'opened' THEN prh.created_at END) AS opened_at,
             MAX(CASE WHEN prh.action = 'merged' THEN prh.created_at END) AS merged_at,
@@ -17,6 +18,7 @@ metric: >
             pr.id
     )
     SELECT
+        repo_id,
         pull_request_id,
         COALESCE(
             EXTRACT(EPOCH FROM (CASE
