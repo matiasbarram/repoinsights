@@ -16,27 +16,36 @@ class Logger:
     def setup(self):
         if not self.debug:
             logger.remove()
-            dt = datetime.now()
-            dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
-            logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
+        dt = datetime.now()
+        dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
+        logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
 
 
-def handle_extract_exceptions(client, e):
+def handle_extract_exceptions(client: InsightsClient, e):
     if isinstance(e, GitHubUserException):
-        logger.error("Repositorio encontrado con otro nombre, encolando para eliminar")
-        client.enqueue_to_modificacion(type="rename")
+        client.enqueue_to_modificacion(action_type="rename")
+        logger.exception(
+            "Repositorio encontrado con otro nombre, encolando para eliminar",
+            traceback=True,
+        )
     elif isinstance(e, ProjectNotFoundError):
-        logger.error("Proyecto no encontrado, marcar como eliminado")
+        client.enqueue_to_modificacion(action_type="delete")
+        logger.exception(
+            "Proyecto no encontrado, marcar como eliminado", traceback=True
+        )
+
     elif isinstance(e, KeyboardInterrupt):
-        logger.error("Proceso interrumpido por el usuario")
+        logger.exception("Proceso interrumpido por el usuario", traceback=True)
         client.enqueue_to_pendientes()
     else:
-        logger.error(f"Fallo en la extracción. volviendo a encolar: {e}")
+        logger.exception(
+            f"Fallo en la extracción. volviendo a encolar: {e}", traceback=True
+        )
         client.enqueue_to_pendientes()
 
 
 def handle_load_exceptions(client, e):
-    logger.error(f"Fallo en la carga. volviendo a encolar: {e}")
+    logger.exception(f"Fallo en la carga. volviendo a encolar: {e}", traceback=True)
     client.enqueue_to_pendientes("load")
 
 
@@ -75,5 +84,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="InsightsClient script")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()
-    while True:
-        main(args.debug)
+    main(args.debug)

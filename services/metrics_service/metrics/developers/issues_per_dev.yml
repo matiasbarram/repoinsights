@@ -1,0 +1,21 @@
+name: issues_per_dev
+description: Number of issues assigned to each developer
+measurement: count
+metric: >
+    SELECT 
+        c.project_id,
+        u.id AS developer_id, 
+        COALESCE(COUNT(i.assignee_id), 0) AS assigned_issues_count
+    FROM 
+        users u 
+    INNER JOIN
+        commits c ON c.committer_id = u.id
+    LEFT JOIN 
+        issues i ON u.id = i.assignee_id 
+        AND i.repo_id = c.project_id
+    WHERE
+        c.project_id =%s
+    GROUP BY 
+        u.id, 
+        u.name,
+        c.project_id

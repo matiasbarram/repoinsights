@@ -3,18 +3,16 @@ description: Average time to close issues.
 measurement: hours
 metric: >
   WITH closed_issues AS (
-  SELECT
-      i.id AS issue_id,
-      i.repo_id AS project_id,
-      i.created_at AS created_at,
-      MAX(ie.created_at) AS closed_at
-  FROM issues i
-  JOIN issue_events ie ON i.id = ie.issue_id
-  WHERE i.repo_id = %s AND ie.action = 'closed'
-  GROUP BY i.id
+    SELECT
+        i.repo_id AS project_id,
+        MAX(ie.created_at) - MIN(i.created_at) AS total_time_to_close
+    FROM issues i
+    JOIN issue_events ie ON i.id = ie.issue_id
+    WHERE i.repo_id = %s AND ie.action = 'closed'
+    GROUP BY i.repo_id
   )
   SELECT
-  project_id,
-  AVG(EXTRACT(EPOCH FROM (closed_at - created_at))) / 3600 AS avg_time_to_close_issues_hours
+    project_id,
+    EXTRACT(EPOCH FROM AVG(total_time_to_close)) / 3600 AS avg_time_to_close_issues_hours
   FROM closed_issues
   GROUP BY project_id;

@@ -36,6 +36,6 @@ class QueueClient:
         self.channel.start_consuming()
 
     def handle_error(self, e: Exception | BaseException) -> None:
-        logger.error(f"Error: {e}")
+        logger.exception(f"Error: {e}", traceback=True)
         self.connection.close()
         raise e

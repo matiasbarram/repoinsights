@@ -19,5 +19,5 @@ class License:
             }
 
         except Exception as e:
-            logger.error(e)
+            logger.exception(e, traceback=True)
             return {"exist": False, "data": {}}

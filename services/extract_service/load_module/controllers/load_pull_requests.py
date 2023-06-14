@@ -3,6 +3,7 @@ from loguru import logger
 from services.extract_service.repoinsights.pull_request import (
     InsightsPullRequest,
     InsightsPullRequestComment,
+    InsightsCommit,
 )
 from services.extract_service.repoinsights.repository import InsightsRepository
 from services.extract_service.load_module.db_connector.database_handler import (
@@ -47,10 +48,24 @@ class LoadPullRequestController:
             if comment.author is not None:
                 comment.set_user_id(self.user_controller.load_user(comment.author))
                 commit_id = self.commit_controller.find_commit_sha(comment.commit_sha)
+                if commit_id is None:
+                    logger.error(
+                        "Commit {sha} is a forked commit, skipping",
+                        sha=comment.commit_sha,
+                    )
+                    continue
                 comment.set_commit_id(commit_id)
                 self.temp_db.create_pull_request_comment(comment)
             else:
                 logger.error("Comment {id} has no author, skipping", id=comment)
+
+    def load_pull_request_commits(self, _, pr_id: int, commits: List[InsightsCommit]):
+        for commit in commits:
+            commit_id = self.commit_controller.find_commit_sha(commit.sha)
+            if commit_id is None:
+                logger.warning("Commit {sha} not found in database", sha=commit.sha)
+                commit_id = self.commit_controller.create_commit(commit)
+            self.temp_db.create_pull_request_commit(pr_id=pr_id, commit_id=commit_id)
 
     def load_pull_request_history(self, pr: InsightsPullRequest, pr_id):
         if pr.created_at is not None:
@@ -100,3 +115,4 @@ class LoadPullRequestController:
             pr_id = self.load_pull_request(pr)
             self.load_pull_request_comments(pr, pr_id, pr.comments)
             self.load_pull_request_history(pr, pr_id)
+            self.load_pull_request_commits(pr, pr_id, pr.commits)

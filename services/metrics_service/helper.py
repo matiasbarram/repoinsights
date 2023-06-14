@@ -46,3 +46,9 @@ def check_types(value):
     if type(value) == Decimal:
         return float(value)
     return value
+
+
+def get_subdirectories(path):
+    return [
+        name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))
+    ]

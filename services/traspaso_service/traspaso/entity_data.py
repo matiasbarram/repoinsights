@@ -198,20 +198,30 @@ class EntityData:
                 ],
                 "add_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
-                    "user_id",
+                    ("user_id", self.cache.user_id_map, User),
                     "comment_id",
                     "position",
                     "body",
-                    "commit_id",
+                    ("commit_id", self.cache.commit_id_map, Commit),
                     "created_at",
+                    "ext_ref_id",
+                ],
+            },
+            PullRequestCommit: {
+                "search_keys": [
+                    ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
+                    ("commit_id", self.cache.commit_id_map, Commit),
+                ],
+                "add_keys": [
+                    ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
+                    ("commit_id", self.cache.commit_id_map, Commit),
                     "ext_ref_id",
                 ],
             },
             PullRequestHistory: {
                 "search_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
-                    "created_at",
-                    ("actor_id", self.cache.user_id_map, User),
+                    "action",
                 ],
                 "add_keys": [
                     ("pull_request_id", self.cache.pull_request_id_map, PullRequest),
@@ -255,8 +265,7 @@ class EntityData:
             IssueEvent: {
                 "search_keys": [
                     ("issue_id", self.cache.issue_id_map, Issue),
-                    ("actor_id", self.cache.user_id_map, User),
-                    "created_at",
+                    "action",
                 ],
                 "add_keys": [
                     "event_id",

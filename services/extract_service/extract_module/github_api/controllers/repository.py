@@ -28,7 +28,7 @@ class Repository:
                     f"El nombre del repo no coincide con el nombre consolidado: {full_name} != {consolidada_name}"
                 )
         except GitHubUserException as e:
-            logger.error(e)
+            logger.exception("Nombre no existe", traceback=True)
             raise e
 
     def obtener_repositorio(self) -> Dict[str, Any]:

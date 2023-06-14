@@ -109,9 +109,9 @@ class IssueComment(Base):
     __tablename__ = "issue_comments"
 
     id = Column(Integer, primary_key=True)
-    issue_id = Column(Integer, ForeignKey(pk_issues), primary_key=True)
-    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
-    comment_id = Column(Text, primary_key=True)
+    issue_id = Column(Integer, ForeignKey(pk_issues))
+    user_id = Column(Integer, ForeignKey(pk_users))
+    comment_id = Column(Text)
     created_at = Column(TIMESTAMP, nullable=False)
     ext_ref_id = Column(String(32), nullable=False)
 
@@ -233,9 +233,9 @@ class PullRequestComment(Base):
     __tablename__ = "pull_request_comments"
 
     id = Column(Integer, primary_key=True)
-    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests), primary_key=True)
-    user_id = Column(Integer, ForeignKey(pk_users), primary_key=True)
-    comment_id = Column(Text, primary_key=True)
+    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests))
+    user_id = Column(Integer, ForeignKey(pk_users))
+    comment_id = Column(Text)
     position = Column(Integer)
     body = Column(String(256))
     commit_id = Column(Integer, ForeignKey(pk_commits), nullable=False)
@@ -243,13 +243,16 @@ class PullRequestComment(Base):
     ext_ref_id = Column(String(32), nullable=False)
 
     user = relationship("User", back_populates="pull_request_comments")
+    pull_request = relationship("PullRequest", back_populates="pull_request_comments")
 
 
 class PullRequestCommit(Base):
     __tablename__ = "pull_request_commits"
 
-    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests), primary_key=True)
-    commit_id = Column(Integer, ForeignKey(pk_commits), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    pull_request_id = Column(Integer, ForeignKey(pk_pull_requests))
+    commit_id = Column(Integer, ForeignKey(pk_commits))
+    ext_ref_id = Column(String(32), nullable=False)
 
 
 class PullRequestHistory(Base):
@@ -284,6 +287,9 @@ class PullRequest(Base):
     head_commit = relationship("Commit", foreign_keys=[head_commit_id])
     base_commit = relationship("Commit", foreign_keys=[base_commit_id])
     user = relationship("User", back_populates="pull_requests")
+    pull_request_comments = relationship(
+        "PullRequestComment", back_populates="pull_request"
+    )
 
 
 class RepoLabel(Base):

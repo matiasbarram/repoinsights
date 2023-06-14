@@ -57,20 +57,20 @@ def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
         )
 
         exit(0)
-    # flag the first uuid in the queue.
     uuids.append(uuid)
     try:
         traspaso_client.migrate()
         saved_projects.append(project)
 
     except Exception as e:
-        logger.error(e)
+        logger.exception("Error", traceback=True)
         add_to_queue(project, queue_client, failed_projects)
+        raise e
 
 
 if __name__ == "__main__":
     uuids = []
     saved_projects = []
     failed_projects = []
-    while True:
-        main(uuids, saved_projects, failed_projects)
+    # while True:
+    main(uuids, saved_projects, failed_projects)

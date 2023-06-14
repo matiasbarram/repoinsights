@@ -1,7 +1,7 @@
 from pprint import pprint
 import requests
 from loguru import logger
-from typing import Optional, Dict, Union
+from typing import Any, Optional, Dict, Union
 import json
 import redis
 import time
@@ -34,11 +34,11 @@ class GitHubAPI:
             except RateLimitExceededError:
                 try:
                     self._handle_no_more_calls()
-                    self.rate_limit_handling(func, *args, **kwargs)
                 except NoMoreTokensError:
                     logger.critical("No more tokens")
                     self._handle_wait_time()
-                    self.rate_limit_handling(func, *args, **kwargs)
+                    continue
+                self.rate_limit_handling(func, *args, **kwargs)
 
     def update_token(self, new_token: str):
         self.token = new_token
@@ -58,15 +58,19 @@ class GitHubAPI:
         token, calls, reset_time = self.tokens_handler.get_token_lowest_wait_time()
         now = datetime.now()
         wait_time = reset_time - now.timestamp()
-        pprint({
-            "token": token[-10:],
-            "calls": calls,
-            "reset_time": reset_time,
-            "now": now.timestamp(),
-            "wait_time": wait_time
-        })
+        pprint(
+            {
+                "token": token[-10:],
+                "calls": calls,
+                "reset_time": reset_time,
+                "now": now.timestamp(),
+                "wait_time": wait_time,
+            }
+        )
         if wait_time > 0 and calls <= REMAINING:
-            logger.warning(f"Waiting {wait_time} seconds  {now + timedelta(seconds=wait_time)}")
+            logger.warning(
+                f"Waiting {wait_time} seconds  {now + timedelta(seconds=wait_time)}"
+            )
             time.sleep(wait_time)
         self.update_token(token)
 
@@ -75,7 +79,7 @@ class GitHubAPI:
         url,
         params=None,
         name: Optional[str] = None,
-        headers: Optional[Dict] = None,
+        headers: Optional[Dict[str, str]] = None,
     ):
         try:
             if headers is not None:
@@ -91,21 +95,21 @@ class GitHubAPI:
             remaining_limit = int(response.headers["X-RateLimit-Remaining"])
             if remaining_limit < REMAINING:
                 raise RateLimitExceededError("GitHub API rate limit is low.")
-            
+
             response.raise_for_status()
             return response
         except requests.exceptions.HTTPError as e:
             if (
                 e.response.status_code == 403
                 and "X-RateLimit-Remaining" in e.response.headers
-                and int(e.response.headers["X-RateLimit-Remaining"]) == 0
+                and int(e.response.headers["X-RateLimit-Remaining"]) <= REMAINING
             ):
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
             elif e.response.status_code == 451:
-                logger.error("Proyecto eliminado")
+                logger.exception("Proyecto eliminado", traceback=True)
                 ProjectNotFoundError("Proyecto eliminado")
             elif e.response.status_code == 404:
-                logger.error("Proyecto no encontrado")
+                logger.exception("Proyecto no encontrado", traceback=True)
                 ProjectNotFoundError("Proyecto no encontrado")
             else:
                 raise e
@@ -115,10 +119,13 @@ class GitHubAPI:
         name: str,
         url: Union[str, None],
         params: Optional[Dict] = None,
-        headers: Optional[Dict] = None,
+        headers: Optional[Dict[str, Any]] = None,
     ):
         if params is None:
             params = {}
+        if headers is None:
+            headers = self.headers
+
         params.setdefault("per_page", 100)
         elementos = []
         pag = 1

@@ -28,7 +28,7 @@ class RepoNotFound(Exception):
     pass
 
 
-class ExtractDataClient:
+class ExtractDataController:
     def __init__(
         self,
         owner: str,
@@ -77,6 +77,7 @@ class ExtractDataClient:
             )
             logger.info(f"Total GHPullRequests: {len(prs)}")
             self.pull_request_handler.get_pull_request_comments(prs)
+            self.pull_request_handler.get_pull_request_commits(prs)
             return {"name": "pull_request", "data": prs}
 
         elif data_type == "issues":

@@ -1,4 +1,3 @@
-import datetime
 from services.traspaso_service.db_connector.models import (
     User,
     Project,
@@ -96,3 +95,6 @@ class TempClient:
 
     def get_followers(self) -> List[Follower]:
         return self._get_items(Follower)
+
+    def get_pr_commits(self) -> List[PullRequestCommit]:
+        return self._get_items(PullRequestCommit)

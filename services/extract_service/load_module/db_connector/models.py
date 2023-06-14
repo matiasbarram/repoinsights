@@ -248,6 +248,7 @@ class PullRequestCommit(Base):
 
     pull_request_id = Column(Integer, ForeignKey(pk_pull_requests), primary_key=True)
     commit_id = Column(Integer, ForeignKey(pk_commits), primary_key=True)
+    ext_ref_id = Column(String(32), nullable=False)
 
 
 class PullRequestHistory(Base):

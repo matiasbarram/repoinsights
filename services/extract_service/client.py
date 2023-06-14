@@ -5,8 +5,8 @@ from loguru import logger
 import uuid
 
 from .utils.utils import format_dt, api_date
-from services.extract_service.extract_module.extract_client import ExtractDataClient
-from .queue_module.enqueue_client import QueueClient
+from services.extract_service.extract_module.extract_client import ExtractDataController
+from .queue_module.enqueue_client import QueueController
 from .load_module.load_client import LoadDataClient
 from .excepctions.exceptions import LoadError
 
@@ -17,7 +17,7 @@ class InsightsClient:
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
         self.project_id = None
-        self.queue_client = QueueClient()
+        self.queue_client = QueueController()
 
         (
             self.pending_repo,
@@ -26,7 +26,7 @@ class InsightsClient:
             self.since,
         ) = self.get_from_pendientes()
 
-        self.extract_data = ExtractDataClient(
+        self.extract_data = ExtractDataController(
             owner=self.owner,
             repo=self.repo,
             since=self.since,
@@ -54,29 +54,28 @@ class InsightsClient:
             logger.critical("No hay proyectos pendientes")
             exit(0)
 
-    def enqueue_to_modificacion(self, type, **kwargs):
+    def enqueue_to_modificacion(self, action_type, **kwargs):
         project_data = {}
-        if type == "rename":
-            project_data = {
-                "action": "delete",
-                "project": {"owner": self.owner, "repo": self.repo},
-            }
-        elif type == "delete":
-            if "new" not in kwargs:
+        if action_type not in ["rename", "delete"]:
+            raise ValueError('Invalid action_type. Must be either "rename" or "delete"')
+
+        project_data["action"] = action_type
+        project_data["project"] = {"owner": self.owner, "repo": self.repo}
+
+        if action_type == "delete":
+            new = kwargs.get("new")
+            if not new:
                 raise LoadError("No se especificó el nuevo nombre del proyecto")
-            new = kwargs["new"]
-            project_data = {
-                "action": "delete",
-                "current": {"owner": self.owner, "repo": self.repo},
-                "new": {"owner": new["owner"], "repo": new["repo"]},
-            }
+            project_data["new"] = {"owner": new["owner"], "repo": new["repo"]}
 
         json_data = json.dumps(project_data)
         self.queue_client.enqueue(json_data, "modificaciones")
 
     def enqueue_to_pendientes(self, status=None):
         if status:
-            self.pending_repo["last_extraction"] = datetime.now().isoformat()
+            self.pending_repo["enqueue_time"] = datetime.now().strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
             self.pending_repo["status"] = {"type": status, "uuid": self.uuid}
 
         if self.pending_repo is None:

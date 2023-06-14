@@ -19,18 +19,21 @@ PULL_REQUESTS_TABLE = "pull_request_metrics"
 DEVELOPERS_TABLE = "user_metrics"
 
 
-TABLE_NAME_MAP = {
-    REPO_METRICS: {"table": REPO_TABLE, "params": ["metric_id", "project_id", "value"]},
+METRICS_TABLE_NAME_MAP = {
+    REPO_METRICS: {
+        "table": REPO_TABLE,
+        "params": ["metric_id", "extraction_id", "value"],
+    },
     ISSUES_METRICS: {
         "table": ISSUES_TABLE,
-        "params": ["metric_id", "project_id", "issue_id", "value"],
+        "params": ["metric_id", "extraction_id", "issue_id", "value"],
     },
     PULL_REQUESTS_METRICS: {
         "table": PULL_REQUESTS_TABLE,
-        "params": ["metric_id", "project_id", "pull_request_id", "value"],
+        "params": ["metric_id", "extraction_id", "pull_request_id", "value"],
     },
     DEVELOPERS_METRICS: {
         "table": DEVELOPERS_TABLE,
-        "params": ["metric_id", "project_id", "user_id", "value"],
+        "params": ["metric_id", "extraction_id", "user_id", "value"],
     },
 }

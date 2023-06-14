@@ -5,7 +5,7 @@ import json
 from typing import Dict, Any, Union
 
 
-class QueueClient:
+class QueueController:
     def __init__(self):
         self.user = os.environ["RABBIT_USER"]
         self.password = os.environ["RABBIT_PASS"]

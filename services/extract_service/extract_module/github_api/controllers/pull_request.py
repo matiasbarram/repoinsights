@@ -97,3 +97,22 @@ class PullRequest:
         logger.info("PRs comments: {prs}", prs=len(pull_requests_comments))
 
         return pull_requests_comments
+
+    def obtener_pull_requests_commits(
+        self, pull_request_number: int
+    ) -> List[Dict[str, Any]]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/pulls/{pull_request_number}/commits"
+        params = {"per_page": 100}
+        commits = self.api.rate_limit_handling(
+            self.api._realizar_solicitud_paginada,
+            url=url,
+            params=params,
+            name=f"pull request {pull_request_number} commits",
+        )
+
+        if commits:
+            users = self.user_controller._get_users_for_keys(
+                commits, ["author", "committer"]
+            )
+            add_users_to_dict_keys(commits, users, ["author", "committer"])
+        return commits
