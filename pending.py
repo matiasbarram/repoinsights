@@ -4,8 +4,8 @@ from typing import Dict, Any
 from loguru import logger
 import pika
 import argparse
-from services.pending_service.connector import DBController
-from services.pending_service.database_handler import PendingProjectsController
+from services.pending_service.db_controller import DBController
+from services.pending_service.pending_controller import PendingProjectsController
 from services.pending_service.queue_controller import QueueController
 
 

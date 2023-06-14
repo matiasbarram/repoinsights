@@ -1,4 +1,4 @@
-from services.pending_service.connector import DBController
+from services.pending_service.db_controller import DBController
 from services.pending_service.models import Project, Commit, Extraction
 from sqlalchemy.orm import sessionmaker, aliased
 from loguru import logger
