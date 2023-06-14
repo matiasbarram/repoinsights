@@ -28,7 +28,7 @@ class RepoNotFound(Exception):
     pass
 
 
-class ExtractDataClient:
+class ExtractDataController:
     def __init__(
         self,
         owner: str,

@@ -5,8 +5,8 @@ from loguru import logger
 import uuid
 
 from .utils.utils import format_dt, api_date
-from services.extract_service.extract_module.extract_client import ExtractDataClient
-from .queue_module.enqueue_client import QueueClient
+from services.extract_service.extract_module.extract_client import ExtractDataController
+from .queue_module.enqueue_client import QueueController
 from .load_module.load_client import LoadDataClient
 from .excepctions.exceptions import LoadError
 
@@ -17,7 +17,7 @@ class InsightsClient:
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
         self.project_id = None
-        self.queue_client = QueueClient()
+        self.queue_client = QueueController()
 
         (
             self.pending_repo,
@@ -26,7 +26,7 @@ class InsightsClient:
             self.since,
         ) = self.get_from_pendientes()
 
-        self.extract_data = ExtractDataClient(
+        self.extract_data = ExtractDataController(
             owner=self.owner,
             repo=self.repo,
             since=self.since,

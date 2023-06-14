@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc
 COPY Pipfile .
 COPY Pipfile.lock .
 
-COPY ./services/pendientes_service/ ./services/pendientes_service/
+COPY ./services/pending_service/ ./services/pending_service/
 COPY pendientes.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile
