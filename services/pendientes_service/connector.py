@@ -9,7 +9,7 @@ CONSOLIDADA_IP = os.environ["CONSOLIDADA_IP"]
 CONSOLIDADA_PORT = os.environ["CONSOLIDADA_PORT"]
 
 
-class DBConnector:
+class DBController:
     """
     Clase que se conecta con consolidada
     """

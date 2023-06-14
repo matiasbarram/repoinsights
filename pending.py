@@ -4,8 +4,8 @@ from typing import Dict, Any
 from loguru import logger
 import pika
 import argparse
-from services.pendientes_service.connector import DBConnector
-from services.pendientes_service.database_handler import DatabaseHandler
+from services.pendientes_service.connector import DBController
+from services.pendientes_service.database_handler import PendingProjectsController
 
 
 class RabbitMQError(Exception):
@@ -14,9 +14,9 @@ class RabbitMQError(Exception):
     """
 
 
-class QueueConnector:
+class QueueController:
     """
-    Clase que se conecta con rabbitmq y lee y crea los elementos en la cola
+    Class to connect to rabbitmq
     """
 
     def __init__(self) -> None:
@@ -27,7 +27,7 @@ class QueueConnector:
 
     def connect(self):
         """
-        Crear o accede a una rabbitmq
+        Create or get a channel to rabbitmq
         """
         credentials = pika.PlainCredentials(self.rabbit_user, self.rabbit_pass)
         connection = pika.BlockingConnection(
@@ -38,7 +38,7 @@ class QueueConnector:
 
     def enqueue(self, project: Dict[str, Any]):
         """
-        Agrega a la cola de pendientes un proyecto obtenido desde consolidada
+        Add message to queue pendientes
         """
         project_json = json.dumps(project, default=str)
         if self.channel is None:
@@ -61,12 +61,12 @@ def main(debug: bool):
     Almacena en cola todos los proyectos que no han sido actualizados.
     """
     logger.info("Starting pendientes service DEBUG={debug}", debug=debug)
-    connector = DBConnector()
-    db_handler = DatabaseHandler(connector)
-    queue_client = QueueConnector()
+    connector = DBController()
+    pending_projects = PendingProjectsController(connector)
+    queue_client = QueueController()
     queue_client.connect()
     projects = (
-        db_handler.get_json_projects() if debug else db_handler.get_updated_projects()
+        pending_projects.get_json_projects() if debug else pending_projects.get_updated_projects()
     )
     for project in projects:
         queue_client.enqueue(project)

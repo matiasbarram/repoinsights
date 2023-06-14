@@ -1,4 +1,4 @@
-from services.pendientes_service.connector import DBConnector
+from services.pendientes_service.connector import DBController
 from services.pendientes_service.models import Project, Commit, Extraction
 from sqlalchemy.orm import sessionmaker, aliased
 from loguru import logger
@@ -13,8 +13,8 @@ from pprint import pprint
 import json
 
 
-class DatabaseHandler:
-    def __init__(self, connector: DBConnector):
+class PendingProjectsController:
+    def __init__(self, connector: DBController):
         self.connector = connector
         self.session_maker = sessionmaker(bind=connector.engine)
         self.db_session = self.session_maker()
