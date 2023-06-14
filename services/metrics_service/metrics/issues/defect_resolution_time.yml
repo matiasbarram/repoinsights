@@ -1,0 +1,23 @@
+name: defect_resolution_time
+description: Time to resolution for defects.
+measurement: hours
+metric: >
+  SELECT 
+    issues.repo_id,
+    issues.id AS issue_id,
+    (EXTRACT(EPOCH FROM (COALESCE(ie.closed_at, CURRENT_TIMESTAMP) - issues.created_at))/3600) AS hours_until_closed
+  FROM 
+      issues 
+  LEFT JOIN (
+      SELECT 
+          issue_id, 
+          MAX(created_at) AS closed_at
+      FROM 
+          issue_events
+      WHERE 
+          action = 'closed'
+      GROUP BY 
+          issue_id
+  ) ie ON issues.id = ie.issue_id
+  WHERE 
+      issues.repo_id = %s

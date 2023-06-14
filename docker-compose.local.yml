@@ -1,4 +1,5 @@
-version: '3.8'
+version: '3.9'
+
 services:
   redis:
     image: "redis:latest"
@@ -12,16 +13,17 @@ services:
       POSTGRES_USER: '${CONSOLIDADA_USER}'
       POSTGRES_DB: 'ghtorrent'
       POSTGRES_PASSWORD: '${CONSOLIDADA_PASS}'
-      SCHEMA: '${SCHEMA_CONSOLIDADA}'
     ports:
-      - '${CONSOLIDADA_PORT}:5400'
+      - '${CONSOLIDADA_PORT}:${CONSOLIDADA_PORT}'
     expose:
-      - '5400'
-    command: -p 5400
+      - '${CONSOLIDADA_PORT}'
+    command: -p ${CONSOLIDADA_PORT}
     volumes:
-      - ./docker/postgres:/var/lib/postgresql/data
-      - ./docker/data:/app
-      - ./${SCHEMA_CONSOLIDADA}:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/postgres-consolidada:/var/lib/postgresql/data
+      - ./${DB_SCHEMA}:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./${DB_DATA}:/docker-entrypoint-initdb.d/02-data.sql
+      - ./constraints.sql:/docker-entrypoint-initdb.d/03-constraints.sql
+      - ./views.sql:/docker-entrypoint-initdb.d/04-views.sql
 
   temporal:
     image: postgres
@@ -31,14 +33,14 @@ services:
       POSTGRES_DB: 'ghtorrent'
       POSTGRES_PASSWORD: '${TEMP_PASS}'
     ports:
-      - '${TEMP_PORT}:5411'
+      - '${TEMP_PORT}:${TEMP_PORT}'
     expose:
-      - '5411'
-    command: -p 5411
+      - '${TEMP_PORT}'
+    command: -p ${TEMP_PORT}
     volumes:
       - ./docker/postgres-temporal:/var/lib/postgresql/data
-      - ./docker/data:/app
-      - ./${SCHEMA_TEMP}:/docker-entrypoint-initdb.d/init.sql
+      - ./${DB_SCHEMA}:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./constraints.sql:/docker-entrypoint-initdb.d/02-constraints.sql
 
   rabbitmq:
     image: rabbitmq:3.9-management-alpine
@@ -48,8 +50,94 @@ services:
     volumes:
       - ./docker/rabbitmq/:/var/lib/rabbitmq/
     environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
+
+  extract_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.extract
+    restart: "no"
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - temporal
+      - redis
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - TEMP_IP=temporal
+      - REDIS_HOST=redis
+      - PYTHONUNBUFFERED=1
+    deploy:
+      replicas: 2
+
+  pendientes_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.pendientes
+    restart: "no"
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - consolidada
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - CONSOLIDADA_IP=consolidada
+      - PYTHONUNBUFFERED=1
+
+  traspaso_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.traspaso
+    restart: "no"
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - temporal
+      - consolidada
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - TEMP_IP=temporal
+      - CONSOLIDADA_IP=consolidada
+      - PYTHONUNBUFFERED=1
+
+  metabase:
+    image: metabase/metabase
+    restart: always
+    ports:
+      - 8080:3000
+    volumes:
+      - ./docker/metabase-data:/metabase-data
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: ${MB_DB_PORT}
+      MB_DB_USER: metabase
+      MB_DB_PASS: vps228.2o22
+      MB_DB_HOST: metabase-db
+      MB_SEND_EMAIL_ON_FIRST_LOGIN_FROM_NEW_DEVICE: FALSE
+    depends_on:
+      - metabase-db
+    links:
+      - metabase-db
+
+  metabase-db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'metabase'
+      POSTGRES_DB: 'metabase'
+      POSTGRES_PASSWORD: 'vps228.2o22'
+    ports:
+      - '${MB_DB_PORT}:${MB_DB_PORT}'
+    expose:
+      - '${MB_DB_PORT}'
+    volumes:
+      - ./docker/metabase-db:/var/lib/postgresql/data
 
 volumes:
   db:
@@ -59,3 +147,4 @@ volumes:
   postgres:
   postgres-temporal:
   pgadmin-data:
+

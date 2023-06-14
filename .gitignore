@@ -1,7 +1,10 @@
 tokens.json
+metrics_resutls.json
 docker/
 ghtorrent_restore_2015_full.sql
 ghtorrent_restore_2015_v2.sql
+resultados.csv
+webapp/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -131,3 +134,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+logs/
