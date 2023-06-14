@@ -17,7 +17,7 @@ COPY Pipfile .
 COPY Pipfile.lock .
 
 COPY ./services/pending_service/ ./services/pending_service/
-COPY pendientes.py .
+COPY pending.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile
 
