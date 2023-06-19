@@ -23,7 +23,6 @@ services:
       - ./${DB_SCHEMA}:/docker-entrypoint-initdb.d/01-schema.sql
       - ./${DB_DATA}:/docker-entrypoint-initdb.d/02-data.sql
       - ./constraints.sql:/docker-entrypoint-initdb.d/03-constraints.sql
-      - ./views.sql:/docker-entrypoint-initdb.d/04-views.sql
 
   temporal:
     image: postgres
