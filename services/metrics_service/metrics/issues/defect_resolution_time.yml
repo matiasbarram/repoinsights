@@ -5,7 +5,6 @@ metric: >
     SELECT 
         i.repo_id,
         i.id AS issue_id,
-        i.issue_id AS github_issue_id,
         ROUND((EXTRACT(EPOCH FROM (ie.closed_at - i.created_at))/3600)::numeric, 1) AS hours_until_closed
     FROM 
         issues i

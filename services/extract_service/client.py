@@ -62,7 +62,7 @@ class InsightsClient:
         project_data["action"] = action_type
         project_data["project"] = {"owner": self.owner, "repo": self.repo}
 
-        if action_type == "delete":
+        if action_type == "rename":
             new = kwargs.get("new")
             if not new:
                 raise LoadError("No se especificó el nuevo nombre del proyecto")

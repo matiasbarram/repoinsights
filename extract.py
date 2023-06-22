@@ -23,7 +23,9 @@ class Logger:
 
 def handle_extract_exceptions(client: InsightsClient, e):
     if isinstance(e, GitHubUserException):
-        client.enqueue_to_modificacion(action_type="rename")
+        client.enqueue_to_modificacion(
+            action_type="rename", new={"owner": "new_name", "repo": "new_name"}
+        )
         logger.exception(
             "Repositorio encontrado con otro nombre, encolando para eliminar",
             traceback=True,

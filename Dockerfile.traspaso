@@ -20,6 +20,10 @@ COPY Pipfile.lock .
 COPY ./services/traspaso_service/ ./services/traspaso_service/
 COPY traspaso.py .
 
+COPY ./services/metrics_service/ ./services/metrics_service/
+COPY metrics.py .
+
 RUN pipenv install --system --deploy --ignore-pipfile
+# RUN python metrics.py  # To create metrics at startup
 
 CMD ["sleep", "infinity"]

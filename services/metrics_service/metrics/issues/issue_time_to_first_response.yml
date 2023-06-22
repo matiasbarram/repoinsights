@@ -6,9 +6,8 @@ metric: >
         i.repo_id, 
         i.id, 
         COALESCE(EXTRACT(EPOCH FROM AGE(MIN(ic.created_at), i.created_at))/3600, 1) as "time_to_first_comment_in_hours"
-    FROM issues i
-    LEFT JOIN issue_comments ic ON i.id = ic.issue_id
+    FROM issues i LEFT JOIN issue_comments ic ON i.id = ic.issue_id
     WHERE
-        repo_id=%s and pull_request is false
+        repo_id= %s and pull_request is false
     GROUP BY i.repo_id, i.id, i.created_at
     ORDER BY i.id

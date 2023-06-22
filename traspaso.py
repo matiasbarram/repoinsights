@@ -9,6 +9,9 @@ from services.traspaso_service.traspaso.traspaso import Client as TraspasoClient
 import json
 
 
+from services.metrics_service.calc import calculate_metrics
+
+
 class UUIDNotFoundException(Exception):
     pass
 
@@ -60,6 +63,7 @@ def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
     uuids.append(uuid)
     try:
         traspaso_client.migrate()
+        calculate_metrics(project["project_id"], project["uuid"])
         saved_projects.append(project)
 
     except Exception as e:
