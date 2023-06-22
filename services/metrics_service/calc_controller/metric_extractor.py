@@ -60,6 +60,7 @@ class MetricExtractor:
             data = curs.fetchall()
             result = get_result(data)
             if result is None:
+                print(f"Metric {metric['name']} not found")
                 continue
             results[metric["name"]] = result
 

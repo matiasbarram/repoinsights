@@ -26,13 +26,29 @@ def get_extraction_id(conn: connection, uuid: str):
     return extraction_id
 
 
-def calculate_metrics(project_id, uuid):
+def get_project_id(conn: connection, project_name: str):
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT id FROM projects WHERE name = %s AND forked_from IS null
+        """,
+        (project_name,),
+    )
+    result = cursor.fetchone()
+    if result is None:
+        raise Exception("Project not found")
+    project_id: int = result[0]
+    return project_id
+
+
+def calculate_metrics(project_name, uuid):
     consolidada_conn = ConsolidadaConnection()
     conn = consolidada_conn.get_connection()
     # projects = consolidada_conn.get_all_projects()
     # for project in projects:
     #     extraction_id, project_id = project
     extraction_id = get_extraction_id(conn, uuid)
+    project_id = get_project_id(conn, project_name)
     calc_metrics = CalculateMetrics(conn, project_id, extraction_id)
     load_metrics = MetricsLoader(conn, project_id, extraction_id)
     results = calc_metrics.calculate_metrics()

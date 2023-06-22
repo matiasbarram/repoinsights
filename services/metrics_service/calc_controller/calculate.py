@@ -1,13 +1,8 @@
-import os
 from pprint import pprint
-from typing import Dict, Any, List, Tuple
-import glob
 from loguru import logger
-from psycopg2.extensions import connection, cursor
-from decimal import Decimal
+from psycopg2.extensions import connection
 
 from ..helper import yaml_to_dict
-from ..commons import METRICS_TABLE_NAME_MAP, REPO_METRICS
 from .metric_validator import MetricValidator
 from .metric_extractor import MetricExtractor
 from .metric_db import MetricDB
@@ -28,6 +23,7 @@ class CalculateMetrics:
             valid_groups = MetricValidator.validate_metrics_groups(
                 self.extraction_id, self.db.check_if_exists_metric_in_group
             )
+            logger.info(f"Valid groups: {valid_groups}")
             for metric in self.metrics:
                 metric_group_name, metrics = metric["group"], metric["metrics"]
                 exist = self.db.check_if_exists_metric_in_group(

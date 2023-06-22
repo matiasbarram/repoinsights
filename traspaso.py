@@ -63,7 +63,7 @@ def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
     uuids.append(uuid)
     try:
         traspaso_client.migrate()
-        calculate_metrics(project["project_id"], project["uuid"])
+        calculate_metrics(project["repo"], project["uuid"])
         saved_projects.append(project)
 
     except Exception as e:

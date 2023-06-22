@@ -29,6 +29,7 @@ class Repository:
                 )
         except GitHubUserException as e:
             logger.exception("Nombre no existe", traceback=True)
+            exit(1)
 
     def obtener_repositorio(self) -> Dict[str, Any]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}"
