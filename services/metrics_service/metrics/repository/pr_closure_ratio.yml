@@ -1,6 +1,6 @@
 name: pr_closure_ratio
 description: Ratio of closed to total pull requests for a repository
-measurament: ratio
+measurement: ratio
 variables: [project_id, project_id]
 metric: >
   WITH total_pr AS (
