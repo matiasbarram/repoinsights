@@ -1,46 +1,36 @@
 name: pr_closure_ratio
-description: Ratio of open to closed pull requests for a repository
+description: Ratio of closed to total pull requests for a repository
 variables: [project_id, project_id]
-measurement: percentage
 metric: >
-    WITH opened_prs AS (
-        SELECT
-            pr.base_repo_id,
-            COUNT(*) AS opened_count
-        FROM
-            pull_request_history prh_opened
-            INNER JOIN pull_requests pr ON prh_opened.pull_request_id = pr.id
-        WHERE
-            pr.base_repo_id = %s AND
-            prh_opened.action = 'opened' AND
-            NOT EXISTS (
-                SELECT 1
-                FROM
-                    pull_request_history prh_closed
-                WHERE
-                    prh_closed.pull_request_id = pr.id AND
-                    (prh_closed.action = 'closed' OR prh_closed.action = 'merged')
-            )
-        GROUP BY
-            pr.base_repo_id
-    ),
-    closed_prs AS (
-        SELECT
-            pr.base_repo_id,
-            COUNT(*) AS closed_count
-        FROM
-            pull_request_history prh
-            INNER JOIN pull_requests pr ON prh.pull_request_id = pr.id
-        WHERE
-            pr.base_repo_id = %s AND
-            (prh.action = 'closed' OR prh.action = 'merged')
-        GROUP BY
-            pr.base_repo_id
-    )
-
+  WITH total_pr AS (
     SELECT
-        opened_prs.base_repo_id,
-        (opened_prs.opened_count::numeric / NULLIF(closed_prs.closed_count, 0)) AS open_to_closed_ratio
+      pr.base_repo_id AS repo_id,
+      COUNT(*) AS total
     FROM
-        opened_prs
-        INNER JOIN closed_prs ON opened_prs.base_repo_id = closed_prs.base_repo_id;
+      pull_requests pr
+    WHERE
+      pr.base_repo_id = %s
+    GROUP BY pr.base_repo_id
+  ),
+
+  closed_pr AS (
+    SELECT
+      pr.base_repo_id,
+      COUNT(*) AS closed
+    FROM
+      pull_requests pr
+    JOIN pull_request_history prh ON pr.id = prh.pull_request_id
+    WHERE
+      pr.base_repo_id = %s AND prh.action = 'closed'
+    GROUP BY pr.base_repo_id
+  )
+
+  SELECT
+    p.id,
+    closed_pr.closed::float / total_pr.total::float AS closed_ratio
+  FROM 
+    total_pr
+  JOIN 
+    closed_pr ON total_pr.repo_id = closed_pr.base_repo_id
+  JOIN 
+    projects p ON p.id = total_pr.repo_id
