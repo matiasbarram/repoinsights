@@ -1,7 +1,7 @@
 name: pr_open_to_closed_ratio
 description: Ratio of open to closed pull requests for a repository
 variables: [project_id, project_id]
-measurement: percentage
+measurement: ratio
 metric: >
     WITH opened_prs AS (
         SELECT
