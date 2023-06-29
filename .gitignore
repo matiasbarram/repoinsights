@@ -4,6 +4,7 @@ docker/
 ghtorrent_restore_2015_full.sql
 ghtorrent_restore_2015_v2.sql
 resultados.csv
+metrics_results.json
 webapp/
 # Byte-compiled / optimized / DLL files
 __pycache__/

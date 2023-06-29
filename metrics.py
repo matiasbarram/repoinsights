@@ -1,3 +1,4 @@
+import argparse
 import json
 from services.metrics_service.calc_controller.calculate import CalculateMetrics
 from services.metrics_service.conn import ConsolidadaConnection
@@ -11,9 +12,26 @@ def save_results_to_file(results):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Calculate metrics for projects")
+    parser.add_argument(
+        "--single",
+        nargs=2,
+        type=int,
+        metavar=("EXTRACTION_ID", "PROJECT_ID"),
+        help="Calculate metrics for a single project with this extraction id and project id",
+    )
+
+    args = parser.parse_args()
+    single_extraction_project_ids = args.single
+
     consolidada_conn = ConsolidadaConnection()
     conn = consolidada_conn.get_connection()
-    projects = consolidada_conn.get_all_projects()
+
+    if single_extraction_project_ids is not None:
+        projects = [tuple(single_extraction_project_ids)]
+    else:
+        projects = consolidada_conn.get_all_projects()
+
     for project in projects:
         extraction_id, project_id = project
         calc_metrics = CalculateMetrics(conn, project_id, extraction_id)

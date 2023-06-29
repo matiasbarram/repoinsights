@@ -9,10 +9,6 @@ metric: >
             COUNT(*) AS num_contributions
         FROM (
             SELECT project_id, author_id AS user_id FROM commits
-            UNION ALL
-            SELECT repo_id AS project_id, reporter_id AS user_id FROM issues
-            UNION ALL
-            SELECT base_repo_id AS project_id, user_id FROM pull_requests
         ) AS all_contributions
         WHERE project_id = %s
         GROUP BY project_id, user_id
