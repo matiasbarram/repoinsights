@@ -104,7 +104,7 @@ services:
       - PYTHONUNBUFFERED=1
 
   metabase:
-    image: metabase/metabase
+    image: metabase/metabase:latest
     restart: always
     ports:
       - 8080:3000
