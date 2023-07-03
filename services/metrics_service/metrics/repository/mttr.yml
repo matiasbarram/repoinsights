@@ -1,5 +1,6 @@
 name: mttr
 description: Mean time to repair assuming an issue is a failure
+measurement: hours
 variables: [project_id, project_id]
 metric: >
   WITH issue_duration AS (
