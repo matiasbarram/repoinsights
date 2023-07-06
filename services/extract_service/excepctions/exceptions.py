@@ -32,3 +32,7 @@ class MainProjectError(Exception):
 
 class ExtractDataResulstsError(Exception):
     pass
+
+
+class RateLimitExceededErrorPrivate(Exception):
+    pass

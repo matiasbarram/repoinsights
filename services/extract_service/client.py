@@ -12,19 +12,20 @@ from .excepctions.exceptions import LoadError
 
 
 class InsightsClient:
-    def __init__(self, data_types: List) -> None:
+    def __init__(self, data_types: List, pending_project: Dict[str, Any]) -> None:
         self.data_types = data_types
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
         self.project_id = None
         self.queue_client = QueueController()
+        self.private = None
 
         (
             self.pending_repo,
             self.owner,
             self.repo,
             self.since,
-        ) = self.get_from_pendientes()
+        ) = self.get_from_pendientes(pending_project)
 
         self.extract_data = ExtractDataController(
             owner=self.owner,
@@ -32,27 +33,25 @@ class InsightsClient:
             since=self.since,
             until=self.until,
             data_types=self.data_types,
+            private_token=self.private,
         )
 
-    def get_from_pendientes(self):
-        pending_project = self.queue_client.get_from_queue()
-        if pending_project:
-            pending_repo = pending_project
-            owner = pending_repo["owner"]
-            repo = pending_repo["project"]
-            since = (
-                api_date(pending_repo["last_extraction"])
-                if pending_repo["last_extraction"]
-                else None
-            )
-            if pending_project.get("status"):
-                self.uuid = pending_repo["status"]["uuid"]
+    def get_from_pendientes(self, pending_project: Dict[str, Any]):
+        owner = pending_project["owner"]
+        repo = pending_project["project"]
+        since = (
+            api_date(pending_project["last_extraction"])
+            if pending_project["last_extraction"]
+            else None
+        )
+        if pending_project.get("status"):
+            self.uuid = pending_project["status"]["uuid"]
 
-            logger.critical("QUEUE pendientes {project}", project=pending_repo)
-            return pending_repo, owner, repo, since
-        else:
-            logger.critical("No hay proyectos pendientes")
-            exit(0)
+        if pending_project.get("private"):
+            self.private = pending_project["private"]
+
+        logger.critical("QUEUE pendientes {project}", project=pending_project)
+        return pending_project, owner, repo, since
 
     def enqueue_to_modificacion(self, action_type, **kwargs):
         project_data = {}

@@ -33,15 +33,17 @@ class ExtractDataController:
         self,
         owner: str,
         repo: str,
-        since: Union[datetime, None],
-        until: Union[datetime, None],
+        since: datetime | None,
+        until: datetime | None,
+        private_token: str | None,
         data_types: List[str],
     ) -> None:
         self.data_types = data_types
         self.since = since
         self.until = until
+        self.private = private_token
 
-        self.repo = GitHubExtractor(owner, repo)
+        self.repo = GitHubExtractor(owner, repo, private_token=private_token)
         self.commit_handler = InsightsCommitHandler(self.repo)
         self.project_handler = InsightsProjectUserHandler(self.repo)
         self.pull_request_handler = InsightsPullRequestHandler(self.repo)

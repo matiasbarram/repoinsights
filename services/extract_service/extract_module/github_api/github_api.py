@@ -14,18 +14,28 @@ from services.extract_service.excepctions.exceptions import (
     RateLimitExceededError,
     NoMoreTokensError,
     ProjectNotFoundError,
+    RateLimitExceededErrorPrivate,
 )
 
 REMAINING = 200
 
 
 class GitHubAPI:
-    def __init__(self):
+    def __init__(self, private_token: str | None = None):
         self.cache = Cache()
         self.tokens_handler = GHToken()
         tokens = self.tokens_handler.get_public_tokens()
         self.token = tokens[0]
-        self.headers = {"Authorization": f"token {self.token}"}
+        self.private_token = private_token
+        self.headers = self.get_headers(self.token, private_token)
+
+    def get_headers(self, token: str, private_token: str | None = None):
+        if private_token:
+            headers = {"Authorization": f"token {private_token}"}
+            return headers
+
+        headers = {"Authorization": f"token {token}"}
+        return headers
 
     def rate_limit_handling(self, func, *args, **kwargs):
         while True:
@@ -38,6 +48,12 @@ class GitHubAPI:
                     logger.critical("No more tokens")
                     self._handle_wait_time()
                     continue
+
+                except RateLimitExceededErrorPrivate:
+                    logger.critical("No more calls")
+                    self._handle_wait_time()
+                    continue
+
                 self.rate_limit_handling(func, *args, **kwargs)
 
     def update_token(self, new_token: str):
@@ -45,6 +61,9 @@ class GitHubAPI:
         self.headers["Authorization"] = f"token {self.token}"
 
     def _handle_no_more_calls(self):
+        if self.private_token:
+            logger.warning("No more calls")
+            raise RateLimitExceededErrorPrivate("No more calls")
         tokens = self.tokens_handler.get_public_tokens(only_token=False)
         for token, calls, _ in tokens:
             if calls > REMAINING:
@@ -84,6 +103,7 @@ class GitHubAPI:
         try:
             if headers is not None:
                 self.headers.update(headers)
+
             response = requests.get(url, headers=self.headers, params=params)
 
             logger.debug(

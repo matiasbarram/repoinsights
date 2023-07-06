@@ -1,8 +1,14 @@
 from datetime import datetime
 import argparse
+import json
+from time import sleep
 from loguru import logger
 
 from services.extract_service.client import InsightsClient
+from services.extract_service.utils.utils import api_date
+from services.extract_service.queue_module.enqueue_client import QueueController
+
+
 from services.extract_service.excepctions.exceptions import (
     GitHubUserException,
     ProjectNotFoundError,
@@ -51,39 +57,66 @@ def handle_load_exceptions(client, e):
     client.enqueue_to_pendientes("load")
 
 
-def main(debug=None):
-    """
-    "commits", "pull_requests", "issues", "labels", "stargazers", "members", "milestones
-    """
-    logger = Logger(debug)
-    logger.setup()
+import pika
+import pika.exceptions
+import os
+import json
+from time import sleep
+from services.extract_service.client import InsightsClient
 
-    data_types = [
-        "commits",
-        "pull_requests",
-        "issues",
-        "labels",
-        "milestones",
-    ]
 
-    client = InsightsClient(data_types)
-    try:
-        results = client.extract()
-    except Exception as e:
-        handle_extract_exceptions(client, e)
-        return
+class ExtractListener:
+    def __init__(self):
+        self.user = os.environ["RABBIT_USER"]
+        self.password = os.environ["RABBIT_PASS"]
+        self.host = os.environ["RABBIT_HOST"]
+        self.queue_pendientes = os.environ["RABBIT_QUEUE_PENDIENTES"]
+        self.credentials = pika.PlainCredentials(self.user, self.password)
 
-    try:
-        client.load(results)
-    except Exception as e:
-        handle_load_exceptions(client, e)
-        return
+    def connect(self):
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=self.host, credentials=self.credentials)
+        )
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=self.queue_pendientes, durable=True)
+        self.channel.basic_consume(
+            queue=self.queue_pendientes,
+            on_message_callback=self.callback,
+            auto_ack=True,
+        )
 
-    client.enqueue_to_curado()
+    def callback(self, ch, method, properties, body):
+        project = json.loads(body)
+        data_types = ["commits", "pull_requests", "issues", "labels", "milestones"]
+        client = InsightsClient(data_types, project)
+        try:
+            results = client.extract()
+        except Exception as e:
+            handle_extract_exceptions(client, e)
+            return
+
+        try:
+            client.load(results)
+        except Exception as e:
+            handle_load_exceptions(client, e)
+            return
+
+        client.enqueue_to_curado()
+
+    def start_listening(self):
+        try:
+            print(" [*] Waiting for messages. To exit press CTRL+C")
+            self.channel.start_consuming()
+        except pika.exceptions.StreamLostError:
+            print("Connection lost. Trying to reconnect in 10 seconds...")
+            sleep(10)
+            self.connect()
+        except Exception as e:
+            print(f"Unexpected error: {e}. Retrying in 10 seconds...")
+            sleep(10)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="InsightsClient script")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    args = parser.parse_args()
-    main(args.debug)
+    listener = ExtractListener()
+    listener.connect()
+    listener.start_listening()

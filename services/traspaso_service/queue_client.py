@@ -12,6 +12,7 @@ class QueueClient:
         self.host = os.environ["RABBIT_HOST"]
         self.queue_curado = os.environ["RABBIT_QUEUE_CURADO"]
         self.queue_pendientes = os.environ["RABBIT_QUEUE_PENDIENTES"]
+        self.queue_modificaciones = os.environ["RABBIT_QUEUE_MODIFICACIONES"]
         self.credentials = pika.PlainCredentials(self.user, self.password)
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(host=self.host, credentials=self.credentials)
@@ -33,8 +34,13 @@ class QueueClient:
             exit(0)
         return project
 
-    def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado, durable=True)
+    def enqueue(self, project: str, queue: Optional[str] = None):
+        queue_name = (
+            self.queue_modificaciones
+            if queue == "modificaciones"
+            else self.queue_pendientes
+        )
+        self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.basic_publish(
             exchange="",
             routing_key=self.queue_curado,
