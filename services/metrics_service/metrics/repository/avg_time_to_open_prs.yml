@@ -1,0 +1,22 @@
+name: avg_time_to_open_prs
+description: Average time to open PRs
+measurement: hours
+query: >
+  WITH prs AS (
+      SELECT 
+          project_id,
+          MIN(created_at) AS first_pr_opened_at, 
+          MAX(created_at) AS last_pr_opened_at, 
+          COUNT(*) AS total_prs
+      FROM 
+          "ghtorrent_restore_2015"."pull_requests"
+      WHERE 
+          base_repo_id = %s
+      GROUP BY 
+          project_id
+  )
+  SELECT 
+      prs.project_id,
+      (EXTRACT(EPOCH FROM (last_pr_opened_at - first_pr_opened_at)) / total_prs) / 3600 AS average_time_between_prs
+  FROM 
+      prs;
