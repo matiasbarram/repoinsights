@@ -6,6 +6,7 @@ from ..helper import yaml_to_dict
 from .metric_validator import MetricValidator
 from .metric_extractor import MetricExtractor
 from .metric_db import MetricDB
+import json
 
 
 class CalculateMetrics:
@@ -30,10 +31,15 @@ class CalculateMetrics:
                     self.extraction_id, metric_group_name
                 )
                 if not exist and metric_group_name in valid_groups:
-                    group_metrics = MetricExtractor.calc_metrics_group(
-                        metrics, self.project_id, curs
-                    )
-                    results.update(group_metrics)
+                    try:
+                        group_metrics = MetricExtractor.calc_metrics_group(
+                            metrics, self.project_id, curs
+                        )
+                        results.update(group_metrics)
+                    except Exception as e:
+                        json_metric = json.dumps(metric)
+                        pprint(json_metric)
+                        raise e
                 else:
                     logger.warning(
                         f"Metrics for group {metric_group_name} already exist for extraction_id {self.extraction_id}"

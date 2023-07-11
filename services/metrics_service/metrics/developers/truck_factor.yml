@@ -1,6 +1,5 @@
 name: truck_factor
 description: Top developers that contribute to 80% of the commits.
-variables: [project_id, project_id]
 measurement: count
 metric: >
     WITH total_contributions AS (

@@ -5,7 +5,6 @@ metric: >
     SELECT 
         c.project_id,       
         u.id AS developer_id, 
-        u.name,
         COALESCE((SELECT COUNT(*) FROM issues i WHERE i.repo_id = c.project_id AND i.assignee_id = u.id), 0) AS assigned_issues_count
     FROM 
         users u 
