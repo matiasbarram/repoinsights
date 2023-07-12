@@ -56,7 +56,6 @@ class Metric:
         params_query = ", ".join(params)
 
         query = f"INSERT INTO {table_name} ({params_query}) VALUES ({placeholders})"
-        logger.debug("{query}, {results}", query=query, results=results)
         with self.conn.cursor() as curs:
             curs.execute(query, results)
             self.conn.commit()
