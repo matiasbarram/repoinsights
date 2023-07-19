@@ -58,7 +58,6 @@ class Client:
         print(f"Pull Request History: {len(pr_history)}")
         print(f"Pull Request Commits: {len(pr_commits)}")
 
-        # if all are 0
         if (
             len(users) == 0
             and len(projects) == 0
@@ -80,7 +79,7 @@ class Client:
             and len(followers) == 0
         ):
             logger.error("No data to traspasar")
-            exit(0)
+            return
 
         consolidada = ConsolidatedClient(self.uuid, self.db)
         consolidada.add_users(users)

@@ -22,4 +22,4 @@ COPY extract.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile
 
-CMD ["sleep", "infinity"]
+CMD ["python", "-u" ,"extract.py", "--debug"]

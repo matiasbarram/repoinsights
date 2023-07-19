@@ -3,6 +3,7 @@ import os
 from loguru import logger
 import json
 from typing import Dict, Any, Union, Optional
+from .exceptions import EmptyQueueError
 
 
 class QueueClient:
@@ -11,36 +12,55 @@ class QueueClient:
         self.password = os.environ["RABBIT_PASS"]
         self.host = os.environ["RABBIT_HOST"]
         self.queue_curado = os.environ["RABBIT_QUEUE_CURADO"]
+        self.queue_failed = os.environ["RABBIT_QUEUE_FAILED"]
         self.queue_pendientes = os.environ["RABBIT_QUEUE_PENDIENTES"]
         self.credentials = pika.PlainCredentials(self.user, self.password)
-        self.connection = pika.BlockingConnection(
+
+    def _get_connection(self):
+        connection = pika.BlockingConnection(
             pika.ConnectionParameters(host=self.host, credentials=self.credentials)
         )
-        self.channel = self.connection.channel()
+        return connection
 
     def get_from_queue_curado(self) -> Dict[str, Any]:
-        self.channel.queue_declare(queue=self.queue_curado, durable=True)
-        method_frame, _, body = self.channel.basic_get(self.queue_curado)
-        if method_frame is None:
-            logger.warning("No hay proyectos en la cola")
-            exit(0)
+        connection = self._get_connection()
+        try:
+            channel = connection.channel()
+            channel.queue_declare(queue=self.queue_curado, durable=True)
+            method_frame, _, body = channel.basic_get(self.queue_curado)
+            if method_frame is None:
+                raise EmptyQueueError("Error obteniendo de curado")
 
-        self.channel.basic_ack(method_frame.delivery_tag) if method_frame else None
-        data = body.decode("utf-8")
-        project = json.loads(data)
-        if project is None:
-            logger.warning("No hay proyectos en la cola")
-            exit(0)
-        return project
+            channel.basic_ack(method_frame.delivery_tag) if method_frame else None
+            data = body.decode("utf-8")
+            project = json.loads(data)
+            if project is None:
+                raise Exception("No hay proyectos en la cola")
 
-    def enqueue(self, project: str):
-        self.channel.queue_declare(queue=self.queue_curado, durable=True)
-        self.channel.basic_publish(
-            exchange="",
-            routing_key=self.queue_curado,
-            body=project,
-            properties=pika.BasicProperties(
-                delivery_mode=2,
-            ),
-        )
-        logger.info(f"Project {project} published")
+            return project
+
+        finally:
+            connection.close()
+
+    def enqueue_failed(self, project: str):
+        self.enqueue(project, self.queue_failed)
+
+    def enqueue_curado(self, project: str):
+        self.enqueue(project, self.queue_curado)
+
+    def enqueue(self, project: str, queue: str):
+        connection = self._get_connection()
+        try:
+            channel = connection.channel()
+            channel.queue_declare(queue=queue, durable=True)
+            channel.basic_publish(
+                exchange="",
+                routing_key=queue,
+                body=project,
+                properties=pika.BasicProperties(
+                    delivery_mode=2,
+                ),
+            )
+            logger.info(f"Project {project} published to queue {queue}")
+        finally:
+            connection.close()

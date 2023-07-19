@@ -6,7 +6,10 @@ from services.extract_service.client import InsightsClient
 from services.extract_service.excepctions.exceptions import (
     GitHubUserException,
     ProjectNotFoundError,
+    LimitExceededError,
+    EmptyQueueError,
 )
+from time import sleep
 
 
 class Logger:
@@ -39,6 +42,15 @@ def handle_extract_exceptions(client: InsightsClient, e):
     elif isinstance(e, KeyboardInterrupt):
         logger.exception("Proceso interrumpido por el usuario", traceback=True)
         client.enqueue_to_pendientes()
+
+    elif isinstance(e, LimitExceededError):
+        logger.exception(
+            "Se superó el límite de intentos, encolando para pendientes", traceback=True
+        )
+        client.enqueue_to_failed()
+    elif isinstance(e, EmptyQueueError):
+        logger.info("No hay proyectos en la cola", traceback=False)
+
     else:
         logger.exception(
             f"Fallo en la extracción. volviendo a encolar: {e}", traceback=True
@@ -46,7 +58,7 @@ def handle_extract_exceptions(client: InsightsClient, e):
         client.enqueue_to_pendientes()
 
 
-def handle_load_exceptions(client, e):
+def handle_load_exceptions(client: InsightsClient, e):
     logger.exception(f"Fallo en la carga. volviendo a encolar: {e}", traceback=True)
     client.enqueue_to_pendientes("load")
 
@@ -68,23 +80,32 @@ def main(debug=None):
 
     client = InsightsClient(data_types)
     try:
+        client.get_from_pendientes()
+
+        if client.attempt > 2:
+            raise LimitExceededError("Se superó el límite de intentos")
+
         results = client.extract()
+        client.load(results)
+        client.enqueue_to_curado()
+
     except Exception as e:
         handle_extract_exceptions(client, e)
         return
-
-    try:
-        client.load(results)
-    except Exception as e:
-        handle_load_exceptions(client, e)
-        return
-
-    client.enqueue_to_curado()
 
 
 if __name__ == "__main__":
     while True:
         parser = argparse.ArgumentParser(description="InsightsClient script")
         parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+        parser.add_argument(
+            "--single",
+            action="store_true",
+            help="Run only one time and exit",
+        )
         args = parser.parse_args()
         main(args.debug)
+        print("Sleeping for 60 seconds")
+        sleep(60)
+        if args.single:
+            break

@@ -5,7 +5,7 @@ from typing import Dict, Any
 class InsightsRepository:
     def __init__(self, repo: Dict[str, Any]) -> None:
         self.url = repo["url"]
-        self.owner = InsightsUser(repo["owner"])
+        self.owner = InsightsUser(repo["owner"]) if repo["owner"] else None
         self.name = repo["name"]
         self.description = repo["description"][:255] if repo["description"] else None
         self.language = repo["language"]

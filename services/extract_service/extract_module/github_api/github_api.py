@@ -14,6 +14,7 @@ from services.extract_service.excepctions.exceptions import (
     RateLimitExceededError,
     NoMoreTokensError,
     ProjectNotFoundError,
+    GitHubError,
 )
 
 REMAINING = 200
@@ -111,6 +112,12 @@ class GitHubAPI:
             elif e.response.status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
                 ProjectNotFoundError("Proyecto no encontrado")
+            elif e.response.status_code == 502:
+                logger.exception("Error de GitHub", traceback=True)
+                GitHubError("Error de GitHub")
+                time.sleep(10)
+                self.get(url, params=params, name=name)
+
             else:
                 raise e
 

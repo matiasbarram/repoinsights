@@ -32,3 +32,11 @@ class MainProjectError(Exception):
 
 class ExtractDataResulstsError(Exception):
     pass
+
+
+class GitHubError(Exception):
+    pass
+
+
+class LimitExceededError(Exception):
+    pass
