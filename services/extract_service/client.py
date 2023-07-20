@@ -19,6 +19,7 @@ class InsightsClient:
         self.attempt = 0
         self.project_id = None
         self.queue_client = QueueController()
+        self.private = None
 
     def get_from_pendientes(self):
         pending_project = self.queue_client.get_from_queue()
@@ -42,6 +43,8 @@ class InsightsClient:
             self.owner = owner
             self.repo = repo
             self.since = since
+            if pending_project.get("private"):
+                self.private = pending_project["private"]
 
             self.extract_data = ExtractDataController(
                 owner=self.owner,
@@ -49,6 +52,7 @@ class InsightsClient:
                 since=self.since,
                 until=self.until,
                 data_types=self.data_types,
+                private_token=self.private,
             )
 
         else:

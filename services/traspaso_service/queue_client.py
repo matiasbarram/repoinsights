@@ -14,6 +14,7 @@ class QueueClient:
         self.queue_curado = os.environ["RABBIT_QUEUE_CURADO"]
         self.queue_failed = os.environ["RABBIT_QUEUE_FAILED"]
         self.queue_pendientes = os.environ["RABBIT_QUEUE_PENDIENTES"]
+        self.queue_modificaciones = os.environ["RABBIT_QUEUE_MODIFICACIONES"]
         self.credentials = pika.PlainCredentials(self.user, self.password)
 
     def _get_connection(self):

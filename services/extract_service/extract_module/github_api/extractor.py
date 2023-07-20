@@ -22,11 +22,12 @@ class GitHubExtractor:
         repositorio: str,
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
+        private_token: str | None = None,
     ):
         self.usuario = usuario
         self.since = since
         self.until = until
-        self.api = GitHubAPI()
+        self.api = GitHubAPI(private_token=private_token)
 
         self.user = User(self.api)
         self.repositorio = Repository(self.api, repositorio, usuario, self.user)

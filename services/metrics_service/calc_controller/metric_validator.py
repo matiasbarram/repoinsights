@@ -23,5 +23,4 @@ class MetricValidator:
             logger.warning(
                 f"Metrics for all groups already exist for extraction_id {extraction_id}"
             )
-            exit(0)
         return groups_for_extract

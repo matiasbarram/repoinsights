@@ -1,3 +1,7 @@
+from typing import Dict, Any, List, Tuple, Union
+from loguru import logger
+import json
+from time import sleep
 from services.traspaso_service.queue_client import QueueClient
 from services.traspaso_service.db_connector.connector import DBConnector
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
@@ -10,6 +14,11 @@ from time import sleep
 
 
 from services.metrics_service.calc import calculate_metrics
+import pika
+import pika.exceptions
+import os
+import json
+from services.traspaso_service.queue_client import QueueClient
 
 
 class UUIDNotFoundException(Exception):

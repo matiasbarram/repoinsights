@@ -1,8 +1,15 @@
 from datetime import datetime
 import argparse
+import json
+from time import sleep
+from typing import Optional
 from loguru import logger
 
 from services.extract_service.client import InsightsClient
+from services.extract_service.utils.utils import api_date
+from services.extract_service.queue_module.enqueue_client import QueueController
+
+
 from services.extract_service.excepctions.exceptions import (
     GitHubUserException,
     ProjectNotFoundError,
@@ -63,7 +70,15 @@ def handle_load_exceptions(client: InsightsClient, e):
     client.enqueue_to_pendientes("load")
 
 
-def main(debug=None):
+import pika
+import pika.exceptions
+import os
+import json
+from time import sleep
+from services.extract_service.client import InsightsClient
+
+
+def main(debug: Optional[bool] = None) -> None:
     """
     "commits", "pull_requests", "issues", "labels", "stargazers", "members", "milestones
     """

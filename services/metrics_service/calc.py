@@ -5,12 +5,6 @@ from services.metrics_service.load_controller.load import MetricsLoader
 from psycopg2.extensions import connection
 
 
-def save_results_to_file(results):
-    with open("metrics_results.json", "w") as f:
-        json_dump = json.dumps(results)
-        f.write(json_dump)
-
-
 def get_extraction_id(conn: connection, uuid: str):
     cursor = conn.cursor()
     cursor.execute(
@@ -44,16 +38,11 @@ def get_project_id(conn: connection, project_name: str):
 def calculate_metrics(project_name, uuid):
     consolidada_conn = ConsolidadaConnection()
     conn = consolidada_conn.get_connection()
-    # projects = consolidada_conn.get_all_projects()
-    # for project in projects:
-    #     extraction_id, project_id = project
     extraction_id = get_extraction_id(conn, uuid)
     project_id = get_project_id(conn, project_name)
     calc_metrics = CalculateMetrics(conn, project_id, extraction_id)
     load_metrics = MetricsLoader(conn, project_id, extraction_id)
     results = calc_metrics.calculate_metrics()
-
-    save_results_to_file(results)
 
     for metric_group in calc_metrics.metrics:
         load_metrics.add_metric_group(metric_group)
