@@ -95,5 +95,5 @@ if __name__ == "__main__":
     SLEEP_TIME = 10
     while True:
         main()
-        logger.info("Esperando 60 segundos")
+        logger.info(f"Esperando {SLEEP_TIME} segundos")
         sleep(SLEEP_TIME)

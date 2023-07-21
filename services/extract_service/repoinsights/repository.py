@@ -12,6 +12,7 @@ class InsightsRepository:
         self.created_at = repo["created_at"]
         self.forked_from = False if repo["fork"] is False else True
         self.forked_from_id = None
+        self.private = self.check_private(repo["visibility"])
 
     def set_forked_from_id(self, forked_from_id: int) -> None:
         self.forked_from_id = forked_from_id
@@ -22,6 +23,14 @@ class InsightsRepository:
     def set_repo_id(self, id: int) -> None:
         self.id = id
 
+    def check_private(self, visibility: str) -> bool:
+        if visibility == "public":
+            return False
+        elif visibility == "private":
+            return True
+        else:
+            return False
+
     def to_dict(self) -> dict:
         return {
             "url": self.url,
@@ -31,4 +40,5 @@ class InsightsRepository:
             "language": self.language,
             "created_at": self.created_at,
             "forked_from": self.forked_from_id,
+            "private": self.private,
         }

@@ -24,6 +24,7 @@ class LoadProjectController:
             self.user_controller.load_user(self.repository.owner)
         )
         self.repo_id = self.load_repository(self.repository)
+
         self.repository.set_repo_id(self.repo_id)
         self.load_extraction_project(self.repo_id)
         return self.repo_id, self.repository
