@@ -18,7 +18,6 @@ class CalculateMetrics:
         self.metrics = MetricExtractor.get_metrics()
 
     def calculate_metrics(self):
-        pprint(self.metrics)
         results = {}
         with self.conn.cursor() as curs:
             valid_groups = MetricValidator.validate_metrics_groups(
