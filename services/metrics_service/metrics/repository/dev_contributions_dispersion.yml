@@ -15,15 +15,15 @@ metric: >
     WITH total_contributions AS (
         SELECT 
             project_id, 
-            committer_id, 
-            COUNT(committer_id) AS contributions_per_dev,
-            SUM(COUNT(committer_id)) OVER (PARTITION BY project_id) AS total_contributions
+            COALESCE(committer_id, -1) AS committer_id, 
+            COUNT(COALESCE(committer_id, -1)) AS contributions_per_dev,
+            SUM(COUNT(COALESCE(committer_id, -1))) OVER (PARTITION BY project_id) AS total_contributions
         FROM 
             commits 
         WHERE 
             project_id = %s
         GROUP BY 
-            committer_id, 
+            COALESCE(committer_id, -1), 
             project_id
     ),
     cumulative_contributions AS (
@@ -63,18 +63,18 @@ metric: >
         project_id
     ),
     total_committers AS (
-        SELECT c.project_id, COUNT(DISTINCT c.committer_id) AS total
+        SELECT c.project_id, COUNT(DISTINCT COALESCE(c.committer_id, -1)) AS total
         FROM "ghtorrent_restore_2015"."commits" c
         JOIN max_extraction_date m ON c.project_id = m.project_id
         GROUP BY c.project_id
     )
-    SELECT 
-        CONCAT(u.login, '/', p.name) AS "Proyecto",
-        CASE
-          WHEN total_committers.total = 0 THEN 0
-          ELSE commiters_count.commiters_count::float / total_committers.total
-        END AS "Disperción"
-    FROM commiters_count
-    JOIN total_committers ON commiters_count.project_id = total_committers.project_id
-    JOIN "ghtorrent_restore_2015"."projects" p ON commiters_count.project_id = p.id
-    JOIN "ghtorrent_restore_2015"."users" u ON p.owner_id = u.id;
+        SELECT 
+            CONCAT(u.login, '/', p.name) AS "Proyecto",
+            CASE
+            WHEN total_committers.total = 0 THEN 0
+            ELSE commiters_count.commiters_count::float / total_committers.total
+            END AS "Disperción"
+        FROM commiters_count
+        JOIN total_committers ON commiters_count.project_id = total_committers.project_id
+        JOIN "ghtorrent_restore_2015"."projects" p ON commiters_count.project_id = p.id
+        JOIN "ghtorrent_restore_2015"."users" u ON p.owner_id = u.id;

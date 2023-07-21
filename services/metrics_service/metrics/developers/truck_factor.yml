@@ -12,6 +12,7 @@ metric: >
             commits 
         WHERE 
             project_id = %s
+            AND committer_id IS NOT NULL
         GROUP BY 
             committer_id, 
             project_id

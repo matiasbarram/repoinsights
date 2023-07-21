@@ -38,15 +38,15 @@ def add_to_queue(project: Dict, queue_client: QueueClient):
     )
     project = add_attempt(project)
 
-    if project["attempt"] > 2:
-        logger.error(
-            "Se superó el límite de intentos, encolando para fallidos",
-            traceback=True,
-        )
-        project["status"] = {"type": "traspaso", "uuid": project["uuid"]}
-        json_data = json.dumps(project)
-        queue_client.enqueue_failed(json_data)
-        return
+    # if project["attempt"] > 2:
+    #     logger.error(
+    #         "Se superó el límite de intentos, encolando para fallidos",
+    #         traceback=True,
+    #     )
+    #     project["status"] = {"type": "traspaso", "uuid": project["uuid"]}
+    #     json_data = json.dumps(project)
+    #     queue_client.enqueue_failed(json_data)
+    #     return
 
     json_data = json.dumps(project)
     queue_client.enqueue_curado(json_data)
@@ -92,7 +92,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    SLEEP_TIME = 10
     while True:
         main()
         logger.info("Esperando 60 segundos")
-        sleep(60)
+        sleep(SLEEP_TIME)

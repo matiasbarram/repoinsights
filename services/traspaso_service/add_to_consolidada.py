@@ -43,17 +43,18 @@ class EntityHandler:
         self.entity_data = entity_data
 
     def get_value_from_consolidada(self, entity_class, entity, attr_name, attr_value):
-        # get consolidada id
         sks = self.entity_data[entity_class]["search_keys"]
         filters = self.create_filters(entity, sks)
         exist_entity = self.search_entity(entity_class, filters)
         if exist_entity is None:
             logger.error(
-                "No se encontro el {attr_name}/{attr_value} en la base de datos consolidada",
+                "{entity_class} No se encontro el {attr_name}/{attr_value} en la base de datos consolidada",
                 attr_value=attr_value,
                 attr_name=attr_name,
+                entity_class=entity_class.__name__,
             )
             return None
+
         logger.debug("FOUND in consolidada! \t {value}", value=exist_entity.__dict__)
         cache_map = self.entity_data[entity_class]["cache_map"]
         cache_map[entity.id] = exist_entity.id
@@ -67,30 +68,35 @@ class EntityHandler:
         )
         if temp_entity is None:
             logger.error(
-                "No se encontro el {attr_name}/{attr_value} en la base de datos",
+                "No se encontro el {attr_name}/{attr_value} en la base de datos temporal",
                 attr_value=attr_value,
                 attr_name=attr_name,
             )
             return None
+
         logger.debug("FOUND in temp! \t {value}", value=temp_entity.__dict__)
         consolidada_entity = self.get_value_from_consolidada(
-            entity_class, temp_entity, attr_name, attr_value
+            entity_class=entity_class,
+            entity=temp_entity,
+            attr_name=attr_name,
+            attr_value=attr_value,
         )
-        if consolidada_entity is None:
-            return None
-        return consolidada_entity.id
 
-    def handle_not_found_in_map(self, entity_class, attr_name, attr_value):
-        if attr_value is None:
-            return None
-        temp_entity = self.get_value_from_temp(entity_class, attr_name, attr_value)
-        if temp_entity is None:
-            return None
-        consolidada_entity = self.get_value_from_consolidada(
-            entity_class, temp_entity, attr_name, attr_value
-        )
         if consolidada_entity is None:
-            return None
+            # create entity in consolidada
+            logger.debug("CREATING in consolidada! \t {value}", value=temp_entity)
+            filters = self.create_filters(
+                temp_entity, self.entity_data[entity_class]["add_keys"]
+            )
+            # entity_class, entity, filters, cache_map
+            new_entity = self.create_entity(
+                entity_class=entity_class,
+                entity=temp_entity,
+                filters=filters,
+                cache_map=self.entity_data[entity_class]["cache_map"],
+            )
+            return new_entity.id
+
         return consolidada_entity.id
 
     def create_filters(self, entity, sk):
@@ -107,14 +113,22 @@ class EntityHandler:
                     else:
                         logger.warning(
                             "{entity} \t No se encontro el {attr_name}/{attr_value} en el cache",
-                            entity=entity.__dict__,
+                            entity=entity_class.__name__,
                             attr_value=attr_value,
                             attr_name=attr_name,
                         )
                         entity_id = self.entity_data[entity_class].get("id") or "id"
+                        logger.debug(
+                            "Buscando {entity_class} en temp.... \t {entity_id} ---> {attr_value}",
+                            entity_class=entity_class.__name__,
+                            entity_id=entity_id,
+                            attr_value=attr_value,
+                        )
+
                         value_id = self.get_value_from_temp(
                             entity_class, entity_id, attr_value
                         )
+
                         if value_id is not None:
                             search_filters[attr_name] = value_id
             else:
@@ -173,7 +187,6 @@ class ConsolidatedClient:
             add_keys=self.entity_data[User]["add_keys"],
             cache_map=self.entity_data[User]["cache_map"],
         )
-        pprint(self.cache.user_id_map)
 
     def add_projects(self, projects: List[Project]):
         def add_project(projects, lambda_function):
@@ -192,8 +205,6 @@ class ConsolidatedClient:
         add_project(
             projects, lambda x: x.forked_from is not None
         )  # Agregar proyectos bifurcados
-
-        pprint(self.cache.project_id_map)
 
     def add_extractions(self, extractions: List[Extraction]):
         self.entity_handler.add_entities(
@@ -219,7 +230,6 @@ class ConsolidatedClient:
             add_keys=self.entity_data[RepoLabel]["add_keys"],
             cache_map=self.entity_data[RepoLabel]["cache_map"],
         )
-        pprint(self.cache.label_id_map)
 
     def add_milestones(self, milestones: List[RepoMilestone]):
         self.entity_handler.add_entities(

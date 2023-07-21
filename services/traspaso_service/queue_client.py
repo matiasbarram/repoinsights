@@ -46,6 +46,9 @@ class QueueClient:
     def enqueue_failed(self, project: str):
         self.enqueue(project, self.queue_failed)
 
+    def enqueue_pendientes(self, project: str):
+        self.enqueue(project, self.queue_pendientes)
+
     def enqueue_curado(self, project: str):
         self.enqueue(project, self.queue_curado)
 
