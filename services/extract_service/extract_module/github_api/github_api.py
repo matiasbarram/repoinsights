@@ -213,7 +213,8 @@ class Cache:
         value = self.redis_cache.get(key)
         return json.loads(value.decode("utf-8")) if value else None
 
-    def set(self, key, value, expiry=None):
+    def set(self, key, value):
+        expiry = 60 * 60 * 24  # 1 day
         serialized_value = json.dumps(value)
         self.redis_cache.set(key, serialized_value, ex=expiry)
 
