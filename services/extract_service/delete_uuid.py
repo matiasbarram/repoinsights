@@ -22,8 +22,10 @@ from services.extract_service.load_module.db_connector.models import (
     Watcher,
     Extraction,
 )
-from services.traspaso_service.db_connector.database_handler import DatabaseHandler
-from services.traspaso_service.db_connector.connector import DBConnector
+from services.extract_service.load_module.db_connector.database_handler import (
+    DatabaseHandler,
+    DBConnector,
+)
 from pprint import pprint
 from loguru import logger
 
@@ -35,8 +37,8 @@ T = TypeVar("T")
 class DeleteFromTemp:
     def __init__(self, uuid) -> None:
         connector = DBConnector()
-        self.db = DatabaseHandler(connector)
         self.uuid = uuid
+        self.db = DatabaseHandler(connector, self.uuid)
 
     def _delete_items(self, item_class: Type[T]) -> None:
         self.db.session_temp.query(item_class).filter_by(ext_ref_id=self.uuid).delete()
