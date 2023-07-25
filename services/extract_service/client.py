@@ -9,6 +9,7 @@ from services.extract_service.extract_module.extract_client import ExtractDataCo
 from .queue_module.enqueue_client import QueueController
 from .load_module.load_client import LoadDataClient
 from .excepctions.exceptions import LoadError, EmptyQueueError
+from services.extract_service.delete_uuid import DeleteFromTemp
 
 
 class InsightsClient:
@@ -19,6 +20,7 @@ class InsightsClient:
         self.attempt = 0
         self.project_id = None
         self.queue_client = QueueController()
+
         self.private = None
 
     def get_from_pendientes(self):
@@ -54,6 +56,7 @@ class InsightsClient:
                 data_types=self.data_types,
                 private_token=self.private,
             )
+            return f"{self.owner}/{self.repo}"
 
         else:
             logger.critical("No hay proyectos pendientes")
@@ -78,7 +81,6 @@ class InsightsClient:
 
     def enqueue_to_failed(self):
         self.pending_repo["enqueue_time"] = datetime.now().isoformat()
-        self.pending_repo["attempt"] = self.pending_repo["attempt"] + 1
         self.pending_repo["status"] = {"type": "extract", "uuid": self.uuid}
 
         json_data = json.dumps(self.pending_repo)
@@ -134,3 +136,8 @@ class InsightsClient:
         json_data = json.dumps(project_data)
         self.queue_client.enqueue(json_data, "curado")
         logger.critical("Project ENQUEUE to CURADO published")
+
+    def delete_from_temp(self):
+        logger.critical("Deleting from TEMP DB")
+        delete_client = DeleteFromTemp(self.uuid)
+        delete_client.delete_all()

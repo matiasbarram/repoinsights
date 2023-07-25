@@ -1,34 +1,30 @@
 from datetime import datetime
 import argparse
-import json
 from time import sleep
 from typing import Optional
 from loguru import logger
 
+
 from services.extract_service.client import InsightsClient
-from services.extract_service.utils.utils import api_date
-from services.extract_service.queue_module.enqueue_client import QueueController
-
-
 from services.extract_service.excepctions.exceptions import (
     GitHubUserException,
     ProjectNotFoundError,
     LimitExceededError,
     EmptyQueueError,
 )
-from time import sleep
 
 
-class Logger:
+class LoggerFile:
     def __init__(self, debug):
         self.debug = debug
 
-    def setup(self):
-        if not self.debug:
-            logger.remove()
+    def setup(self, project: str):
+        logger.remove()
         dt = datetime.now()
         dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
-        logger.add(f"logs/extract-{dt_str}.log", backtrace=True, diagnose=True)
+        logger.add(
+            f"logs/extract-{project}-{dt_str}.log", backtrace=True, diagnose=True
+        )
 
 
 def handle_extract_exceptions(client: InsightsClient, e):
@@ -45,7 +41,6 @@ def handle_extract_exceptions(client: InsightsClient, e):
         logger.exception(
             "Proyecto no encontrado, marcar como eliminado", traceback=True
         )
-
     elif isinstance(e, KeyboardInterrupt):
         logger.exception("Proceso interrumpido por el usuario", traceback=True)
         client.enqueue_to_pendientes()
@@ -57,12 +52,19 @@ def handle_extract_exceptions(client: InsightsClient, e):
         client.enqueue_to_failed()
     elif isinstance(e, EmptyQueueError):
         logger.info("No hay proyectos en la cola", traceback=False)
-
     else:
         logger.exception(
-            f"Fallo en la extracción. volviendo a encolar: {e}", traceback=True
+            f"Fallo desconocido encolando en pendientes: {e}", traceback=True
         )
         client.enqueue_to_pendientes()
+
+    # if not isinstance(e, EmptyQueueError):
+    #     try:
+    #         client.delete_from_temp()
+    #     except Exception as e:
+    #         logger.exception(
+    #             f"Fallo desconocido al eliminar de la tabla temp: {e}", traceback=True
+    #         )
 
 
 def handle_load_exceptions(client: InsightsClient, e):
@@ -70,20 +72,11 @@ def handle_load_exceptions(client: InsightsClient, e):
     client.enqueue_to_pendientes("load")
 
 
-import pika
-import pika.exceptions
-import os
-import json
-from time import sleep
-from services.extract_service.client import InsightsClient
-
-
 def main(debug: Optional[bool] = None) -> None:
     """
     "commits", "pull_requests", "issues", "labels", "stargazers", "members", "milestones
     """
-    logger = Logger(debug)
-    logger.setup()
+    logger_client = LoggerFile(debug)
 
     data_types = [
         "commits",
@@ -95,11 +88,11 @@ def main(debug: Optional[bool] = None) -> None:
 
     client = InsightsClient(data_types)
     try:
-        client.get_from_pendientes()
-
+        project = client.get_from_pendientes()
         if client.attempt > 2:
             raise LimitExceededError("Se superó el límite de intentos")
 
+        logger_client.setup(project)
         results = client.extract()
         client.load(results)
         client.enqueue_to_curado()
@@ -110,6 +103,7 @@ def main(debug: Optional[bool] = None) -> None:
 
 
 if __name__ == "__main__":
+    sleep_time = 10
     while True:
         parser = argparse.ArgumentParser(description="InsightsClient script")
         parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -120,7 +114,7 @@ if __name__ == "__main__":
         )
         args = parser.parse_args()
         main(args.debug)
-        print("Sleeping for 60 seconds")
-        sleep(60)
+        print(f"Sleeping for {sleep_time} seconds")
+        sleep(sleep_time)
         if args.single:
             break

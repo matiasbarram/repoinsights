@@ -1,28 +1,33 @@
 from typing import Dict, Any, List, Tuple, Union
 from loguru import logger
+from typing import Dict, Any, List
 import json
 from time import sleep
+from datetime import datetime
+
 from services.traspaso_service.queue_client import QueueClient
 from services.traspaso_service.db_connector.connector import DBConnector
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
-from loguru import logger
-from typing import Dict, Any, List
 from services.traspaso_service.traspaso.traspaso import Client as TraspasoClient
 from services.traspaso_service.exceptions import EmptyQueueError
-import json
-from time import sleep
-
-
 from services.metrics_service.calc import calculate_metrics
-import pika
-import pika.exceptions
-import os
-import json
-from services.traspaso_service.queue_client import QueueClient
 
 
 class UUIDNotFoundException(Exception):
     pass
+
+
+class LoggerFile:
+    def __init__(self, debug):
+        self.debug = debug
+
+    def setup(self, project: str):
+        logger.remove()
+        dt = datetime.now()
+        dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
+        logger.add(
+            f"logs/trapaso-{project}-{dt_str}.log", backtrace=True, diagnose=True
+        )
 
 
 def add_attempt(project: Dict):
@@ -38,15 +43,15 @@ def add_to_queue(project: Dict, queue_client: QueueClient):
     )
     project = add_attempt(project)
 
-    # if project["attempt"] > 2:
-    #     logger.error(
-    #         "Se superó el límite de intentos, encolando para fallidos",
-    #         traceback=True,
-    #     )
-    #     project["status"] = {"type": "traspaso", "uuid": project["uuid"]}
-    #     json_data = json.dumps(project)
-    #     queue_client.enqueue_failed(json_data)
-    #     return
+    if project["attempt"] > 2:
+        logger.error(
+            "Se superó el límite de intentos, encolando para fallidos",
+            traceback=True,
+        )
+        project["status"] = {"type": "traspaso", "uuid": project["uuid"]}
+        json_data = json.dumps(project)
+        queue_client.enqueue_failed(json_data)
+        return
 
     json_data = json.dumps(project)
     queue_client.enqueue_curado(json_data)
@@ -80,6 +85,7 @@ def main() -> None:
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
     try:
+        LoggerFile(debug=True).setup(f"{project['owner']}/{project['repo']}")
         traspaso_client.migrate()
         calculate_metrics(project["repo"], project["uuid"])
 
@@ -92,8 +98,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    SLEEP_TIME = 10
+    sleep_time = 10
     while True:
         main()
-        logger.info(f"Esperando {SLEEP_TIME} segundos")
-        sleep(SLEEP_TIME)
+        logger.info(f"Esperando {sleep_time} segundos")
+        sleep(sleep_time)
