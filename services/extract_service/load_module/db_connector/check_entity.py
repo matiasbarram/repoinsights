@@ -1,29 +1,3 @@
-from services.traspaso_service.db_connector.models import (
-    User,
-    Project,
-    Commit,
-    CommitComment,
-    CommitParent,
-    Follower,
-    Fork,
-    Issue,
-    IssueComment,
-    IssueEvent,
-    IssueLabel,
-    OrganizationMember,
-    ProjectCommit,
-    ProjectMember,
-    PullRequest,
-    PullRequestComment,
-    PullRequestCommit,
-    PullRequestHistory,
-    RepoLabel,
-    RepoMilestone,
-    Watcher,
-    Extraction,
-)
-
-
 entity_data = {
     "User": {
         "search_keys": ["login"],

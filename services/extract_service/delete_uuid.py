@@ -1,4 +1,4 @@
-from services.traspaso_service.db_connector.models import (
+from services.extract_service.load_module.db_connector.models import (
     User,
     Project,
     Commit,
