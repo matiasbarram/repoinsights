@@ -98,7 +98,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sleep_time = 10
+    sleep_time = 60
     while True:
         main()
         logger.info(f"Esperando {sleep_time} segundos")

@@ -58,13 +58,13 @@ def handle_extract_exceptions(client: InsightsClient, e):
         )
         client.enqueue_to_pendientes()
 
-    # if not isinstance(e, EmptyQueueError):
-    #     try:
-    #         client.delete_from_temp()
-    #     except Exception as e:
-    #         logger.exception(
-    #             f"Fallo desconocido al eliminar de la tabla temp: {e}", traceback=True
-    #         )
+    if not isinstance(e, EmptyQueueError):
+        try:
+            client.delete_from_temp()
+        except Exception as e:
+            logger.exception(
+                f"Fallo desconocido al eliminar de la tabla temp: {e}", traceback=True
+            )
 
 
 def handle_load_exceptions(client: InsightsClient, e):
@@ -103,7 +103,7 @@ def main(debug: Optional[bool] = None) -> None:
 
 
 if __name__ == "__main__":
-    sleep_time = 10
+    sleep_time = 60
     while True:
         parser = argparse.ArgumentParser(description="InsightsClient script")
         parser.add_argument("--debug", action="store_true", help="Enable debug mode")
