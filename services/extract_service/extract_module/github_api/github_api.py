@@ -106,18 +106,15 @@ class GitHubAPI:
                 self.headers.update(headers)
 
             response = requests.get(url, headers=self.headers, params=params)
-
+            response.raise_for_status()
             logger.debug(
-                "{name} \t {current}/{limit}",
-                current=response.headers["X-RateLimit-Remaining"],
-                limit=response.headers["X-RateLimit-Limit"],
-                name=name,
+                f"{name} \t {response.headers['X-RateLimit-Remaining']}/{response.headers['X-RateLimit-Limit']}"
             )
+
             remaining_limit = int(response.headers["X-RateLimit-Remaining"])
             if remaining_limit < REMAINING:
                 raise RateLimitExceededError("GitHub API rate limit is low.")
 
-            response.raise_for_status()
             return response
         except requests.exceptions.HTTPError as e:
             if (
@@ -137,7 +134,6 @@ class GitHubAPI:
                 GitHubError("Error de GitHub")
                 time.sleep(10)
                 self.get(url, params=params, name=name)
-
             else:
                 raise e
 
