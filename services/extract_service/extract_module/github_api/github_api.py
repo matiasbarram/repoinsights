@@ -114,9 +114,10 @@ class GitHubAPI:
             remaining_limit = int(response.headers["X-RateLimit-Remaining"])
             if remaining_limit < REMAINING:
                 raise RateLimitExceededError("GitHub API rate limit is low.")
-
             return response
         except requests.exceptions.HTTPError as e:
+            # 401 error not authorized (private repo) or token expired.
+            # posible solution. new queue to token expired and notify user
             if (
                 e.response.status_code == 403
                 and "X-RateLimit-Remaining" in e.response.headers
@@ -131,9 +132,7 @@ class GitHubAPI:
                 ProjectNotFoundError("Proyecto no encontrado")
             elif e.response.status_code == 502:
                 logger.exception("Error de GitHub", traceback=True)
-                GitHubError("Error de GitHub")
-                time.sleep(10)
-                self.get(url, params=params, name=name)
+                return self.get(url, params=params, name=name, headers=headers)
             else:
                 raise e
 

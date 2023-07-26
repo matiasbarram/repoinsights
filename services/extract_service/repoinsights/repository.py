@@ -13,6 +13,7 @@ class InsightsRepository:
         self.forked_from = False if repo["fork"] is False else True
         self.forked_from_id = None
         self.private = self.check_private(repo["visibility"])
+        self.owner_id = None
 
     def set_forked_from_id(self, forked_from_id: int) -> None:
         self.forked_from_id = forked_from_id

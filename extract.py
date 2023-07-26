@@ -54,7 +54,7 @@ def handle_extract_exceptions(client: InsightsClient, e):
         logger.info("No hay proyectos en la cola", traceback=False)
     else:
         logger.exception(
-            f"Fallo desconocido encolando en pendientes: {e}", traceback=True
+            f"Fallo desconocido. encolando en pendientes: {e}", traceback=True
         )
         client.enqueue_to_pendientes()
 

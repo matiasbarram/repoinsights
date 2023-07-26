@@ -22,11 +22,16 @@ class Commit:
             return self.api.cache.get(commit_sha)  # type: ignore
 
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit_sha}"
-        commit = self.api.rate_limit_handling(self.api.get, url=url)
-        if commit is None:
+        logger.debug(
+            "Getting from {url} commit {commit_sha}", commit_sha=commit_sha, url=url
+        )
+        commit_response = self.api.rate_limit_handling(
+            self.api.get, url=url, name=f"commit {commit_sha}"
+        )
+        if commit_response is None:
             raise Exception(f"Commit {commit_sha} not found")
-        commit = commit.json()
 
+        commit = commit_response.json()
         users = self.user_controller._get_users_for_keys(
             [commit], ["author", "committer"]
         )

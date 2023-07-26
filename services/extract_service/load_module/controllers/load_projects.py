@@ -20,9 +20,11 @@ class LoadProjectController:
 
     def main_project(self, repo_data: InsightsRepository):
         self.repository = repo_data
-        self.repository.set_owner_id(
-            self.user_controller.load_user(self.repository.owner)  # type: ignore
-        )
+        owner = self.repository.owner if self.repository.owner is not None else None
+        if owner:
+            owner_id = self.user_controller.load_user(owner)
+            self.repository.set_owner_id(owner_id)
+
         self.repo_id = self.load_repository(self.repository)
 
         self.repository.set_repo_id(self.repo_id)
@@ -39,7 +41,7 @@ class LoadProjectController:
     def load_repository(self, repository: InsightsRepository):
         logger.debug(
             "Loading repository {owner} {name}",
-            owner=repository.owner.login,  # type: ignore
+            owner=repository.owner,
             name=repository.name,
         )
         return self.temp_db.create_project(repository)
