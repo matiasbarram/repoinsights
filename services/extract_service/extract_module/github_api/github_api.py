@@ -16,6 +16,7 @@ from services.extract_service.excepctions.exceptions import (
     ProjectNotFoundError,
     GitHubError,
     RateLimitExceededErrorPrivate,
+    InternalGitHubError,
 )
 
 REMAINING = 200
@@ -133,7 +134,10 @@ class GitHubAPI:
             elif e.response.status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
                 raise ProjectNotFoundError("Proyecto no encontrado")
-            elif e.response.status_code == 500 or e.response.status_code == 502:
+            elif e.response.status_code == 500:
+                logger.exception("Error {number} de GitHub", traceback=True, number=500)
+                raise InternalGitHubError("Error 500")
+            elif e.response.status_code == 502:
                 logger.exception("Error {number} de GitHub", traceback=True, number=500)
                 time.sleep(60)
                 self.get(url, params=params, name=name, headers=headers)
@@ -171,17 +175,25 @@ class GitHubAPI:
                 params["until"] = format_dt(until)
 
         while url:
-            response = self.get(url, params=params, headers=headers, name=name)
-            if response is None:
-                break
+            try:
+                response = self.get(url, params=params, headers=headers, name=name)
+                if response is None:
+                    break
 
-            elementos.extend(response.json())
-            logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
-            pag += 1
-            if "next" in response.links:
-                url = response.links["next"]["url"]
-            else:
-                url = None
+                elementos.extend(response.json())
+                logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
+                pag += 1
+                if "next" in response.links:
+                    url = response.links["next"]["url"]
+                else:
+                    url = None
+            except InternalGitHubError as e:
+                logger.exception("Error 500", traceback=True)
+                logger.exception("Error 500", traceback=True)
+                pag += 1
+                params["page"] = pag
+                url = url.split("&page=")[0] + f"&page={pag}"
+                continue
         return elementos
 
     def _filtrar_por_fecha(self, elementos, since=None, until=None):

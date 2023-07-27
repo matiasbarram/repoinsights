@@ -44,3 +44,7 @@ class LimitExceededError(Exception):
 
 class RateLimitExceededErrorPrivate(Exception):
     pass
+
+
+class InternalGitHubError(Exception):
+    pass

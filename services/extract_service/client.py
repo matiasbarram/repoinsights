@@ -110,6 +110,10 @@ class InsightsClient:
             until=self.until,
             data_types=self.data_types,
         )
+        print(
+            f"Extracting from GitHub {self.owner}/{self.repo} DESDE -> {self.since} HASTA -> {self.until} {self.data_types}"
+        )
+
         data = self.extract_data.extract()
         return data
 
