@@ -130,8 +130,9 @@ class GitHubAPI:
             elif e.response.status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
                 ProjectNotFoundError("Proyecto no encontrado")
-            elif e.response.status_code == 502:
-                logger.exception("Error de GitHub", traceback=True)
+            elif e.response.status_code == 500 or e.response.status_code == 502:
+                logger.exception("Error {number} de GitHub", traceback=True, number=500)
+                time.sleep(60)
                 return self.get(url, params=params, name=name, headers=headers)
             else:
                 raise e
