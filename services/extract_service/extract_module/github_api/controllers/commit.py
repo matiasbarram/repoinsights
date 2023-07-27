@@ -28,8 +28,11 @@ class Commit:
         commit_response = self.api.rate_limit_handling(
             self.api.get, url=url, name=f"commit {commit_sha}"
         )
-        if commit_response is None:
-            raise Exception(f"Commit {commit_sha} not found")
+        if not commit_response:
+            logger.warning(
+                "Commit {commit_sha} no encontrado", commit_sha=commit_sha, url=url
+            )
+            raise Exception(f"Commit {commit_sha} no encontrado")
 
         commit = commit_response.json()
         users = self.user_controller._get_users_for_keys(

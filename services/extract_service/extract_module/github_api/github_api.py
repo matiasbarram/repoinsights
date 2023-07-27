@@ -124,16 +124,19 @@ class GitHubAPI:
                 and int(e.response.headers["X-RateLimit-Remaining"]) <= REMAINING
             ):
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
+            elif e.response.status_code == 422:
+                logger.exception("Error 422", traceback=True)
+                raise GitHubError("Error 422")
             elif e.response.status_code == 451:
                 logger.exception("Proyecto eliminado", traceback=True)
-                ProjectNotFoundError("Proyecto eliminado")
+                raise ProjectNotFoundError("Proyecto eliminado")
             elif e.response.status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
-                ProjectNotFoundError("Proyecto no encontrado")
+                raise ProjectNotFoundError("Proyecto no encontrado")
             elif e.response.status_code == 500 or e.response.status_code == 502:
                 logger.exception("Error {number} de GitHub", traceback=True, number=500)
                 time.sleep(60)
-                return self.get(url, params=params, name=name, headers=headers)
+                self.get(url, params=params, name=name, headers=headers)
             else:
                 raise e
 
