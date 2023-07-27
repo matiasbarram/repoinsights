@@ -11,6 +11,7 @@ from services.traspaso_service.db_connector.database_handler import DatabaseHand
 from services.traspaso_service.traspaso.traspaso import Client as TraspasoClient
 from services.traspaso_service.exceptions import EmptyQueueError
 from services.metrics_service.calc import calculate_metrics
+from services.traspaso_service.delete_from_temp import DeleteFromTemp
 
 
 class UUIDNotFoundException(Exception):
@@ -88,6 +89,7 @@ def main() -> None:
         LoggerFile(debug=True).setup(f"{project['owner']}/{project['repo']}")
         traspaso_client.migrate()
         calculate_metrics(project["repo"], project["uuid"])
+        logger.info("Proyecto traspasado {project}", project=project)
 
     except Exception as e:
         logger.exception("Error", traceback=True)
@@ -95,6 +97,11 @@ def main() -> None:
             project,
             queue_client,
         )
+
+    DeleteFromTemp(uuid).delete_all()
+    logger.info(
+        "Proyecto eliminado de la base de datos temporal {project}", project=project
+    )
 
 
 if __name__ == "__main__":
