@@ -3,6 +3,7 @@ import json
 import pika
 from typing import Any, Dict
 from loguru import logger
+from time import sleep
 
 from services.traspaso_service.queue_client import QueueClient
 
@@ -46,4 +47,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     queue_client = QueueClient()
-    move_messages(queue_client, args.status, MAX)
+    if args.status == "stop":
+        while True:
+            move_messages(queue_client, args.status, MAX)
+            print("Waiting 10 seconds...")
+            sleep(10)
+    else:
+        move_messages(queue_client, args.status, MAX)
