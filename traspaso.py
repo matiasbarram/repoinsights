@@ -71,7 +71,7 @@ def main() -> None:
     try:
         project = queue_client.get_from_queue_curado()
     except EmptyQueueError:
-        print("No hay proyectos en la cola")
+        # print("No hay proyectos en la cola")
         return
 
     except Exception as e:

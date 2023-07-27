@@ -51,7 +51,8 @@ def handle_extract_exceptions(client: InsightsClient, e):
         )
         client.enqueue_to_failed()
     elif isinstance(e, EmptyQueueError):
-        logger.info("No hay proyectos en la cola", traceback=False)
+        # logger.info("No hay proyectos en la cola", traceback=False)
+        return
     else:
         logger.exception(
             f"Fallo desconocido. encolando en pendientes: {e}", traceback=True
@@ -114,7 +115,6 @@ if __name__ == "__main__":
         )
         args = parser.parse_args()
         main(args.debug)
-        print(f"Sleeping for {sleep_time} seconds")
         sleep(sleep_time)
         if args.single:
             break

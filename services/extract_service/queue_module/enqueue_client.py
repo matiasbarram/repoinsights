@@ -33,7 +33,8 @@ class QueueController:
                 data = body.decode("utf-8")
                 return json.loads(data)
             else:
-                logger.info("No hay proyectos en la cola")
+                # logger.info("No hay proyectos en la cola")
+                return None
         finally:
             connection.close()
 

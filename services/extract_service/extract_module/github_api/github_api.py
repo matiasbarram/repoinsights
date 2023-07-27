@@ -189,7 +189,6 @@ class GitHubAPI:
                     url = None
             except InternalGitHubError as e:
                 logger.exception("Error 500", traceback=True)
-                logger.exception("Error 500", traceback=True)
                 pag += 1
                 params["page"] = pag
                 url = url.split("&page=")[0] + f"&page={pag}"

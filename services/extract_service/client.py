@@ -59,7 +59,7 @@ class InsightsClient:
             return f"{self.owner}/{self.repo}"
 
         else:
-            logger.critical("No hay proyectos pendientes")
+            # logger.critical("No hay proyectos pendientes")
             raise EmptyQueueError("No hay proyectos pendientes")
 
     def enqueue_to_modificacion(self, action_type, **kwargs):
