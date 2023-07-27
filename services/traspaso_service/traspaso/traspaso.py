@@ -36,27 +36,27 @@ class Client:
         followers = temp.get_followers()
 
         logger.info("Migrando data... {uuid}", uuid=self.uuid)
-        print(f"Users: {len(users)}")
-
-        print(f"Watchers: {len(watchers)}")
-        print(f"Followers: {len(followers)}")
-        print(f"Projects: {len(projects)}")
-        print(f"Labels: {len(labels)}")
-        print(f"Milestones: {len(milestones)}")
-
-        print(f"Commits: {len(commits)}")
-        print(f"Commit Comments: {len(commit_comments)}")
-        print(f"Commit Parents: {len(commit_parents)}")
-
-        print(f"Issues: {len(issues)}")
-        print(f"Issue Comments: {len(issue_comments)}")
-        print(f"Issue Events: {len(issue_events)}")
-        print(f"Issue Labels: {len(issue_labels)}")
-
-        print(f"Pull Requests: {len(prs)}")
-        print(f"Pull Request Comments: {len(pr_comments)}")
-        print(f"Pull Request History: {len(pr_history)}")
-        print(f"Pull Request Commits: {len(pr_commits)}")
+        logger.debug(
+            {
+                "users": len(users),
+                "watchers": len(watchers),
+                "followers": len(followers),
+                "projects": len(projects),
+                "labels": len(labels),
+                "milestones": len(milestones),
+                "commits": len(commits),
+                "commit_comments": len(commit_comments),
+                "commit_parents": len(commit_parents),
+                "issues": len(issues),
+                "issue_comments": len(issue_comments),
+                "issue_events": len(issue_events),
+                "issue_labels": len(issue_labels),
+                "prs": len(prs),
+                "pr_comments": len(pr_comments),
+                "pr_history": len(pr_history),
+                "pr_commits": len(pr_commits),
+            }
+        )
 
         if (
             len(users) == 0

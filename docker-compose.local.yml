@@ -104,6 +104,8 @@ services:
       - TEMP_IP=temporal
       - CONSOLIDADA_IP=consolidada
       - PYTHONUNBUFFERED=1
+    volumes:
+      - ./docker/trapaso_service:/app/logs
 
 volumes:
   db:

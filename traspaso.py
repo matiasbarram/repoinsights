@@ -70,7 +70,7 @@ def main() -> None:
     try:
         project = queue_client.get_from_queue_curado()
     except EmptyQueueError:
-        logger.info("No hay proyectos en la cola")
+        print("No hay proyectos en la cola")
         return
 
     except Exception as e:
@@ -101,5 +101,5 @@ if __name__ == "__main__":
     sleep_time = 60
     while True:
         main()
-        logger.info(f"Esperando {sleep_time} segundos")
+        print(f"Esperando {sleep_time} segundos")
         sleep(sleep_time)
