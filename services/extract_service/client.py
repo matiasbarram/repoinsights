@@ -8,7 +8,8 @@ from .utils.utils import format_dt, api_date
 from services.extract_service.extract_module.extract_client import ExtractDataController
 from .queue_module.enqueue_client import QueueController
 from .load_module.load_client import LoadDataClient
-from .excepctions.exceptions import LoadError
+from .excepctions.exceptions import LoadError, EmptyQueueError
+from services.extract_service.delete_uuid import DeleteFromTemp
 
 
 class InsightsClient:
@@ -16,23 +17,11 @@ class InsightsClient:
         self.data_types = data_types
         self.until = datetime.now()
         self.uuid = uuid.uuid4().hex
+        self.attempt = 0
         self.project_id = None
         self.queue_client = QueueController()
 
-        (
-            self.pending_repo,
-            self.owner,
-            self.repo,
-            self.since,
-        ) = self.get_from_pendientes()
-
-        self.extract_data = ExtractDataController(
-            owner=self.owner,
-            repo=self.repo,
-            since=self.since,
-            until=self.until,
-            data_types=self.data_types,
-        )
+        self.private = None
 
     def get_from_pendientes(self):
         pending_project = self.queue_client.get_from_queue()
@@ -48,11 +37,30 @@ class InsightsClient:
             if pending_project.get("status"):
                 self.uuid = pending_repo["status"]["uuid"]
 
+            if pending_project.get("attempt"):
+                self.attempt = pending_repo["attempt"]
+
             logger.critical("QUEUE pendientes {project}", project=pending_repo)
-            return pending_repo, owner, repo, since
+            self.pending_repo = pending_repo
+            self.owner = owner
+            self.repo = repo
+            self.since = since
+            if pending_project.get("private"):
+                self.private = pending_project["private"]
+
+            self.extract_data = ExtractDataController(
+                owner=self.owner,
+                repo=self.repo,
+                since=self.since,
+                until=self.until,
+                data_types=self.data_types,
+                private_token=self.private,
+            )
+            return f"{self.owner}/{self.repo}"
+
         else:
-            logger.critical("No hay proyectos pendientes")
-            exit(0)
+            # logger.critical("No hay proyectos pendientes")
+            raise EmptyQueueError("No hay proyectos pendientes")
 
     def enqueue_to_modificacion(self, action_type, **kwargs):
         project_data = {}
@@ -62,7 +70,7 @@ class InsightsClient:
         project_data["action"] = action_type
         project_data["project"] = {"owner": self.owner, "repo": self.repo}
 
-        if action_type == "delete":
+        if action_type == "rename":
             new = kwargs.get("new")
             if not new:
                 raise LoadError("No se especificó el nuevo nombre del proyecto")
@@ -70,6 +78,13 @@ class InsightsClient:
 
         json_data = json.dumps(project_data)
         self.queue_client.enqueue(json_data, "modificaciones")
+
+    def enqueue_to_failed(self):
+        self.pending_repo["enqueue_time"] = datetime.now().isoformat()
+        self.pending_repo["status"] = {"type": "extract", "uuid": self.uuid}
+
+        json_data = json.dumps(self.pending_repo)
+        self.queue_client.enqueue(json_data, "failed")
 
     def enqueue_to_pendientes(self, status=None):
         if status:
@@ -95,6 +110,10 @@ class InsightsClient:
             until=self.until,
             data_types=self.data_types,
         )
+        print(
+            f"Extracting from GitHub {self.owner}/{self.repo} DESDE -> {self.since} HASTA -> {self.until} {self.data_types}"
+        )
+
         data = self.extract_data.extract()
         return data
 
@@ -121,3 +140,8 @@ class InsightsClient:
         json_data = json.dumps(project_data)
         self.queue_client.enqueue(json_data, "curado")
         logger.critical("Project ENQUEUE to CURADO published")
+
+    def delete_from_temp(self):
+        logger.critical("Deleting from TEMP DB")
+        delete_client = DeleteFromTemp(self.uuid)
+        delete_client.delete_all()

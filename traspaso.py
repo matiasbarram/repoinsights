@@ -1,29 +1,61 @@
+from typing import Dict, Any, List, Tuple, Union
+from loguru import logger
+from typing import Dict, Any, List
+import json
+from time import sleep
+from datetime import datetime
+
 from services.traspaso_service.queue_client import QueueClient
 from services.traspaso_service.db_connector.connector import DBConnector
 from services.traspaso_service.db_connector.database_handler import DatabaseHandler
-from services.traspaso_service.db_connector.models import Project, User, Commit
-from services.traspaso_service.utils.utils import gh_api_to_datetime
-from loguru import logger
-from typing import Dict, Any, List, Tuple, Union
 from services.traspaso_service.traspaso.traspaso import Client as TraspasoClient
-import json
+from services.traspaso_service.exceptions import EmptyQueueError
+from services.metrics_service.calc import calculate_metrics
+from services.traspaso_service.delete_from_temp import DeleteFromTemp
 
 
 class UUIDNotFoundException(Exception):
     pass
 
 
-def add_to_queue(
-    project: Dict,
-    queue_client: QueueClient,
-    project_list: List[Dict[str, Any]] | None = None,
-):
-    logger.error("Error al traspasar el proyecto {project}", project=project)
-    json_data = json.dumps(project)
-    queue_client.enqueue(json_data)
-    if project_list is None:
+class LoggerFile:
+    def __init__(self, debug):
+        self.debug = debug
+
+    def setup(self, project: str):
+        logger.remove()
+        dt = datetime.now()
+        dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
+        logger.add(
+            f"logs/trapaso-{project}-{dt_str}.log", backtrace=True, diagnose=True
+        )
+
+
+def add_attempt(project: Dict):
+    if project.get("attempt") is None:
+        project["attempt"] = 0
+    project["attempt"] = project["attempt"] + 1
+    return project
+
+
+def add_to_queue(project: Dict, queue_client: QueueClient):
+    logger.error(
+        "Error al traspasar el proyecto {project} encolado nuevamente", project=project
+    )
+    project = add_attempt(project)
+
+    if project["attempt"] > 2:
+        logger.error(
+            "Se superó el límite de intentos, encolando para fallidos",
+            traceback=True,
+        )
+        project["status"] = {"type": "traspaso", "uuid": project["uuid"]}
+        json_data = json.dumps(project)
+        queue_client.enqueue_failed(json_data)
         return
-    project_list.append(project)
+
+    json_data = json.dumps(project)
+    queue_client.enqueue_curado(json_data)
 
 
 def all_done(failed: List[Dict[str, Any]], saved: List[Dict[str, Any]]):
@@ -34,9 +66,17 @@ def all_done(failed: List[Dict[str, Any]], saved: List[Dict[str, Any]]):
     )
 
 
-def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
+def main() -> None:
     queue_client = QueueClient()
-    project = queue_client.get_from_queue_curado()
+    try:
+        project = queue_client.get_from_queue_curado()
+    except EmptyQueueError:
+        # print("No hay proyectos en la cola")
+        return
+
+    except Exception as e:
+        logger.exception("Error obteniendo de curado", traceback=True)
+        return
 
     db_handler = DatabaseHandler(DBConnector())
     if project.get("uuid") is None:
@@ -45,32 +85,28 @@ def main(uuids: List, saved_projects: List, failed_projects: List) -> None:
     uuid = project["uuid"]
     logger.info("Traspasando proyecto {project}", project=project)
     traspaso_client = TraspasoClient(db_handler, uuid)
-    if uuid in uuids:
-        all_done(
-            failed=failed_projects,
-            saved=saved_projects,
-        )
-        add_to_queue(
-            project=project,
-            project_list=failed_projects,
-            queue_client=queue_client,
-        )
-
-        exit(0)
-    uuids.append(uuid)
     try:
+        LoggerFile(debug=True).setup(f"{project['owner']}/{project['repo']}")
         traspaso_client.migrate()
-        saved_projects.append(project)
+        calculate_metrics(project["repo"], project["uuid"])
+        logger.info("Proyecto traspasado {project}", project=project)
 
     except Exception as e:
         logger.exception("Error", traceback=True)
-        add_to_queue(project, queue_client, failed_projects)
-        raise e
+        add_to_queue(
+            project,
+            queue_client,
+        )
+
+    DeleteFromTemp(uuid).delete_all()
+    logger.info(
+        "Proyecto eliminado de la base de datos temporal {project}", project=project
+    )
 
 
 if __name__ == "__main__":
-    uuids = []
-    saved_projects = []
-    failed_projects = []
-    # while True:
-    main(uuids, saved_projects, failed_projects)
+    sleep_time = 60
+    while True:
+        main()
+        print(f"Esperando {sleep_time} segundos")
+        sleep(sleep_time)

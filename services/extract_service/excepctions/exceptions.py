@@ -32,3 +32,19 @@ class MainProjectError(Exception):
 
 class ExtractDataResulstsError(Exception):
     pass
+
+
+class GitHubError(Exception):
+    pass
+
+
+class LimitExceededError(Exception):
+    pass
+
+
+class RateLimitExceededErrorPrivate(Exception):
+    pass
+
+
+class InternalGitHubError(Exception):
+    pass

@@ -352,7 +352,7 @@ ALTER SEQUENCE ghtorrent_restore_2015.projects_id_seq OWNED BY ghtorrent_restore
 CREATE TABLE ghtorrent_restore_2015.extractions (
     id integer NOT NULL,
     project_id integer NOT NULL,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ext_ref_id character varying(32) DEFAULT '0' NOT NULL
 );
 

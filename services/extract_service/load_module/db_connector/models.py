@@ -208,6 +208,7 @@ class Project(Base):
     ext_ref_id = Column(String(32), nullable=False)
     forked_from = Column(Integer, nullable=True)
     deleted = Column(Boolean, default=False, nullable=False)
+    private = Column(Boolean, default=False, nullable=False)
 
     owner = relationship("User", back_populates="projects")
     repo_labels = relationship("RepoLabel", back_populates="project")

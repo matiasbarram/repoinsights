@@ -4,8 +4,10 @@ from ..comment import InsightsPullRequestComment
 from ..commit import InsightsCommit
 from datetime import datetime
 from services.extract_service.extract_module.extract_client import GitHubExtractor
-from ...utils.utils import api_date, get_int_from_dict
+from ...utils.utils import get_int_from_dict
 from pprint import pprint
+from loguru import logger
+from services.extract_service.extract_module.github_api.github_api import GitHubError
 
 
 class InsightsPullRequestHandler:
@@ -15,11 +17,20 @@ class InsightsPullRequestHandler:
     def get_all_pull_requests(
         self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
     ) -> List[InsightsPullRequest]:
+        processed_pull_requests = []
         pull_requests = self.repo.obtener_pull_requests(
             state="all", since=start_date, until=end_date
         )
+        for pr in pull_requests:
+            try:
+                processed_pull_requests.append(self._process_pull_request(pr))
+            except GitHubError as e:
+                logger.exception(
+                    f"Error al procesar pull request {pr['number']}", traceback=True
+                )
+                continue
 
-        return [self._process_pull_request(pr) for pr in pull_requests]
+        return processed_pull_requests
 
     def _process_pull_request(self, pr: Dict[str, Any]):
         gh_pr = InsightsPullRequest(pr)

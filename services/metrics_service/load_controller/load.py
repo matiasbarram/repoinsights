@@ -52,6 +52,7 @@ class MetricsLoader:
         for group in self.metric_groups:
             if group.name == REPO_METRICS:
                 continue
+
             for m in group.metrics:
                 if m.name == metric["name"]:
                     m._create_agg_metric()

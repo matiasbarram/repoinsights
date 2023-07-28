@@ -22,11 +22,19 @@ class Commit:
             return self.api.cache.get(commit_sha)  # type: ignore
 
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit_sha}"
-        commit = self.api.rate_limit_handling(self.api.get, url=url)
-        if commit is None:
-            raise Exception(f"Commit {commit_sha} not found")
-        commit = commit.json()
+        logger.debug(
+            "Getting from {url} commit {commit_sha}", commit_sha=commit_sha, url=url
+        )
+        commit_response = self.api.rate_limit_handling(
+            self.api.get, url=url, name=f"commit {commit_sha}"
+        )
+        if not commit_response:
+            logger.warning(
+                "Commit {commit_sha} no encontrado", commit_sha=commit_sha, url=url
+            )
+            raise Exception(f"Commit {commit_sha} no encontrado")
 
+        commit = commit_response.json()
         users = self.user_controller._get_users_for_keys(
             [commit], ["author", "committer"]
         )
@@ -37,14 +45,32 @@ class Commit:
     def obtener_commits(
         self, since: Optional[datetime] = None, until: Optional[datetime] = None
     ) -> List[Dict[str, Any]]:
-        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits"
+        only_main = True
         params = {"since": since, "until": until, "per_page": 100}
-        commits = self.api.rate_limit_handling(
-            self.api._realizar_solicitud_paginada,
-            url=url,
-            params=params,
-            name="commits",
-        )
+        commits = []
+        if not only_main:
+            branches = self.obtener_branches()
+            for branch in branches:
+                branch_name = branch["name"]
+                logger.critical(f"Obteniendo commits de branch {branch_name}")
+                url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits?sha={branch_name}"
+                branch_commits = self.api.rate_limit_handling(
+                    self.api._realizar_solicitud_paginada,
+                    url=url,
+                    params=params,
+                    name="commits",
+                )
+                if not branch_commits:
+                    continue
+                commits.extend(branch_commits)
+        else:
+            url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits"
+            commits = self.api.rate_limit_handling(
+                self.api._realizar_solicitud_paginada,
+                url=url,
+                params=params,
+                name="commits",
+            )
 
         users = self.user_controller._get_users_for_keys(
             commits, ["author", "committer"]
@@ -80,3 +106,14 @@ class Commit:
             users = self.user_controller._get_users_for_keys(comments, ["user"])
             add_users_to_dict_keys(comments, users, ["user"])
         return comments
+
+    def obtener_branches(self) -> List[Dict[str, Any]]:
+        url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/branches"
+        params = {"per_page": 100}
+        branches = self.api.rate_limit_handling(
+            self.api._realizar_solicitud_paginada,
+            url=url,
+            params=params,
+            name="branches",
+        )
+        return branches

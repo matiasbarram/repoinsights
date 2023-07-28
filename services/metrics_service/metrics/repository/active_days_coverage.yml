@@ -8,7 +8,7 @@ metric: >
         total_days AS (
             SELECT 
                 r.id AS project_id,
-                EXTRACT(DAY FROM (MAX(c.created_at) - MIN(r.created_at)))::integer + 1 AS total_days
+                (DATE(MAX(c.created_at)) - DATE(MIN(c.created_at))) + 1 AS total_days
             FROM
                 commits c
                 INNER JOIN projects r ON c.project_id = r.id

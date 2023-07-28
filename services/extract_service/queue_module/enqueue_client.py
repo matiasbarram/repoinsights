@@ -14,6 +14,7 @@ class QueueController:
             os.environ["RABBIT_QUEUE_CURADO"],
             os.environ["RABBIT_QUEUE_PENDIENTES"],
             os.environ["RABBIT_QUEUE_MODIFICACIONES"],
+            os.environ["RABBIT_QUEUE_FAILED"],
         ]
         self.credentials = pika.PlainCredentials(self.user, self.password)
 
@@ -23,17 +24,24 @@ class QueueController:
         )
 
     def get_from_queue(self, queue="pendientes") -> Union[Dict[str, Any], None]:
-        with self._get_connection() as connection:
-            channel = connection.channel()
-            channel.queue_declare(queue=queue, durable=True)
+        connection = self._get_connection()
+        try:
+            channel = self._create_queue(connection, queue)
             method_frame, _, body = channel.basic_get(queue)
             if method_frame:
                 channel.basic_ack(method_frame.delivery_tag)
                 data = body.decode("utf-8")
                 return json.loads(data)
             else:
-                logger.info("No hay proyectos en la cola")
-                exit(0)
+                # logger.info("No hay proyectos en la cola")
+                return None
+        finally:
+            connection.close()
+
+    def _create_queue(self, connection, queue):
+        channel = connection.channel()
+        channel.queue_declare(queue=queue, durable=True)
+        return channel
 
     def check_queue(self, name):
         if name not in self.queue_names:
@@ -43,7 +51,8 @@ class QueueController:
 
     def enqueue(self, project: str, client_queue: str):
         queue = self.check_queue(client_queue)
-        with self._get_connection() as connection:
+        connection = self._get_connection()
+        try:
             channel = connection.channel()
             channel.queue_declare(queue=queue, durable=True)
             channel.basic_publish(
@@ -54,4 +63,6 @@ class QueueController:
                     delivery_mode=2,
                 ),
             )
-            logger.info(f"Project {project} published")
+            logger.info(f"Project {project} published to queue {queue}")
+        finally:
+            connection.close()

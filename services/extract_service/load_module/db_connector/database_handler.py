@@ -34,6 +34,7 @@ from services.extract_service.repoinsights.comment import (
     InsightsPullRequestComment,
     InsightsIssueComment,
 )
+from services.extract_service.load_module.db_connector.check_entity import entity_data
 from pprint import pprint
 from typing import List, Union, Dict, Any
 from sqlalchemy.orm import sessionmaker
@@ -58,7 +59,9 @@ class DatabaseHandler:
         create: Optional[bool] = True,
         **kwargs,
     ):
-        instance = self.session_temp.query(model).filter_by(**kwargs).first()
+        search_params = entity_data[model.__name__]["search_keys"]
+        search = {key: kwargs[key] for key in search_params}
+        instance = self.session_temp.query(model).filter_by(**search).first()
         if instance:
             logger.debug("Instance already exists")
             return instance

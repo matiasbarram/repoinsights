@@ -18,8 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc
 COPY Pipfile .
 COPY Pipfile.lock .
 COPY services/extract_service/ ./services/extract_service/
+COPY tokens.json ./services/extract_service/
 COPY extract.py .
 
 RUN pipenv install --system --deploy --ignore-pipfile
 
-CMD ["sleep", "infinity"]
+CMD ["python", "-u" ,"extract.py", "--debug"]

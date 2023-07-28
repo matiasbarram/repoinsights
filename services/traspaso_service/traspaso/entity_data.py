@@ -55,6 +55,7 @@ class EntityData:
                     "ext_ref_id",
                     ("forked_from", self.cache.project_id_map, Project),
                     "deleted",
+                    "private",
                 ],
                 "cache_map": self.cache.project_id_map,
             },

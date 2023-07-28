@@ -14,18 +14,30 @@ from services.extract_service.excepctions.exceptions import (
     RateLimitExceededError,
     NoMoreTokensError,
     ProjectNotFoundError,
+    GitHubError,
+    RateLimitExceededErrorPrivate,
+    InternalGitHubError,
 )
 
 REMAINING = 200
 
 
 class GitHubAPI:
-    def __init__(self):
+    def __init__(self, private_token: str | None = None):
         self.cache = Cache()
         self.tokens_handler = GHToken()
         tokens = self.tokens_handler.get_public_tokens()
         self.token = tokens[0]
-        self.headers = {"Authorization": f"token {self.token}"}
+        self.private_token = private_token
+        self.headers = self.get_headers(self.token, private_token)
+
+    def get_headers(self, token: str, private_token: str | None = None):
+        if private_token:
+            headers = {"Authorization": f"token {private_token}"}
+            return headers
+
+        headers = {"Authorization": f"token {token}"}
+        return headers
 
     def rate_limit_handling(self, func, *args, **kwargs):
         while True:
@@ -38,6 +50,12 @@ class GitHubAPI:
                     logger.critical("No more tokens")
                     self._handle_wait_time()
                     continue
+
+                except RateLimitExceededErrorPrivate:
+                    logger.critical("No more calls")
+                    self._handle_wait_time()
+                    continue
+
                 self.rate_limit_handling(func, *args, **kwargs)
 
     def update_token(self, new_token: str):
@@ -45,6 +63,9 @@ class GitHubAPI:
         self.headers["Authorization"] = f"token {self.token}"
 
     def _handle_no_more_calls(self):
+        if self.private_token:
+            logger.warning("No more calls")
+            raise RateLimitExceededErrorPrivate("No more calls")
         tokens = self.tokens_handler.get_public_tokens(only_token=False)
         for token, calls, _ in tokens:
             if calls > REMAINING:
@@ -84,33 +105,42 @@ class GitHubAPI:
         try:
             if headers is not None:
                 self.headers.update(headers)
-            response = requests.get(url, headers=self.headers, params=params)
 
+            response = requests.get(url, headers=self.headers, params=params)
+            response.raise_for_status()
             logger.debug(
-                "{name} \t {current}/{limit}",
-                current=response.headers["X-RateLimit-Remaining"],
-                limit=response.headers["X-RateLimit-Limit"],
-                name=name,
+                f"{name} \t {response.headers['X-RateLimit-Remaining']}/{response.headers['X-RateLimit-Limit']}"
             )
+
             remaining_limit = int(response.headers["X-RateLimit-Remaining"])
             if remaining_limit < REMAINING:
                 raise RateLimitExceededError("GitHub API rate limit is low.")
-
-            response.raise_for_status()
             return response
         except requests.exceptions.HTTPError as e:
+            # 401 error not authorized (private repo) or token expired.
+            # posible solution. new queue to token expired and notify user
             if (
                 e.response.status_code == 403
                 and "X-RateLimit-Remaining" in e.response.headers
                 and int(e.response.headers["X-RateLimit-Remaining"]) <= REMAINING
             ):
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
+            elif e.response.status_code == 422:
+                logger.exception("Error 422", traceback=True)
+                raise GitHubError("Error 422")
             elif e.response.status_code == 451:
                 logger.exception("Proyecto eliminado", traceback=True)
-                ProjectNotFoundError("Proyecto eliminado")
+                raise ProjectNotFoundError("Proyecto eliminado")
             elif e.response.status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
-                ProjectNotFoundError("Proyecto no encontrado")
+                raise ProjectNotFoundError("Proyecto no encontrado")
+            elif e.response.status_code == 500:
+                logger.exception("Error {number} de GitHub", traceback=True, number=500)
+                raise InternalGitHubError("Error 500")
+            elif e.response.status_code == 502:
+                logger.exception("Error {number} de GitHub", traceback=True, number=500)
+                time.sleep(60)
+                self.get(url, params=params, name=name, headers=headers)
             else:
                 raise e
 
@@ -145,17 +175,24 @@ class GitHubAPI:
                 params["until"] = format_dt(until)
 
         while url:
-            response = self.get(url, params=params, headers=headers, name=name)
-            if response is None:
-                break
+            try:
+                response = self.get(url, params=params, headers=headers, name=name)
+                if response is None:
+                    break
 
-            elementos.extend(response.json())
-            logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
-            pag += 1
-            if "next" in response.links:
-                url = response.links["next"]["url"]
-            else:
-                url = None
+                elementos.extend(response.json())
+                logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
+                pag += 1
+                if "next" in response.links:
+                    url = response.links["next"]["url"]
+                else:
+                    url = None
+            except InternalGitHubError as e:
+                logger.exception("Error 500", traceback=True)
+                pag += 1
+                params["page"] = pag
+                url = url.split("&page=")[0] + f"&page={pag}"
+                continue
         return elementos
 
     def _filtrar_por_fecha(self, elementos, since=None, until=None):
@@ -186,7 +223,8 @@ class Cache:
         value = self.redis_cache.get(key)
         return json.loads(value.decode("utf-8")) if value else None
 
-    def set(self, key, value, expiry=None):
+    def set(self, key, value):
+        expiry = 60 * 60 * 24  # 1 day
         serialized_value = json.dumps(value)
         self.redis_cache.set(key, serialized_value, ex=expiry)
 

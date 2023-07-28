@@ -1,6 +1,5 @@
 name: truck_factor
 description: Top developers that contribute to 80% of the commits.
-variables: [project_id, project_id]
 measurement: count
 metric: >
     WITH total_contributions AS (
@@ -13,6 +12,7 @@ metric: >
             commits 
         WHERE 
             project_id = %s
+            AND committer_id IS NOT NULL
         GROUP BY 
             committer_id, 
             project_id
@@ -34,15 +34,35 @@ metric: >
             ) AS rank
         FROM 
             total_contributions
+    ),
+    filtered_contributors AS (
+        SELECT 
+            project_id, 
+            committer_id, 
+            percent_contributions 
+        FROM 
+            cumulative_contributions 
+        WHERE 
+            cumulative_percent <= 80
+    ),
+    highest_contributor AS (
+        SELECT 
+            project_id, 
+            committer_id, 
+            percent_contributions
+        FROM 
+            cumulative_contributions
+        ORDER BY percent_contributions DESC
+        LIMIT 1
     )
     SELECT 
-        project_id, 
-        committer_id, 
-        percent_contributions 
+        *
     FROM 
-        cumulative_contributions 
+        filtered_contributors
+    UNION ALL
+    SELECT
+        *
+    FROM
+        highest_contributor
     WHERE 
-        cumulative_percent <= 80
-        OR rank = %s
-    ORDER BY 
-        percent_contributions DESC;
+        NOT EXISTS (SELECT 1 FROM filtered_contributors)

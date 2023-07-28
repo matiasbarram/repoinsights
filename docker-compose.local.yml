@@ -23,7 +23,6 @@ services:
       - ./${DB_SCHEMA}:/docker-entrypoint-initdb.d/01-schema.sql
       - ./${DB_DATA}:/docker-entrypoint-initdb.d/02-data.sql
       - ./constraints.sql:/docker-entrypoint-initdb.d/03-constraints.sql
-      - ./views.sql:/docker-entrypoint-initdb.d/04-views.sql
 
   temporal:
     image: postgres
@@ -57,7 +56,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.extract
-    restart: "no"
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -71,12 +70,14 @@ services:
       - PYTHONUNBUFFERED=1
     deploy:
       replicas: 2
+    volumes:
+      - ./docker/extract_service:/app/logs
 
   pendientes_service:
     build:
       context: .
       dockerfile: Dockerfile.pendientes
-    restart: "no"
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -91,7 +92,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.traspaso
-    restart: "no"
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -103,41 +104,8 @@ services:
       - TEMP_IP=temporal
       - CONSOLIDADA_IP=consolidada
       - PYTHONUNBUFFERED=1
-
-  metabase:
-    image: metabase/metabase
-    restart: always
-    ports:
-      - 8080:3000
     volumes:
-      - ./docker/metabase-data:/metabase-data
-    environment:
-      MB_DB_FILE: /metabase-data/metabase.db
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: metabase
-      MB_DB_PORT: ${MB_DB_PORT}
-      MB_DB_USER: metabase
-      MB_DB_PASS: vps228.2o22
-      MB_DB_HOST: metabase-db
-      MB_SEND_EMAIL_ON_FIRST_LOGIN_FROM_NEW_DEVICE: FALSE
-    depends_on:
-      - metabase-db
-    links:
-      - metabase-db
-
-  metabase-db:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: 'metabase'
-      POSTGRES_DB: 'metabase'
-      POSTGRES_PASSWORD: 'vps228.2o22'
-    ports:
-      - '${MB_DB_PORT}:${MB_DB_PORT}'
-    expose:
-      - '${MB_DB_PORT}'
-    volumes:
-      - ./docker/metabase-db:/var/lib/postgresql/data
+      - ./docker/trapaso_service:/app/logs
 
 volumes:
   db:
@@ -147,4 +115,5 @@ volumes:
   postgres:
   postgres-temporal:
   pgadmin-data:
+
 
