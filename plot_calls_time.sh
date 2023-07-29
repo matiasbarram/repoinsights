@@ -36,7 +36,6 @@ function create_json {
     repo_name=$1
     total_time=$2
     total_calls=$3
-
     json_string='{"repo": "'$repo_name'", "time": '$total_time', "calls": '$total_calls'}'
     echo $json_string
 }
@@ -46,7 +45,13 @@ sep=''
 for file in $(find $dir -name "*.log" -path "*extract*"); do
     repo_name=$(get_repo_name $file)
     total_time=$(log_time $file)
+    if [ $total_time -eq 0 ]; then
+        continue
+    fi
     total_calls=$(api_calls $file)
+    if [-z "$total_calls"]; then
+        continue
+    fi
     result+=$sep$(create_json "$repo_name" $total_time $total_calls)
     sep=', '
 done
