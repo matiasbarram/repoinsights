@@ -3,7 +3,7 @@
 dir=$1
 
 if [ -z "$dir" ]; then
-    echo "Uso: $0 <ruta/del/archivo.log>"
+    echo "Usage: $0 <path/to/log/file>"
     exit 1
 fi
 
@@ -17,18 +17,25 @@ function log_time {
     start_time=$(cat "$log_file" | grep "Extracting from GitHub" | awk '{print $1, $2}' | head -n 1)
     end_time=$(cat "$log_file" | grep "Project ENQUEUE to CURADO published" | awk '{print $1, $2}' | tail -n 1)
     
-    if [ -n "$start_time" ] && [ -n "$end_time" ]; then
-        start_epoch=$(date -d "$start_time" +%s)
-        end_epoch=$(date -d "$end_time" +%s)
-
-        total_time=$((end_epoch - start_epoch))
-        echo $total_time
+    if [ -z "$start_time" ] || [ -z "$end_time" ]; then
+        echo "-1"
+        return
     fi
+
+    start_epoch=$(date -d "$start_time" +%s)
+    end_epoch=$(date -d "$end_time" +%s)
+
+    total_time=$((end_epoch - start_epoch))
+    echo $total_time
 }
 
 function api_calls {
     log_file=$1
     api_calls=$(grep "services.extract_service.extract_module.github_api.github_api:get" $log_file | wc -l)
+    if [ -z "$api_calls" ]; then
+        echo "-1"
+        return
+    fi
     echo $api_calls
 }
 
@@ -45,11 +52,13 @@ sep=''
 for file in $(find $dir -name "*.log" -path "*extract*"); do
     repo_name=$(get_repo_name $file)
     total_time=$(log_time $file)
-    if [ $total_time -eq 0 ]; then
+    if [ "$total_time" -eq "-1" ]; then
+        echo "Start or End time not found in $repo_name"
         continue
     fi
     total_calls=$(api_calls $file)
-    if [-z "$total_calls"]; then
+    if [ "$total_calls" -eq "-1" ]; then
+        echo "No API calls found in $repo_name"
         continue
     fi
     result+=$sep$(create_json "$repo_name" $total_time $total_calls)
@@ -58,3 +67,4 @@ done
 result+=']'
 
 echo $result > extract_results.json
+
