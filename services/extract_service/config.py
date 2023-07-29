@@ -6,18 +6,28 @@ import requests
 from datetime import datetime
 from loguru import logger
 
+from services.extract_service.excepctions.exceptions import TokensFileError
+
 
 class GHToken:
-    def get_public_tokens(self, only_token: bool = True):
+    def __init__(self):
+        try:
+            self.tokens = self._get_tokens()
+        except Exception as e:
+            raise TokensFileError("Error al obtener tokens", e)
+
+    def _get_tokens(self):
         keys_list = []
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, "tokens.json")
         with open(file_path, "r") as keys_file:
             keys_file = json.load(keys_file)
             keys_list = keys_file["keys"]
+        return keys_list
 
+    def get_public_tokens(self, only_token: bool = True):
         tokens_with_calls = []
-        for token in keys_list:
+        for token in self.tokens:
             headers = {"Authorization": f"token {token}"}
             response = requests.get(
                 "https://api.github.com/rate_limit", headers=headers
