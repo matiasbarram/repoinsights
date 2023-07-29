@@ -28,7 +28,7 @@ function log_time {
 
 function api_calls {
     log_file=$1
-    api_calls=$(grep "services.extract_service.extract_module.github_api.github_api" $log_file | wc -l)
+    api_calls=$(grep "services.extract_service.extract_module.github_api.github_api:get" $log_file | wc -l)
     echo $api_calls
 }
 
