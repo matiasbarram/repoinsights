@@ -88,6 +88,9 @@ def main(debug: Optional[bool] = None) -> None:
     ]
 
     client = InsightsClient(data_types)
+    tokens_file = client.check_tokens()
+    if not tokens_file:
+        return
     try:
         project = client.get_from_pendientes()
         if client.attempt > 2:

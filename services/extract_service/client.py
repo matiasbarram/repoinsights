@@ -8,8 +8,9 @@ from .utils.utils import format_dt, api_date
 from services.extract_service.extract_module.extract_client import ExtractDataController
 from .queue_module.enqueue_client import QueueController
 from .load_module.load_client import LoadDataClient
-from .excepctions.exceptions import LoadError, EmptyQueueError
+from .excepctions.exceptions import LoadError, EmptyQueueError, TokensFileError
 from services.extract_service.delete_uuid import DeleteFromTemp
+from services.extract_service.config import GHToken
 
 
 class InsightsClient:
@@ -145,3 +146,11 @@ class InsightsClient:
         logger.critical("Deleting from TEMP DB")
         delete_client = DeleteFromTemp(self.uuid)
         delete_client.delete_all()
+
+    def check_tokens(self):
+        try:
+            GHToken()
+            return True
+        except TokensFileError as e:
+            logger.critical(f"Error al obtener tokens: {e}")
+            return False

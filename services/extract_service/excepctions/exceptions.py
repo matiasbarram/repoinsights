@@ -52,3 +52,7 @@ class InternalGitHubError(Exception):
 
 class QueueNotExistError(Exception):
     pass
+
+
+class TokensFileError(Exception):
+    pass
