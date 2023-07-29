@@ -48,3 +48,7 @@ class RateLimitExceededErrorPrivate(Exception):
 
 class InternalGitHubError(Exception):
     pass
+
+
+class QueueNotExistError(Exception):
+    pass

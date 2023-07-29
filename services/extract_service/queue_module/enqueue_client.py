@@ -3,6 +3,7 @@ import os
 from loguru import logger
 import json
 from typing import Dict, Any, Union
+from services.extract_service.excepctions.exceptions import QueueNotExistError
 
 
 class QueueController:
@@ -46,7 +47,7 @@ class QueueController:
     def check_queue(self, name):
         if name not in self.queue_names:
             logger.error(f"Queue {name} no existe")
-            raise Exception(f"Queue {name} no existe")
+            raise QueueNotExistError(f"Queue {name} no existe")
         return name
 
     def enqueue(self, project: str, client_queue: str):

@@ -4,6 +4,8 @@ from services.metrics_service.conn import ConsolidadaConnection
 from services.metrics_service.load_controller.load import MetricsLoader
 from psycopg2.extensions import connection
 
+from services.metrics_service.exceptions import ExtractionNotFound, RepoNotFound
+
 
 def get_extraction_id(conn: connection, uuid: str):
     cursor = conn.cursor()
@@ -15,7 +17,7 @@ def get_extraction_id(conn: connection, uuid: str):
     )
     result = cursor.fetchone()
     if result is None:
-        raise Exception("Extraction not found")
+        raise ExtractionNotFound("Extraction not found")
     extraction_id: int = result[0]
     return extraction_id
 
@@ -30,7 +32,7 @@ def get_project_id(conn: connection, project_name: str):
     )
     result = cursor.fetchone()
     if result is None:
-        raise Exception("Project not found")
+        raise RepoNotFound("Project not found")
     project_id: int = result[0]
     return project_id
 

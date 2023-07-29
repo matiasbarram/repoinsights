@@ -15,5 +15,5 @@ class ConsolidadaConnection:
         engine = create_engine(
             f"postgresql://{user}:{password}@{host}:{port}/{database}"
         )
-        Session = sessionmaker(bind=engine)
-        return Session()
+        consolidada_session = sessionmaker(bind=engine)
+        return consolidada_session()

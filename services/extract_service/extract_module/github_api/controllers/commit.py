@@ -7,6 +7,7 @@ from services.extract_service.utils.utils import (
     add_users_to_dict_keys,
 )
 from services.extract_service.extract_module.github_api.controllers.user import User
+from services.extract_service.excepctions.exceptions import GitHubError
 
 
 class Commit:
@@ -22,9 +23,6 @@ class Commit:
             return self.api.cache.get(commit_sha)  # type: ignore
 
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit_sha}"
-        logger.debug(
-            "Getting from {url} commit {commit_sha}", commit_sha=commit_sha, url=url
-        )
         commit_response = self.api.rate_limit_handling(
             self.api.get, url=url, name=f"commit {commit_sha}"
         )
@@ -32,7 +30,7 @@ class Commit:
             logger.warning(
                 "Commit {commit_sha} no encontrado", commit_sha=commit_sha, url=url
             )
-            raise Exception(f"Commit {commit_sha} no encontrado")
+            raise GitHubError(f"Commit {commit_sha} no encontrado")
 
         commit = commit_response.json()
         users = self.user_controller._get_users_for_keys(
