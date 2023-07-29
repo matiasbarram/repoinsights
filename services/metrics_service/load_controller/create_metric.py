@@ -92,7 +92,7 @@ class Metric:
         }
         for measure, agg_function in central_tendency_measures.items():
             metric_name = f"{self.name}_{measure}"
-            curs.execute(f"SELECT id FROM metrics WHERE name = %s", (metric_name,))
+            curs.execute("SELECT id FROM metrics WHERE name = %s", (metric_name,))
             agg_metric_id = curs.fetchone()
             if agg_metric_id is None:
                 raise ValueError(f"Unknown metric: {metric_name}")

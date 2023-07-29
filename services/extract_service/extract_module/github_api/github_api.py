@@ -52,7 +52,7 @@ class GitHubAPI:
                     continue
 
                 except RateLimitExceededErrorPrivate:
-                    logger.critical("No more calls")
+                    logger.critical("No more calls, API rate limit exceeded")
                     self._handle_wait_time()
                     continue
 
@@ -64,8 +64,8 @@ class GitHubAPI:
 
     def _handle_no_more_calls(self):
         if self.private_token:
-            logger.warning("No more calls")
-            raise RateLimitExceededErrorPrivate("No more calls")
+            logger.warning("Handling no more calls")
+            raise RateLimitExceededErrorPrivate("Private repo no more calls")
         tokens = self.tokens_handler.get_public_tokens(only_token=False)
         for token, calls, _ in tokens:
             if calls > REMAINING:
@@ -101,6 +101,7 @@ class GitHubAPI:
         params=None,
         name: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
+        retries: Optional[int] = 0,
     ):
         try:
             if headers is not None:
@@ -117,32 +118,72 @@ class GitHubAPI:
                 raise RateLimitExceededError("GitHub API rate limit is low.")
             return response
         except requests.exceptions.HTTPError as e:
-            # 401 error not authorized (private repo) or token expired.
-            # posible solution. new queue to token expired and notify user
+            status_code = e.response.status_code
+
             if (
-                e.response.status_code == 403
+                status_code == 403
                 and "X-RateLimit-Remaining" in e.response.headers
                 and int(e.response.headers["X-RateLimit-Remaining"]) <= REMAINING
             ):
                 raise RateLimitExceededError("GitHub API rate limit exceeded.")
-            elif e.response.status_code == 422:
-                logger.exception("Error 422", traceback=True)
-                raise GitHubError("Error 422")
-            elif e.response.status_code == 451:
+            elif status_code == 401:
+                logger.exception("Token expired", traceback=True)
+                raise GitHubError("Token expired")
+            elif status_code == 422:
+                logger.exception("Error to process petition", traceback=True)
+                raise GitHubError("Error to process petition")
+            elif status_code == 451:
                 logger.exception("Proyecto eliminado", traceback=True)
                 raise ProjectNotFoundError("Proyecto eliminado")
-            elif e.response.status_code == 404:
+            elif status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
                 raise ProjectNotFoundError("Proyecto no encontrado")
-            elif e.response.status_code == 500:
-                logger.exception("Error {number} de GitHub", traceback=True, number=500)
-                raise InternalGitHubError("Error 500")
-            elif e.response.status_code == 502:
-                logger.exception("Error {number} de GitHub", traceback=True, number=500)
+            elif status_code == 500:
+                logger.exception(
+                    "Error {number} de GitHub", traceback=True, number=status_code
+                )
+                raise InternalGitHubError("GitHub Internal Error")
+            elif status_code == 502:
+                logger.exception(
+                    "Error {number} de GitHub", traceback=True, number=status_code
+                )
                 time.sleep(60)
-                self.get(url, params=params, name=name, headers=headers)
+                retries += 1
+                if retries > 3:
+                    raise InternalGitHubError("GitHub Internal Error")
+                self.get(
+                    url, params=params, name=name, headers=headers, retries=retries
+                )
             else:
                 raise e
+
+    def _prepare_params(self, name: str, params: Optional[Dict] = None) -> Dict:
+        if params is None:
+            params = {}
+
+        params.setdefault("per_page", 100)
+
+        if params.get("since") is not None:
+            self._log_warning(name, params["since"])
+            params["since"] = self._format_datetime(params["since"])
+
+        if params.get("until") is not None:
+            params["until"] = self._format_datetime(params["until"])
+
+        return params
+
+    def _log_warning(self, name: str, since: Any) -> None:
+        logger.warning(
+            "{name} \t Since: {type} - {since}",
+            type=type(since),
+            since=since,
+            name=name,
+        )
+
+    def _format_datetime(self, dt: Any) -> Any:
+        if type(dt) == "datetime":
+            return format_dt(dt)
+        return dt
 
     def _realizar_solicitud_paginada(
         self,
@@ -151,28 +192,12 @@ class GitHubAPI:
         params: Optional[Dict] = None,
         headers: Optional[Dict[str, Any]] = None,
     ):
-        if params is None:
-            params = {}
+        params = self._prepare_params(params=params, name=name)
         if headers is None:
             headers = self.headers
 
-        params.setdefault("per_page", 100)
         elementos = []
         pag = 1
-        if params.get("since") is not None:
-            logger.warning(
-                "{name} \t Since: {type} - {since}",
-                type=type(params["since"]),
-                since=params["since"],
-                name=name,
-            )
-            since = params["since"]
-            if type(since) == "datetime":
-                params["since"] = format_dt(since)
-        if params.get("until") is not None:
-            until: datetime = params["until"]
-            if type(until) == datetime:
-                params["until"] = format_dt(until)
 
         while url:
             try:
@@ -183,17 +208,22 @@ class GitHubAPI:
                 elementos.extend(response.json())
                 logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
                 pag += 1
-                if "next" in response.links:
-                    url = response.links["next"]["url"]
-                else:
-                    url = None
+
+                url = self._get_next_url(response)
+
             except InternalGitHubError as e:
-                logger.exception("Error 500", traceback=True)
+                logger.exception("Error 500 {e}", traceback=True, e=e)
                 pag += 1
                 params["page"] = pag
                 url = url.split("&page=")[0] + f"&page={pag}"
-                continue
+
         return elementos
+
+    def _get_next_url(self, response):
+        if "next" in response.links:
+            return response.links["next"]["url"]
+        else:
+            return None
 
     def _filtrar_por_fecha(self, elementos, since=None, until=None):
         if since is None and until is None:
@@ -224,7 +254,7 @@ class Cache:
         return json.loads(value.decode("utf-8")) if value else None
 
     def set(self, key, value):
-        expiry = 60 * 60 * 24  # 1 day
+        expiry = 6 * 60 * 60
         serialized_value = json.dumps(value)
         self.redis_cache.set(key, serialized_value, ex=expiry)
 

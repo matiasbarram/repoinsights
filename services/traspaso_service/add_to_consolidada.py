@@ -99,38 +99,44 @@ class EntityHandler:
 
         return consolidada_entity.id
 
+    def _process_tuple_key(self, key, entity, search_filters):
+        attr_name, cache_map_lookup, entity_class = key
+        attr_value = getattr(entity, attr_name)
+        if attr_value is not None:
+            if attr_value in cache_map_lookup:
+                search_filters[attr_name] = cache_map_lookup[attr_value]
+            else:
+                self._log_and_search_temp(
+                    entity, entity_class, attr_name, attr_value, search_filters
+                )
+
+    def _log_and_search_temp(
+        self, entity, entity_class, attr_name, attr_value, search_filters
+    ):
+        logger.warning(
+            "{entity} \t No se encontro el {attr_name}/{attr_value} en el cache",
+            entity=entity_class.__name__,
+            attr_value=attr_value,
+            attr_name=attr_name,
+        )
+        entity_id = self.entity_data[entity_class].get("id") or "id"
+        logger.debug(
+            "Buscando {entity_class} en temp.... \t {entity_id} ---> {attr_value}",
+            entity_class=entity_class.__name__,
+            entity_id=entity_id,
+            attr_value=attr_value,
+        )
+
+        value_id = self.get_value_from_temp(entity_class, entity_id, attr_value)
+
+        if value_id is not None:
+            search_filters[attr_name] = value_id
+
     def create_filters(self, entity, sk):
         search_filters = {}
         for key in sk:
             if isinstance(key, tuple):
-                attr_name, cache_map_lookup, entity_class = key
-                attr_value = getattr(entity, attr_name)
-                if attr_value is not None:
-                    if attr_value in cache_map_lookup:
-                        search_filters[attr_name] = cache_map_lookup[attr_value]
-                    # si el attr_value no está en su caché
-                    # head_repo_id 7 en la cache self.cache.project
-                    else:
-                        logger.warning(
-                            "{entity} \t No se encontro el {attr_name}/{attr_value} en el cache",
-                            entity=entity_class.__name__,
-                            attr_value=attr_value,
-                            attr_name=attr_name,
-                        )
-                        entity_id = self.entity_data[entity_class].get("id") or "id"
-                        logger.debug(
-                            "Buscando {entity_class} en temp.... \t {entity_id} ---> {attr_value}",
-                            entity_class=entity_class.__name__,
-                            entity_id=entity_id,
-                            attr_value=attr_value,
-                        )
-
-                        value_id = self.get_value_from_temp(
-                            entity_class, entity_id, attr_value
-                        )
-
-                        if value_id is not None:
-                            search_filters[attr_name] = value_id
+                self._process_tuple_key(key, entity, search_filters)
             else:
                 search_filters[key] = getattr(entity, key)
         return search_filters

@@ -25,11 +25,9 @@ class MetricsLoader:
     def _load_metrics_for_group(self, group: MetricGroup, results: Dict):
         metrics_ids = group.get_metrics_ids()
         for metric in metrics_ids:
-            self._load_metric_results(metric, results, group.name)
+            self._load_metric_results(metric, results)
 
-    def _load_metric_results(
-        self, metric: Dict[str, Any], results: Dict, group_name: str
-    ):
+    def _load_metric_results(self, metric: Dict[str, Any], results: Dict):
         metric_results = results.get(metric["name"])
         if metric_results is None:
             return

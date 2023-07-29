@@ -26,7 +26,9 @@ class InsightsPullRequestHandler:
                 processed_pull_requests.append(self._process_pull_request(pr))
             except GitHubError as e:
                 logger.exception(
-                    f"Error al procesar pull request {pr['number']}", traceback=True
+                    f"Error al procesar pull request {pr['number']} {e}",
+                    traceback=True,
+                    e=e,
                 )
                 continue
 

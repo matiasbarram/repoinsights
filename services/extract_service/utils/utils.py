@@ -71,24 +71,32 @@ def compare_dates(d1: str, d2: str):
     return (date1 > date2) - (date1 < date2)
 
 
+def _get_nested_dict_value(dictionary: dict, keys: List[str]):
+    for key in keys[:-1]:
+        if dictionary is not None:
+            dictionary = dictionary.get(key)
+        else:
+            return None
+    return dictionary
+
+
+def _update_user_obj(user_obj: dict, users: Dict, last_key: str):
+    if user_obj[last_key] is not None:
+        try:
+            user_obj[last_key] = users[user_obj[last_key]["login"]]
+        except KeyError:
+            logger.error(f"User {user_obj[last_key]} not found")
+            user_obj[last_key] = None
+
+
 def add_users_to_dict_keys(list_dicts: List, users: Dict, user_keys: List[str]):
-    for dict in list_dicts:
+    for dictionary in list_dicts:
         for key in user_keys:
             keys = key.split(".")
-            user_obj = dict
-            for k in keys[:-1]:
-                if user_obj is not None:
-                    user_obj = user_obj.get(k)
-                else:
-                    break
+            user_obj = _get_nested_dict_value(dictionary, keys)
+
             if user_obj is not None:
-                last_key = keys[-1]
-                if user_obj[last_key] is not None:
-                    try:
-                        user_obj[last_key] = users[user_obj[last_key]["login"]]
-                    except KeyError:
-                        logger.error(f"User {user_obj[last_key]} not found")
-                        user_obj[last_key] = None
+                _update_user_obj(user_obj, users, keys[-1])
 
 
 def get_unique_users(elements, user_key: str) -> Set[str]:

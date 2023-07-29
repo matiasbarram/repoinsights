@@ -34,9 +34,9 @@ def transfer_messages(queue_client: QueueClient, type: Any, max_messages: int):
 
 
 def should_transfer_message(type: str, message: Dict[str, Any]) -> bool:
-    if type == "traspaso" and message.get("status", {}).get("type") == "traspaso":
-        return True
-    elif type == "extract" and message.get("status", {}).get("type") == "extract":
+    if (type == "traspaso" and message.get("status", {}).get("type") == "traspaso") or (
+        type == "extract" and message.get("status", {}).get("type") == "extract"
+    ):
         return True
     return False
 

@@ -50,4 +50,4 @@ class ConsolidadaHandler:
         elif action == "delete":
             self.delete_project(message)
         else:
-            raise Exception("Invalid action")
+            raise BaseException("Invalid action")
