@@ -1,4 +1,5 @@
 tokens.json
+extract_results.json
 delete_metric_data.sql
 metrics_resutls.json
 docker/
