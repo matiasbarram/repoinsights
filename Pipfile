@@ -20,7 +20,6 @@ redis = "*"
 pandas = "*"
 pylint = "*"
 pyyaml = "*"
-cryptography = "~=41.0.2"
 
 [dev-packages]
 black = "*"
