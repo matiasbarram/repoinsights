@@ -1,5 +1,30 @@
 # RepoInsights
-Software for extract, generate and visualize development process metrics
+Software to extract, generate, and visualize development process metrics.
 
-## How to run
-1. clone de project 
+This repository contains software for metric extraction and generation.
+
+## Dependencies
+1. Docker
+2. Python
+3. Pipenv
+4. Redis
+5. Postgres
+6. RabbitMQ
+
+## How to run locally with docker
+
+Our Docker compose file creates a container with all necessary dependencies ready to use.
+Steps: 
+1. Clone the project.
+2. Create a .env file based on .env.example.
+3. Add a tokens.json file to /services/extract_service.
+4. Create the containers using the docker-compose.local.yml ` docker compose -f docker-compose.local.yml up `.
+
+## Format of tokens.json 
+The tokens.json file contains the tokens to extract information from the GitHub API. 
+The GitHub API allows up to 5,000 calls per token per hour.
+tokens.json format:
+
+`{ "keys": [ "ghp_", "ghp_", "ghp_" ] } `
+
+If the token doesn't exist in the extract_service, you should see an error in the log.
