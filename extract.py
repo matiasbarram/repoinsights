@@ -3,6 +3,7 @@ import argparse
 from time import sleep
 from typing import Optional
 from loguru import logger
+import gc
 
 
 from services.extract_service.client import InsightsClient
@@ -78,6 +79,8 @@ def main(debug: Optional[bool] = None) -> None:
     "commits", "pull_requests", "issues", "labels", "stargazers", "members", "milestones
     """
     logger_client = LoggerFile(debug)
+    results = None
+    project = None
 
     data_types = [
         "commits",
@@ -104,6 +107,10 @@ def main(debug: Optional[bool] = None) -> None:
     except Exception as e:
         handle_extract_exceptions(client, e)
         return
+    finally:
+        del results
+        del project
+        gc.collect()
 
 
 if __name__ == "__main__":

@@ -1,89 +1,77 @@
 import requests
-
+import math
 from services.extract_service.config import GHToken
 
+# Set API token and headers
+token = GHToken().get_token_lowest_wait_time(only_token=True)
+headers = {"Authorization": f"Token {token}"}
 
-tokens = GHToken().get_public_tokens()
-TOKEN = tokens[0]
 # Repository to analyze
-REPO = "vitejs/vite"
-
-headers = {"Authorization": f"Token {TOKEN}"}
+REPO = "FortAwesome/Font-Awesome"
 
 
-def get_data(url):
-    response = requests.get(url, headers=headers)
+# Function to get total number of items and calculate pages
+def get_total_items_and_calculate_pages(url):
+    response = requests.get(url, headers=headers, params={"per_page": 1, "page": 1})
     if response.status_code != 200:
+        print(response.json())
         raise Exception(f"Request failed with status {response.status_code}")
-    return response.json(), response.headers
 
-
-def get_number_of_pages(url):
-    data, response_headers = get_data(url)
-    if "link" in response_headers:
-        pages = {
-            rel[6:-1]: url[url.index("<") + 1 : -1]
-            for url, rel in (
-                link.split(";") for link in response_headers["link"].split(",")
-            )
-        }
-        return int(pages["last"].split("=")[-1])
+    if "Link" in response.headers:
+        link_header = response.headers["Link"]
+        # Parse link header to get last page
+        links = link_header.split(", ")
+        last_link = [link for link in links if 'rel="last"' in link][0]
+        last_page = last_link.split("&page=")[1].split(">")[0]
+        total_items = int(last_page)
     else:
-        return 1
+        items = response.json()
+        total_items = len(items)
+    if total_items == 0:
+        total_pages = 1
+    else:
+        total_pages = math.ceil(total_items / 100)
+    print(f"{url} Total items: {total_items}, total pages: {total_pages}")
+    return total_items, total_pages
 
 
-# Get number of commits
-commit_url = f"https://api.github.com/repos/{REPO}/commits?per_page=1&page=1"
-commit_pages = get_number_of_pages(commit_url)
+# Define API endpoints
+endpoints = {
+    "commits": f"https://api.github.com/repos/{REPO}/commits",
+    "commit_comments": f"https://api.github.com/repos/{REPO}/comments",
+    "pull_requests": f"https://api.github.com/repos/{REPO}/pulls?state=all",
+    "pull_request_comments": f"https://api.github.com/repos/{REPO}/pulls/comments",
+    "issues": f"https://api.github.com/repos/{REPO}/issues",
+    "issue_comments": f"https://api.github.com/repos/{REPO}/issues/comments",
+    "labels": f"https://api.github.com/repos/{REPO}/labels",
+    "milestones": f"https://api.github.com/repos/{REPO}/milestones",
+}
 
-# Get number of commit comments
-commit_comments_url = f"https://api.github.com/repos/{REPO}/comments?per_page=1&page=1"
-commit_comments_pages = get_number_of_pages(commit_comments_url)
+total_calls = 0
+total_issues = 0
+total_prs = 0
+for name, url in endpoints.items():
+    total_items, total_pages = get_total_items_and_calculate_pages(url)
+    if name == "issues":
+        total_issues = total_items
+    if name == "pull_requests":
+        total_prs = total_items
 
-# Get number of pull requests
-pr_url = f"https://api.github.com/repos/{REPO}/pulls?per_page=1&page=1"
-pr_pages = get_number_of_pages(pr_url)
+    if name == "pull_requests":
+        total_calls += total_pages + (6 * total_items)
+    elif name == "commits":
+        total_calls += total_pages + (2 * total_items)
+    elif name == "issues":
+        total_calls += total_pages + (4 * total_items)
+    elif name == "issue_comments":
+        total_calls += total_pages + (2 * total_issues)
+    elif name == "commit_comments":
+        total_calls += total_pages + total_items
+    elif name in ["pull_request_comments"]:
+        total_calls += total_pages + total_prs
+    else:
+        total_calls += total_pages
 
-# Get number of pull request comments
-pr_comments_url = (
-    f"https://api.github.com/repos/{REPO}/pulls/comments?per_page=1&page=1"
-)
-pr_comments_pages = get_number_of_pages(pr_comments_url)
+total_calls += 2
 
-# For each PR, you have to call at least 1 and at most 3 commit pages
-# I use the average of 2 here
-pr_commit_pages = 2 * pr_pages
-
-# Get number of issues
-issues_url = f"https://api.github.com/repos/{REPO}/issues?per_page=1&page=1"
-issues_pages = get_number_of_pages(issues_url)
-
-# Get number of issue comments
-issue_comments_url = (
-    f"https://api.github.com/repos/{REPO}/issues/comments?per_page=1&page=1"
-)
-issue_comments_pages = get_number_of_pages(issue_comments_url)
-
-# Get number of labels
-labels_url = f"https://api.github.com/repos/{REPO}/labels?per_page=1&page=1"
-labels_pages = get_number_of_pages(labels_url)
-
-# Get number of milestones
-milestones_url = f"https://api.github.com/repos/{REPO}/milestones?per_page=1&page=1"
-milestones_pages = get_number_of_pages(milestones_url)
-
-# Calculate total
-total = (
-    2
-    + 3 * commit_pages
-    + 2 * commit_comments_pages
-    + 9 * pr_pages
-    + 2 * pr_comments_pages
-    + pr_commit_pages
-    + 3 * issues_pages
-    + issue_comments_pages
-    + labels_pages
-    + milestones_pages
-)
-
-print(f"Total API calls: {total}")
+print(f"Total API calls: {total_calls}")

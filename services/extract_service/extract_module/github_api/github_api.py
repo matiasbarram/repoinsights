@@ -144,6 +144,7 @@ class GitHubAPI:
                 )
                 raise InternalGitHubError("GitHub Internal Error")
             elif status_code == 502:
+                retries = 0 if retries is None else retries
                 logger.exception(
                     "Error {number} de GitHub", traceback=True, number=status_code
                 )

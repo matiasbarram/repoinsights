@@ -36,10 +36,10 @@ class InsightsPullRequestHandler:
 
     def _process_pull_request(self, pr: Dict[str, Any]):
         gh_pr = InsightsPullRequest(pr)
-        self.set_pull_request_commits(gh_pr)
+        self._set_pull_request_commits(gh_pr)
         return gh_pr
 
-    def set_pull_request_commits(self, pull_request: InsightsPullRequest) -> None:
+    def _set_pull_request_commits(self, pull_request: InsightsPullRequest) -> None:
         base_commit = InsightsCommit(
             self.repo.obtener_commit(pull_request.base_commit_sha)
         )
