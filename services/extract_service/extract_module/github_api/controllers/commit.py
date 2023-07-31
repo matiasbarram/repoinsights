@@ -20,7 +20,9 @@ class Commit:
     def obtener_commit(self, commit_sha: str) -> Dict[str, Any]:
         if self.api.cache.has(commit_sha):
             logger.debug("Getting commit cacheado {commit_sha}", commit_sha=commit_sha)
-            return self.api.cache.get(commit_sha)  # type: ignore
+            cached_commit = self.api.cache.get(commit_sha)
+            if cached_commit is not None:
+                return cached_commit
 
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{commit_sha}"
         commit_response = self.api.rate_limit_handling(

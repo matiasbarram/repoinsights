@@ -16,7 +16,7 @@ class User:
     def obtener_usuario(self, usuario: str) -> Union[Dict[str, Any], None]:
         if self.api.cache.has(usuario):
             logger.debug("Getting usuario cacheado {commit_sha}", commit_sha=usuario)
-            return self.api.cache.get(usuario)  # type: ignore
+            return self.api.cache.get(usuario)
 
         url = f"https://api.github.com/users/{usuario}"
         try:

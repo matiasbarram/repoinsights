@@ -70,6 +70,9 @@ class ExtractDataController:
 
         elif data_type == "project":
             project = self.repo_handler.get_main_repo()
+            if project.owner is None:
+                raise RepoNotFound("Repo not found")
+
             logger.info("Project owner: {owner}", owner=project.owner.login)
             return {"name": "project", "data": project}
 

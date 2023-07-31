@@ -21,11 +21,11 @@ class Issue:
         state: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         url = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/issues"
-        params = {"per_page": 100}
+        params: Dict[str, Any] = {"per_page": 100}
         if state:
-            params["state"] = state  # type: ignore
+            params["state"] = state
         if since:
-            params["since"] = since  # type: ignore
+            params["since"] = since
 
         issues = self.api.rate_limit_handling(
             self.api._realizar_solicitud_paginada,
