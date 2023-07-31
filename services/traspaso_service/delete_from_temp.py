@@ -108,7 +108,6 @@ class DeleteFromTemp:
         self.delete_followers()
         self.delete_watchers()
         self.delete_milestones()
-        self.delete_labels()
         self.delete_pr_history()
         self.delete_pr_comments()
         self.delete_issue_labels()
@@ -124,3 +123,4 @@ class DeleteFromTemp:
         self.delete_extractions()
         self.delete_projects()
         self.delete_users()
+        self.delete_labels()
