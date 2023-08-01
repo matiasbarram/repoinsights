@@ -14,7 +14,7 @@ function get_repo_name {
 
 function log_time {
     log_file=$1
-    start_time=$(cat "$log_file" | grep "Extracting from GitHub" | awk '{print $1, $2}' | head -n 1)
+    start_time=$(cat "$log_file" | grep "Extracting from GitHub" | grep "DESDE -> None" | awk '{print $1, $2}' | head -n 1)
     end_time=$(cat "$log_file" | grep "Project ENQUEUE to CURADO published" | awk '{print $1, $2}' | tail -n 1)
     
     if [ -z "$start_time" ] || [ -z "$end_time" ]; then
