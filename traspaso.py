@@ -71,7 +71,6 @@ def main() -> None:
     try:
         project = queue_client.get_from_queue_curado()
     except EmptyQueueError:
-        # print("No hay proyectos en la cola")
         return
 
     except Exception as e:
@@ -97,8 +96,11 @@ def main() -> None:
             project,
             queue_client,
         )
+    finally:
+        db_handler.close()
 
     DeleteFromTemp(uuid).delete_all()
+
     logger.info(
         "Proyecto eliminado de la base de datos temporal {project}", project=project
     )
@@ -108,5 +110,4 @@ if __name__ == "__main__":
     sleep_time = 60
     while True:
         main()
-        print(f"Esperando {sleep_time} segundos")
         sleep(sleep_time)

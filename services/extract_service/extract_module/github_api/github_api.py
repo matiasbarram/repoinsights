@@ -20,6 +20,8 @@ from services.extract_service.excepctions.exceptions import (
 )
 
 REMAINING = 200
+MAX_RETRIES_500 = 10
+MAX_RETRIES_502 = 3
 
 
 class GitHubAPI:
@@ -138,11 +140,20 @@ class GitHubAPI:
             elif status_code == 404:
                 logger.exception("Proyecto no encontrado", traceback=True)
                 raise ProjectNotFoundError("Proyecto no encontrado")
+            # Handle errrors Bad Gateway - Try 10 times and then go the the next PR.
             elif status_code == 500:
+                retries = 0 if retries is None else retries
                 logger.exception(
                     "Error {number} de GitHub", traceback=True, number=status_code
                 )
-                raise InternalGitHubError("GitHub Internal Error")
+                time.sleep(60)
+                retries += 1
+                if retries > MAX_RETRIES_500:
+                    raise GitHubError("GitHub Internal Error")
+                self.get(
+                    url, params=params, name=name, headers=headers, retries=retries
+                )
+            # Handle errrors Bad Gateway - Try 3 times and then raise to get the next page
             elif status_code == 502:
                 retries = 0 if retries is None else retries
                 logger.exception(
@@ -150,7 +161,7 @@ class GitHubAPI:
                 )
                 time.sleep(60)
                 retries += 1
-                if retries > 3:
+                if retries > MAX_RETRIES_502:
                     raise InternalGitHubError("GitHub Internal Error")
                 self.get(
                     url, params=params, name=name, headers=headers, retries=retries
@@ -209,11 +220,10 @@ class GitHubAPI:
                 elementos.extend(response.json())
                 logger.info(f"{name} Pagina {pag}: {len(response.json())} elementos")
                 pag += 1
-
                 url = self._get_next_url(response)
 
-            except InternalGitHubError as e:
-                logger.exception("Error 500 {e}", traceback=True, e=e)
+            except (InternalGitHubError, GitHubError) as e:
+                logger.exception("GitHub error, next page... {e}", traceback=True, e=e)
                 pag += 1
                 params["page"] = pag
                 url = url.split("&page=")[0] + f"&page={pag}"

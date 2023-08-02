@@ -125,3 +125,5 @@ class DeleteFromTemp:
         self.delete_extractions()
         self.delete_projects()
         self.delete_users()
+
+        self.db.close()

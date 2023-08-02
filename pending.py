@@ -18,9 +18,7 @@ def main(debug: bool):
     pending_projects = PendingProjectsController(db_connector)
     queue_client = QueueController()
     queue_client.connect()
-    projects = (
-        pending_projects.get_json_projects() if debug else pending_projects.get_updated_projects()
-    )
+    projects = pending_projects.get_updated_projects()
     for project in projects:
         queue_client.enqueue(project)
 

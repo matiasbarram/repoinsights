@@ -1,16 +1,21 @@
-from services.pending_service.db_controller import DBController
-from services.pending_service.models import Project, Commit, Extraction
-from sqlalchemy.orm import sessionmaker, aliased
-from loguru import logger
-from datetime import datetime
-from sqlalchemy.sql.schema import Column
-from sqlalchemy import func, and_, asc
-from sqlalchemy.sql.functions import coalesce
-
 from typing import List, Union, Dict, Any
 from .utils import format_dt
 from pprint import pprint
 import json
+from sqlalchemy.orm import sessionmaker, aliased
+from loguru import logger
+from datetime import datetime, timedelta
+
+from sqlalchemy.sql.schema import Column
+from sqlalchemy import func, and_, asc
+from sqlalchemy.sql.functions import coalesce
+
+from services.pending_service.db_controller import DBController
+from services.pending_service.models import Project, Commit, Extraction
+
+DELTA_DAYS = 15
+
+DATE_MARGIN = datetime.utcnow().date() - timedelta(days=DELTA_DAYS)
 
 
 class PendingProjectsController:
@@ -19,7 +24,7 @@ class PendingProjectsController:
         self.session_maker = sessionmaker(bind=connector.engine)
         self.db_session = self.session_maker()
 
-    def get_updated_projects(self) -> List[Dict[str, Any]]:
+    def get_projects_with_dates(self):
         enqueue_list = []
         extraction_alias = aliased(Extraction)
         commit_alias = aliased(Commit)
@@ -58,11 +63,16 @@ class PendingProjectsController:
                     last_extractions.c.max_extraction_date,
                     last_commits.c.max_commit_date,
                 )
-                < datetime.utcnow().date()
+                < DATE_MARGIN
             )
             .order_by(asc("last_activity_date"))
             .all()
         )
+        return projects_with_dates
+
+    def get_updated_projects(self) -> List[Dict[str, Any]]:
+        enqueue_list = []
+        projects_with_dates = self.get_projects_with_dates()
         for project, last_activity_date in projects_with_dates:
             enqueue_list.append(
                 {
@@ -76,9 +86,3 @@ class PendingProjectsController:
                 }
             )
         return enqueue_list
-
-    def get_json_projects(self) -> List[Dict[str, Any]]:
-        logger.info("Getting test projects")
-        with open("test_projects.json") as f:
-            projects = json.load(f)
-        return projects

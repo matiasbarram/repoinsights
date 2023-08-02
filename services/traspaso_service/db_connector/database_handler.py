@@ -68,3 +68,7 @@ class DatabaseHandler:
         else:
             logger.debug("Instance does not exist and not created")
             return None
+
+    def close(self):
+        self.session_consolidada.close()
+        self.session_temp.close()
