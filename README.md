@@ -28,3 +28,8 @@ tokens.json format:
 `{ "keys": [ "ghp_", "ghp_", "ghp_" ] } `
 
 If the token doesn't exist in the extract_service, you should see an error in the log.
+
+# Documentation
+The documentation is available in the docs folder.
+1. [Metabase](docs/metabase.md)
+2. [Consolidada database](docs/consolidada.md)
