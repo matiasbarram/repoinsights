@@ -25,7 +25,7 @@ El respaldo de la base de datos de Metabase se realiza de forma manual.
 
 ```
 Se debe reemplazar las variables de entorno por los valores correspondientes.
-** Importante: El usuario y la contraseña deben ser los mismos que se utilizaron para crear la base de datos de Metabase. El puerto puede ser el mismo o diferente. Para solicitar la información contactarse con matias.barra64@gmail.com **
+**Importante: El usuario y la contraseña deben ser los mismos que se utilizaron para crear la base de datos de Metabase. El puerto puede ser el mismo o diferente. Para solicitar la información contactarse con matias.barra64@gmail.com**
 
 3. Utilizar el comando pg_restore para restaurar la base de datos. El comando es el siguiente:
 ```bash
