@@ -5,18 +5,35 @@ This repository contains software for metric extraction and generation.
 
 ## Dependencies
 1. Docker
-2. Python
+2. Python 3.13+
 3. Pipenv
 4. Redis
 5. Postgres
 6. RabbitMQ
+
+## Setup
+
+### Python environment
+
+```bash
+pip install pipenv
+pipenv install
+pipenv shell
+```
+
+Tested with Python 3.13. If something breaks, revert to the previous `Pipfile` with `git checkout HEAD~1 Pipfile`.
+
+### Notable dependency versions
+- SQLAlchemy 2.x
+- PyGithub 2.x
+- psycopg2-binary 2.9.x (no libpq required)
 
 ## How to run locally with Docker
 
 Our Docker compose file creates a container with all necessary dependencies ready to use.
 Steps: 
 1. Clone the project.
-2. Create a `.env` file based on .env.example.
+2. Create a `.env` file based on `.env.example`.
 3. Add a `tokens.json` file to `/services/extract_service`.
 4. Create the containers using the docker-compose.local.yml ` docker compose -f docker-compose.local.yml up `.
 
